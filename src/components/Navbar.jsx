@@ -2,9 +2,26 @@ import { Link, NavLink } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import brandLogo from "../asset/brand-logo.svg";
+import {
+  BriefcaseBusiness,
+  Contact,
+  FileText,
+  LogIn,
+  LogOut,
+  Bookmark,
+  User,
+  LayoutDashboard,
+  CircleUserRound,
+  PlusCircle,
+  FolderKanban,
+  UserSearch,
+  UserPlus
+} from "lucide-react";
 
 const linkClass = ({ isActive }) =>
-  `rounded-md px-3 py-2 text-sm ${isActive ? "bg-emerald-600 text-white" : "text-slate-700 hover:bg-slate-100"}`;
+  `inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm ${
+    isActive ? "bg-emerald-600 text-white" : "text-slate-700 hover:bg-slate-100"
+  }`;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
 
@@ -28,16 +45,20 @@ const Navbar = () => {
 
         <nav className="flex items-center gap-2">
           <NavLink to="/jobs" className={linkClass}>
+            <BriefcaseBusiness size={15} />
             Jobs
           </NavLink>
           <NavLink to="/contact" className={linkClass}>
+            <Contact size={15} />
             Contact
           </NavLink>
           <NavLink to="/about" className={linkClass}>
+            <FileText size={15} />
             About
           </NavLink>
           {user?.role === "admin" && (
             <NavLink to="/admin" className={linkClass}>
+              <LayoutDashboard size={15} />
               Admin
             </NavLink>
           )}
@@ -70,29 +91,33 @@ const Navbar = () => {
                       <Link
                         to="/seeker-profile"
                         onClick={() => setMenuOpen(false)}
-                        className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
                       >
+                        <User size={15} />
                         My Profile
                       </Link>
                       <Link
                         to="/seeker-resume"
                         onClick={() => setMenuOpen(false)}
-                        className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
                       >
+                        <FileText size={15} />
                         My Resume
                       </Link>
                       <Link
                         to="/my-applications"
                         onClick={() => setMenuOpen(false)}
-                        className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
                       >
+                        <FolderKanban size={15} />
                         My Applications
                       </Link>
                       <Link
                         to="/saved-jobs"
                         onClick={() => setMenuOpen(false)}
-                        className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
                       >
+                        <Bookmark size={15} />
                         Saved Jobs
                       </Link>
                     </>
@@ -102,29 +127,33 @@ const Navbar = () => {
                       <Link
                         to="/employer-profile"
                         onClick={() => setMenuOpen(false)}
-                        className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
                       >
+                        <CircleUserRound size={15} />
                         Employer Profile
                       </Link>
                       <Link
                         to="/post-job"
                         onClick={() => setMenuOpen(false)}
-                        className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
                       >
+                        <PlusCircle size={15} />
                         Post Job
                       </Link>
                       <Link
                         to="/my-jobs"
                         onClick={() => setMenuOpen(false)}
-                        className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
                       >
+                        <FolderKanban size={15} />
                         My Jobs
                       </Link>
                       <Link
                         to="/employer-applications"
                         onClick={() => setMenuOpen(false)}
-                        className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
                       >
+                        <UserSearch size={15} />
                         Job Seeker Applications
                       </Link>
                     </>
@@ -135,8 +164,9 @@ const Navbar = () => {
                       setMenuOpen(false);
                       logout();
                     }}
-                    className="w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
                   >
+                    <LogOut size={15} />
                     Logout
                   </button>
                 </div>
@@ -145,9 +175,11 @@ const Navbar = () => {
           ) : (
             <>
               <NavLink to="/login" className={linkClass}>
+                <LogIn size={15} />
                 Login
               </NavLink>
               <NavLink to="/register" className={linkClass}>
+                <UserPlus size={15} />
                 Register
               </NavLink>
             </>

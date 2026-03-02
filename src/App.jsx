@@ -18,6 +18,8 @@ import EmployerApplications from "./pages/EmployerApplications";
 import EmployerCandidateProfile from "./pages/EmployerCandidateProfile";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsConditions from "./pages/TermsConditions";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
@@ -27,6 +29,8 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<ContactUs />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-conditions" element={<TermsConditions />} />
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/jobs/:id" element={<JobDetails />} />
         <Route path="/login" element={<Login />} />

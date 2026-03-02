@@ -2,6 +2,14 @@
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import {
+  ArrowLeft,
+  Bookmark,
+  BookmarkCheck,
+  Printer,
+  Share2,
+  Send
+} from "lucide-react";
 
 const tabs = [
   "All",
@@ -21,14 +29,18 @@ const formatDate = (value) => {
   });
 };
 
-const IconButton = ({ title, icon, label, onClick }) => (
+const IconButton = ({ title, icon, label, onClick, active }) => (
   <button
     type="button"
     onClick={onClick}
-    className="inline-flex items-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+    className={`inline-flex items-center gap-1 rounded-md border px-3 py-2 text-sm ${
+      active
+        ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+        : "border-slate-300 text-slate-700 hover:bg-slate-100"
+    }`}
     title={title}
   >
-    <span aria-hidden="true">{icon}</span>
+    {icon}
     <span>{label}</span>
   </button>
 );
@@ -134,7 +146,7 @@ const JobDetails = () => {
             onClick={() => navigate("/jobs")}
             className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
           >
-            <span aria-hidden="true">←</span>
+            <ArrowLeft size={16} />
             Back to Jobs
           </button>
 
@@ -142,12 +154,13 @@ const JobDetails = () => {
             <div className="flex flex-wrap items-center gap-2">
               <IconButton
                 title="Save Job"
-                icon={isSaved ? "★" : "☆"}
+                icon={isSaved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
                 label={isSaved ? "Saved" : "Save Job"}
                 onClick={toggleSaveJob}
+                active={isSaved}
               />
-              <IconButton title="Share Job" icon="↗" label="Share" onClick={shareJob} />
-              <IconButton title="Print Job" icon="🖨" label="Print" onClick={printJob} />
+              <IconButton title="Share Job" icon={<Share2 size={16} />} label="Share" onClick={shareJob} />
+              <IconButton title="Print Job" icon={<Printer size={16} />} label="Print" onClick={printJob} />
             </div>
           ) : null}
         </div>
@@ -162,7 +175,8 @@ const JobDetails = () => {
           </div>
 
           {user?.role === "seeker" ? (
-            <button onClick={apply} className="rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
+            <button onClick={apply} className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
+              <Send size={15} />
               Apply Now
             </button>
           ) : null}

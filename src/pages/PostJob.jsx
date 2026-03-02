@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PlusCircle } from "lucide-react";
 import api from "../api/client";
 
 const PostJob = () => {
@@ -101,7 +102,10 @@ const PostJob = () => {
           />
           Applicants are encouraged to submit Video CV
         </label>
-        <button className="w-fit rounded-md bg-emerald-600 px-4 py-2 text-white" type="submit">Publish</button>
+        <button className="inline-flex w-fit items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white" type="submit">
+          <PlusCircle size={16} />
+          Publish
+        </button>
       </form>
       {message ? <p className="mt-3 text-sm">{message}</p> : null}
     </section>
