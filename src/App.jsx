@@ -9,6 +9,7 @@ import PostJob from "./pages/PostJob";
 import MyJobs from "./pages/MyJobs";
 import MyJobDetails from "./pages/MyJobDetails";
 import MyApplications from "./pages/MyApplications";
+import SavedJobs from "./pages/SavedJobs";
 import AdminDashboard from "./pages/AdminDashboard";
 import SeekerProfile from "./pages/SeekerProfile";
 import SeekerResume from "./pages/SeekerResume";
@@ -83,6 +84,14 @@ const App = () => {
           element={
             <ProtectedRoute roles={["seeker", "admin"]}>
               <MyApplications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/saved-jobs"
+          element={
+            <ProtectedRoute roles={["seeker", "admin"]}>
+              <SavedJobs />
             </ProtectedRoute>
           }
         />

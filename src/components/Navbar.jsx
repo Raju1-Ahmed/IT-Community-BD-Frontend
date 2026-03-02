@@ -88,6 +88,13 @@ const Navbar = () => {
                       >
                         My Applications
                       </Link>
+                      <Link
+                        to="/saved-jobs"
+                        onClick={() => setMenuOpen(false)}
+                        className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                      >
+                        Saved Jobs
+                      </Link>
                     </>
                   ) : null}
                   {user.role === "employer" ? (

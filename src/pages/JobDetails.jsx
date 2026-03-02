@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
@@ -21,21 +21,40 @@ const formatDate = (value) => {
   });
 };
 
+const IconButton = ({ title, icon, label, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="inline-flex items-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+    title={title}
+  >
+    <span aria-hidden="true">{icon}</span>
+    <span>{label}</span>
+  </button>
+);
+
 const JobDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [job, setJob] = useState(null);
   const [coverLetter, setCoverLetter] = useState("");
   const [message, setMessage] = useState("");
   const [activeTab, setActiveTab] = useState("All");
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       const { data } = await api.get(`/jobs/${id}`);
       setJob(data.job);
+
+      if (user?.role === "seeker") {
+        const savedState = await api.get(`/saved-jobs/check/${id}`);
+        setIsSaved(Boolean(savedState?.data?.saved));
+      }
     };
     load();
-  }, [id]);
+  }, [id, user?.role]);
 
   const apply = async () => {
     try {
@@ -44,6 +63,38 @@ const JobDetails = () => {
     } catch (err) {
       setMessage(err?.response?.data?.message || "Apply failed.");
     }
+  };
+
+  const toggleSaveJob = async () => {
+    try {
+      const { data } = await api.post(`/saved-jobs/${id}`);
+      setIsSaved(Boolean(data.saved));
+      setMessage(data.message || "Saved job updated.");
+    } catch (err) {
+      setMessage(err?.response?.data?.message || "Could not update saved job.");
+    }
+  };
+
+  const shareJob = async () => {
+    const shareUrl = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${job?.title || "Job"} - ${job?.companyName || ""}`,
+          text: "Check out this job post",
+          url: shareUrl
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        setMessage("Job link copied to clipboard.");
+      }
+    } catch (_error) {
+      setMessage("Share cancelled or failed.");
+    }
+  };
+
+  const printJob = () => {
+    window.print();
   };
 
   const summaryRows = useMemo(() => {
@@ -77,6 +128,30 @@ const JobDetails = () => {
   return (
     <section className="space-y-4">
       <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => navigate("/jobs")}
+            className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+          >
+            <span aria-hidden="true">←</span>
+            Back to Jobs
+          </button>
+
+          {user?.role === "seeker" ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <IconButton
+                title="Save Job"
+                icon={isSaved ? "★" : "☆"}
+                label={isSaved ? "Saved" : "Save Job"}
+                onClick={toggleSaveJob}
+              />
+              <IconButton title="Share Job" icon="↗" label="Share" onClick={shareJob} />
+              <IconButton title="Print Job" icon="🖨" label="Print" onClick={printJob} />
+            </div>
+          ) : null}
+        </div>
+
         <p className="text-sm text-slate-500">{job.companyName}</p>
         <h2 className="mt-1 text-3xl font-bold text-slate-900">{job.title}</h2>
 
