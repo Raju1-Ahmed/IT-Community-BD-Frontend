@@ -1,0 +1,17 @@
+<svg width="420" height="120" viewBox="0 0 420 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g1" x1="16" y1="8" x2="112" y2="104" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10B981"/>
+      <stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="104" height="104" rx="24" fill="url(#g1)"/>
+  <path d="M33 35H87V45H33V35ZM45 55H75V65H45V55ZM39 75H81V85H39V75Z" fill="white"/>
+  <circle cx="90" cy="30" r="8" fill="#F8FAFC" fill-opacity="0.85"/>
+  <text x="130" y="52" fill="#0F172A" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="700">
+    IT Community BD
+  </text>
+  <text x="130" y="82" fill="#475569" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="500">
+    Bangladesh IT Jobs Platform
+  </text>
+</svg>
