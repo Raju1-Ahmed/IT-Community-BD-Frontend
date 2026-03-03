@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api/client";
 
 const AdminDashboard = () => {
@@ -6,22 +7,25 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [contacts, setContacts] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
   const loadAdminData = async () => {
     setLoading(true);
     try {
-      const [statsRes, usersRes, jobsRes, appsRes] = await Promise.all([
+      const [statsRes, usersRes, jobsRes, appsRes, contactsRes] = await Promise.all([
         api.get("/admin/stats"),
         api.get("/admin/users"),
         api.get("/admin/jobs"),
-        api.get("/admin/applications")
+        api.get("/admin/applications"),
+        api.get("/admin/contact-messages")
       ]);
       setStats(statsRes.data.stats || null);
       setUsers(usersRes.data.users || []);
       setJobs(jobsRes.data.jobs || []);
       setApplications(appsRes.data.applications || []);
+      setContacts(contactsRes.data.messages || []);
       setMessage("");
     } catch (error) {
       setMessage(error?.response?.data?.message || "Failed to load admin data");
@@ -59,17 +63,27 @@ const AdminDashboard = () => {
   return (
     <section className="space-y-6">
       <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="text-2xl font-bold">Admin Dashboard</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold">Website Admin Panel</h2>
+            <p className="text-sm text-slate-600">Owner controls for users, jobs, applications, premium and contact inbox.</p>
+          </div>
+          <Link to="/admin/premium-queue" className="rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
+            Open Premium Queue
+          </Link>
+        </div>
         {message ? <p className="mt-2 text-sm text-slate-700">{message}</p> : null}
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-8">
         <StatCard label="Users" value={stats?.users} />
         <StatCard label="Employers" value={stats?.employers} />
         <StatCard label="Seekers" value={stats?.seekers} />
         <StatCard label="Jobs" value={stats?.jobs} />
         <StatCard label="Active Jobs" value={stats?.activeJobs} />
         <StatCard label="Applications" value={stats?.applications} />
+        <StatCard label="Contacts" value={stats?.contactMessages} />
+        <StatCard label="Premium Pending" value={stats?.premiumPendingReview} />
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-5">
@@ -162,6 +176,32 @@ const AdminDashboard = () => {
                   <td className="p-2">{application.candidate?.email || "N/A"}</td>
                   <td className="p-2">{application.job?.title || "N/A"}</td>
                   <td className="p-2">{application.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <h3 className="text-xl font-semibold">Contact Inbox</h3>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="p-2">Name</th>
+                <th className="p-2">Email</th>
+                <th className="p-2">Subject</th>
+                <th className="p-2">Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              {contacts.map((c) => (
+                <tr key={c._id} className="border-t border-slate-200">
+                  <td className="p-2">{c.name}</td>
+                  <td className="p-2">{c.email}</td>
+                  <td className="p-2">{c.subject || "N/A"}</td>
+                  <td className="p-2 max-w-xs truncate" title={c.message}>{c.message}</td>
                 </tr>
               ))}
             </tbody>

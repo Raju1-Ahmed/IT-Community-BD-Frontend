@@ -15,7 +15,8 @@ import {
   PlusCircle,
   FolderKanban,
   UserSearch,
-  UserPlus
+  UserPlus,
+  Gem
 } from "lucide-react";
 
 const linkClass = ({ isActive }) =>
@@ -120,6 +121,14 @@ const Navbar = () => {
                         <Bookmark size={15} />
                         Saved Jobs
                       </Link>
+                      <Link
+                        to="/dashboard/premium"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                      >
+                        <Gem size={15} />
+                        Premium Dashboard
+                      </Link>
                     </>
                   ) : null}
                   {user.role === "employer" ? (
@@ -156,7 +165,25 @@ const Navbar = () => {
                         <UserSearch size={15} />
                         Job Seeker Applications
                       </Link>
+                      <Link
+                        to="/dashboard/premium/talent"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                      >
+                        <Gem size={15} />
+                        Verified Talent
+                      </Link>
                     </>
+                  ) : null}
+                  {user.role === "admin" ? (
+                    <Link
+                      to="/admin/premium-queue"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                    >
+                      <Gem size={15} />
+                      Premium Queue
+                    </Link>
                   ) : null}
                   <button
                     type="button"

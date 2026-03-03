@@ -20,6 +20,13 @@ import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
+import PremiumProfileView from "./dashboard/PremiumProfileView";
+import PremiumProfileForm from "./dashboard/PremiumProfileForm";
+import PremiumBilling from "./dashboard/PremiumBilling";
+import PremiumReactivate from "./dashboard/PremiumReactivate";
+import AdminPremiumQueue from "./dashboard/AdminPremiumQueue";
+import PremiumTalentDirectory from "./dashboard/PremiumTalentDirectory";
+import PremiumTalentDetails from "./dashboard/PremiumTalentDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
@@ -116,10 +123,66 @@ const App = () => {
           }
         />
         <Route
+          path="/dashboard/premium"
+          element={
+            <ProtectedRoute roles={["seeker", "admin"]}>
+              <PremiumProfileView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/premium/form"
+          element={
+            <ProtectedRoute roles={["seeker", "admin"]}>
+              <PremiumProfileForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/premium/billing"
+          element={
+            <ProtectedRoute roles={["seeker", "admin"]}>
+              <PremiumBilling />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/premium/reactivate"
+          element={
+            <ProtectedRoute roles={["seeker", "admin"]}>
+              <PremiumReactivate />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/premium/talent"
+          element={
+            <ProtectedRoute roles={["employer", "admin"]}>
+              <PremiumTalentDirectory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/premium/talent/:id"
+          element={
+            <ProtectedRoute roles={["employer", "admin"]}>
+              <PremiumTalentDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin"
           element={
             <ProtectedRoute roles={["admin"]}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/premium-queue"
+          element={
+            <ProtectedRoute roles={["admin"]}>
+              <AdminPremiumQueue />
             </ProtectedRoute>
           }
         />
