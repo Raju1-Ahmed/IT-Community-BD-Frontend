@@ -122,12 +122,12 @@ const Navbar = () => {
                         Saved Jobs
                       </Link>
                       <Link
-                        to="/dashboard/premium"
+                        to="/expert-profile"
                         onClick={() => setMenuOpen(false)}
                         className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
                       >
                         <Gem size={15} />
-                        Premium Dashboard
+                        Expert
                       </Link>
                     </>
                   ) : null}
@@ -164,14 +164,6 @@ const Navbar = () => {
                       >
                         <UserSearch size={15} />
                         Job Seeker Applications
-                      </Link>
-                      <Link
-                        to="/dashboard/premium/talent"
-                        onClick={() => setMenuOpen(false)}
-                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
-                      >
-                        <Gem size={15} />
-                        Verified Talent
                       </Link>
                     </>
                   ) : null}

@@ -20,13 +20,8 @@ import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
-import PremiumProfileView from "./dashboard/PremiumProfileView";
-import PremiumProfileForm from "./dashboard/PremiumProfileForm";
-import PremiumBilling from "./dashboard/PremiumBilling";
-import PremiumReactivate from "./dashboard/PremiumReactivate";
+import Expert from "./dashboard/Expert";
 import AdminPremiumQueue from "./dashboard/AdminPremiumQueue";
-import PremiumTalentDirectory from "./dashboard/PremiumTalentDirectory";
-import PremiumTalentDetails from "./dashboard/PremiumTalentDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
@@ -123,53 +118,20 @@ const App = () => {
           }
         />
         <Route
-          path="/dashboard/premium"
+          path="/expert-profile"
           element={
             <ProtectedRoute roles={["seeker", "admin"]}>
-              <PremiumProfileView />
+              <Expert />
             </ProtectedRoute>
           }
         />
         <Route
           path="/dashboard/premium/form"
           element={
-            <ProtectedRoute roles={["seeker", "admin"]}>
-              <PremiumProfileForm />
-            </ProtectedRoute>
+            <Navigate to="/expert-profile" replace />
           }
         />
-        <Route
-          path="/dashboard/premium/billing"
-          element={
-            <ProtectedRoute roles={["seeker", "admin"]}>
-              <PremiumBilling />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard/premium/reactivate"
-          element={
-            <ProtectedRoute roles={["seeker", "admin"]}>
-              <PremiumReactivate />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard/premium/talent"
-          element={
-            <ProtectedRoute roles={["employer", "admin"]}>
-              <PremiumTalentDirectory />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard/premium/talent/:id"
-          element={
-            <ProtectedRoute roles={["employer", "admin"]}>
-              <PremiumTalentDetails />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/dashboard/premium" element={<Navigate to="/expert-profile" replace />} />
         <Route
           path="/admin"
           element={
