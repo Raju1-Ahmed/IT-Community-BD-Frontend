@@ -87,7 +87,7 @@ const EmployerApplications = () => {
                   to={`/employer/candidate/${item.candidate._id}`}
                   className="rounded-md border border-emerald-600 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
                 >
-                  View Profile
+                  Profile View
                 </Link>
               ) : null}
             </div>
