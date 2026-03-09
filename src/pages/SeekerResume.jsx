@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { getCategoryResumeSections } from "../data/categoryProfileConfig";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
@@ -22,6 +23,8 @@ const SeekerResume = () => {
     portfolio: user?.portfolio || "",
     linkedin: user?.linkedin || "",
     github: user?.github || "",
+    jobCategory: user?.jobCategory || "",
+    categoryProfile: user?.categoryProfile || {},
     skills: normalizeArray(user?.skills),
     experience: normalizeArray(user?.experience),
     education: normalizeArray(user?.educationEntries),
@@ -36,6 +39,7 @@ const SeekerResume = () => {
       ? user.profileImage
       : `${BACKEND_ORIGIN}${user.profileImage}`
     : "";
+  const categorySections = getCategoryResumeSections(resumeData.jobCategory, resumeData.categoryProfile);
 
   const handlePrint = () => {
     window.print();
@@ -248,6 +252,34 @@ const SeekerResume = () => {
               ))}
             </section>
           ) : null}
+
+          {categorySections.length > 0
+            ? categorySections.map((section) => (
+                <section key={section.key} className="mb-6">
+                  <h3 className="mb-3 border-b-2 border-gray-300 pb-1 text-lg font-semibold text-gray-700">
+                    {section.label.toUpperCase()}
+                  </h3>
+                  {section.items.map((item, index) => (
+                    <div key={`${section.key}-${index}`} className="mb-4 rounded-md border border-slate-200 p-3 text-sm text-slate-700">
+                      {section.fields.map((field) =>
+                        hasText(item[field.key]) ? (
+                          <p key={`${section.key}-${index}-${field.key}`} className="mb-1">
+                            <span className="font-semibold text-slate-900">{field.label}:</span>{" "}
+                            {field.type === "url" ? (
+                              <a href={item[field.key]} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                                {item[field.key]}
+                              </a>
+                            ) : (
+                              item[field.key]
+                            )}
+                          </p>
+                        ) : null
+                      )}
+                    </div>
+                  ))}
+                </section>
+              ))
+            : null}
 
           {resumeData.certifications.length > 0 ? (
             <section className="mb-6">

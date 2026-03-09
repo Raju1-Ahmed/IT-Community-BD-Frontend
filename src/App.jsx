@@ -16,7 +16,8 @@ import SeekerResume from "./pages/SeekerResume";
 import EmployerProfile from "./pages/EmployerProfile";
 import EmployerApplications from "./pages/EmployerApplications";
 import EmployerCandidateProfile from "./pages/EmployerCandidateProfile";
-import Experties from "./pages/Experties";
+import AppointExpertise from "./pages/AppointExpertise";
+import AppointExpertiseDetails from "./pages/AppointExpertiseDetails";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -35,7 +36,8 @@ const App = () => {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-conditions" element={<TermsConditions />} />
         <Route path="/jobs" element={<Jobs />} />
-        <Route path="/experties" element={<Experties />} />
+        <Route path="/appoint-expertise" element={<AppointExpertise />} />
+        <Route path="/appoint-expertise/:id" element={<AppointExpertiseDetails />} />
         <Route path="/jobs/:id" element={<JobDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

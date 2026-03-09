@@ -49,9 +49,9 @@ const Navbar = () => {
             <BriefcaseBusiness size={15} />
             Jobs
           </NavLink>
-          <NavLink to="/experties" className={linkClass}>
+          <NavLink to="/appoint-expertise" className={linkClass}>
             <Gem size={15} />
-            Experties
+            Appoint Expertise
           </NavLink>
           <NavLink to="/contact" className={linkClass}>
             <Contact size={15} />
