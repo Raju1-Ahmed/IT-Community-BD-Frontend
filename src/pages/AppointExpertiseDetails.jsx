@@ -30,6 +30,8 @@ const textOrNA = (value) => {
   return text.length > 0 ? text : "N/A";
 };
 
+const hasText = (value) => String(value ?? "").trim().length > 0;
+
 const toNumberOrZero = (value) => {
   const num = Number(value);
   return Number.isFinite(num) ? num : 0;
@@ -87,6 +89,35 @@ const StatCard = ({ label, value }) => (
   </div>
 );
 
+const DetailItem = ({ label, value }) => (
+  <div className="rounded-lg border border-slate-200 bg-white/80 px-3 py-2">
+    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+    <p className="mt-1 text-sm font-medium text-slate-800">{textOrNA(value)}</p>
+  </div>
+);
+
+const Badge = ({ children, tone = "slate" }) => {
+  const tones = {
+    slate: "border-slate-200 bg-slate-50 text-slate-700",
+    emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    cyan: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    amber: "border-amber-200 bg-amber-50 text-amber-700"
+  };
+
+  return (
+    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${tones[tone] || tones.slate}`}>
+      {children}
+    </span>
+  );
+};
+
+const EmptyState = ({ title, text }) => (
+  <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center">
+    <p className="text-sm font-semibold text-slate-700">{title}</p>
+    <p className="mt-1 text-xs text-slate-500">{text}</p>
+  </div>
+);
+
 const AppointExpertiseDetails = () => {
   const { id } = useParams();
   const [profile, setProfile] = useState(null);
@@ -119,6 +150,10 @@ const AppointExpertiseDetails = () => {
         .filter(Boolean)
     )
   ];
+  const projects = listOrFallback(seeker?.projects);
+  const academics = listOrFallback(profile?.academics);
+  const experiences = listOrFallback(profile?.experienceHistory);
+  const coursesOrInternships = listOrFallback(profile?.coursesOrInternships);
 
   const experienceYears =
     toNumberOrZero(profile?.totalExperienceYears) || toNumberOrZero(seeker?.experienceYears);
@@ -299,40 +334,105 @@ const AppointExpertiseDetails = () => {
         </SectionCard>
 
         <div className="grid gap-6 xl:grid-cols-2">
-          <SectionCard icon={BookOpen} title="Education/Train" hint="Academic and training history">
-            <div className="space-y-3 text-sm text-slate-700">
-              {listOrFallback(profile?.academics).length === 0 ? <p>N/A</p> : null}
-              {listOrFallback(profile?.academics).map((item, idx) => (
-                <div key={`edu-${idx}`} className="rounded-xl border border-slate-200 p-3">
-                  <p className="mb-2 font-semibold text-slate-900">Academic {idx + 1}</p>
-                  <p>Level of Education: {textOrNA(item?.levelOfEducation)}</p>
-                  <p>Exam/Degree Title: {textOrNA(item?.examDegreeTitle)}</p>
-                  <p>Concentration/Major/Group: {textOrNA(item?.concentrationMajorGroup)}</p>
-                  <p>Institute Name: {textOrNA(item?.instituteName)}</p>
-                  <p>Foreign Institute: {item?.isForeignInstitute ? "Yes" : "No"}</p>
-                  <p>Result: {textOrNA(item?.result)}</p>
-                  <p>Year of Passing: {textOrNA(item?.yearOfPassing)}</p>
-                  <p>Duration (Years): {textOrNA(item?.durationYears)}</p>
-                  <p className="whitespace-pre-line">Achievement Note: {textOrNA(item?.achievementNote)}</p>
+          <SectionCard
+            icon={BookOpen}
+            title="Education/Train"
+            hint={`Academic and training history${academics.length ? ` · ${academics.length} record${academics.length > 1 ? "s" : ""}` : ""}`}
+          >
+            <div className="space-y-4">
+              {academics.length === 0 ? (
+                <EmptyState title="No academic history added yet" text="Education or training details will appear here once provided." />
+              ) : null}
+
+              {academics.map((item, idx) => (
+                <div
+                  key={`edu-${idx}`}
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/60 to-emerald-50/40"
+                >
+                  <div className="border-b border-slate-200 bg-white/80 px-4 py-3">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Academic {idx + 1}</p>
+                        <h4 className="mt-1 text-base font-semibold text-slate-900">
+                          {textOrNA(item?.examDegreeTitle || item?.levelOfEducation)}
+                        </h4>
+                        <p className="mt-1 text-sm text-slate-600">{textOrNA(item?.instituteName)}</p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <Badge tone="emerald">{item?.isForeignInstitute ? "Foreign Institute" : "Local Institute"}</Badge>
+                        {hasText(item?.yearOfPassing) ? <Badge tone="cyan">Passing Year: {item.yearOfPassing}</Badge> : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 p-4">
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <DetailItem label="Level of Education" value={item?.levelOfEducation} />
+                      <DetailItem label="Concentration / Major / Group" value={item?.concentrationMajorGroup} />
+                      <DetailItem label="Result" value={item?.result} />
+                      <DetailItem label="Duration (Years)" value={item?.durationYears} />
+                    </div>
+
+                    {hasText(item?.achievementNote) ? (
+                      <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Achievement Note</p>
+                        <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-700">{item.achievementNote}</p>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               ))}
             </div>
           </SectionCard>
 
-          <SectionCard icon={Briefcase} title="Employment" hint="Work and responsibility timeline">
-            <div className="space-y-3 text-sm text-slate-700">
-              {listOrFallback(profile?.experienceHistory).length === 0 ? <p>N/A</p> : null}
-              {listOrFallback(profile?.experienceHistory).map((item, idx) => (
-                <div key={`exp-${idx}`} className="rounded-xl border border-slate-200 p-3">
-                  <p className="mb-2 font-semibold text-slate-900">Experience {idx + 1}</p>
-                  <p>Company Name: {textOrNA(item?.companyName)}</p>
-                  <p>Company Business: {textOrNA(item?.companyBusiness)}</p>
-                  <p>Designation: {textOrNA(item?.designation || item?.role)}</p>
-                  <p>Department: {textOrNA(item?.department)}</p>
-                  <p>Employment Period: {textOrNA(item?.employmentPeriod)}</p>
-                  <p>Area of Expertise: {textOrNA(item?.areaOfExpertise)}</p>
-                  <p>Company Location: {textOrNA(item?.companyLocation)}</p>
-                  <p className="whitespace-pre-line">Responsibilities: {textOrNA(item?.responsibilities)}</p>
+          <SectionCard
+            icon={Briefcase}
+            title="Employment"
+            hint={`Work and responsibility timeline${experiences.length ? ` · ${experiences.length} role${experiences.length > 1 ? "s" : ""}` : ""}`}
+          >
+            <div className="space-y-4">
+              {experiences.length === 0 ? (
+                <EmptyState title="No employment history added yet" text="Experience entries will appear here once the candidate adds them." />
+              ) : null}
+
+              {experiences.map((item, idx) => (
+                <div
+                  key={`exp-${idx}`}
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/60 to-cyan-50/40"
+                >
+                  <div className="border-b border-slate-200 bg-white/80 px-4 py-3">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">Experience {idx + 1}</p>
+                        <h4 className="mt-1 text-base font-semibold text-slate-900">
+                          {textOrNA(item?.designation || item?.role)}
+                        </h4>
+                        <p className="mt-1 text-sm text-slate-600">{textOrNA(item?.companyName)}</p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {hasText(item?.employmentPeriod) ? <Badge tone="cyan">{item.employmentPeriod}</Badge> : null}
+                        {hasText(item?.areaOfExpertise) ? <Badge tone="emerald">{item.areaOfExpertise}</Badge> : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 p-4">
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <DetailItem label="Company Business" value={item?.companyBusiness} />
+                      <DetailItem label="Department" value={item?.department} />
+                      <DetailItem label="Company Location" value={item?.companyLocation} />
+                      <DetailItem label="Area of Expertise" value={item?.areaOfExpertise} />
+                    </div>
+
+                    {hasText(item?.responsibilities) ? (
+                      <div className="rounded-xl border border-cyan-100 bg-cyan-50/70 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Responsibilities</p>
+                        <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-700">{item.responsibilities}</p>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               ))}
             </div>
@@ -369,8 +469,10 @@ const AppointExpertiseDetails = () => {
               </div>
 
               <div className="space-y-3 text-sm text-slate-700">
-                {listOrFallback(profile?.coursesOrInternships).length === 0 ? <p>N/A</p> : null}
-                {listOrFallback(profile?.coursesOrInternships).map((item, idx) => (
+                {coursesOrInternships.length === 0 ? (
+                  <EmptyState title="No course or internship data" text="Course, internship, and certificate references will appear here." />
+                ) : null}
+                {coursesOrInternships.map((item, idx) => (
                   <div key={`ci-${idx}`} className="rounded-xl border border-slate-200 p-3">
                     <p className="mb-2 font-semibold text-slate-900">
                       {textOrNA(item?.type)} {idx + 1}
@@ -389,6 +491,41 @@ const AppointExpertiseDetails = () => {
               </div>
             </div>
           </SectionCard>
+
+          {projects.length > 0 ? (
+            <SectionCard
+              icon={Briefcase}
+              title="Projects"
+              hint="Projects shared from seeker resume"
+              className="xl:col-span-2"
+            >
+              <div className="grid gap-3 md:grid-cols-2">
+                {projects.map((project, idx) => (
+                  <div key={`project-${idx}`} className="rounded-xl border border-slate-200 p-4 text-sm text-slate-700">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="font-semibold text-slate-900">
+                        {idx + 1}. {textOrNA(project?.title || "Project")}
+                      </p>
+                      {hasText(project?.link) ? (
+                        <a
+                          href={project.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="shrink-0 rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-xs font-medium text-cyan-700 hover:bg-cyan-100"
+                        >
+                          Demo
+                        </a>
+                      ) : null}
+                    </div>
+
+                    <p className="mt-2 whitespace-pre-line leading-relaxed text-slate-600">
+                      {textOrNA(project?.description)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          ) : null}
         </div>
       </div>
     </section>
