@@ -38,7 +38,7 @@ const Navbar = () => {
   }, [user]);
 
   return (
-    <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
+    <header className="relative z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center gap-2">
           <img src={brandLogo} alt="IT Community BD logo" className="h-10 w-auto object-contain" />
@@ -71,7 +71,7 @@ const Navbar = () => {
 
         <div className="flex items-center gap-2">
           {user ? (
-            <div className="relative">
+            <div className="relative z-[60]">
               <button
                 type="button"
                 onClick={() => setMenuOpen((prev) => !prev)}
@@ -88,7 +88,7 @@ const Navbar = () => {
               </button>
 
               {menuOpen ? (
-                <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+                <div className="absolute right-0 z-[70] mt-2 w-48 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
                   <p className="px-2 py-1 text-xs text-slate-500">{user.name}</p>
                   <p className="px-2 pb-2 text-xs text-slate-500">{user.role}</p>
                   {user.role === "seeker" ? (

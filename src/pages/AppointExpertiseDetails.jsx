@@ -118,6 +118,22 @@ const EmptyState = ({ title, text }) => (
   </div>
 );
 
+const MiniStat = ({ label, value, tone = "slate" }) => {
+  const tones = {
+    slate: "border-slate-200 bg-slate-50 text-slate-900",
+    emerald: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    cyan: "border-cyan-200 bg-cyan-50 text-cyan-900",
+    amber: "border-amber-200 bg-amber-50 text-amber-900"
+  };
+
+  return (
+    <div className={`rounded-xl border px-3 py-2 ${tones[tone] || tones.slate}`}>
+      <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">{label}</p>
+      <p className="mt-1 text-base font-semibold">{value}</p>
+    </div>
+  );
+};
+
 const AppointExpertiseDetails = () => {
   const { id } = useParams();
   const [profile, setProfile] = useState(null);
@@ -154,6 +170,12 @@ const AppointExpertiseDetails = () => {
   const academics = listOrFallback(profile?.academics);
   const experiences = listOrFallback(profile?.experienceHistory);
   const coursesOrInternships = listOrFallback(profile?.coursesOrInternships);
+  const courses = coursesOrInternships.filter((item) => String(item?.type || "").toLowerCase().includes("course"));
+  const internships = coursesOrInternships.filter((item) => String(item?.type || "").toLowerCase().includes("intern"));
+  const otherLearningItems = coursesOrInternships.filter((item) => {
+    const type = String(item?.type || "").toLowerCase();
+    return !type.includes("course") && !type.includes("intern");
+  });
 
   const experienceYears =
     toNumberOrZero(profile?.totalExperienceYears) || toNumberOrZero(seeker?.experienceYears);
@@ -344,6 +366,22 @@ const AppointExpertiseDetails = () => {
                 <EmptyState title="No academic history added yet" text="Education or training details will appear here once provided." />
               ) : null}
 
+              {academics.length > 0 ? (
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <MiniStat label="Academic Records" value={academics.length} tone="emerald" />
+                  <MiniStat
+                    label="Foreign Institutes"
+                    value={academics.filter((item) => item?.isForeignInstitute).length}
+                    tone="cyan"
+                  />
+                  <MiniStat
+                    label="Latest Passing Year"
+                    value={academics.map((item) => String(item?.yearOfPassing || "").trim()).filter(Boolean)[0] || "N/A"}
+                    tone="slate"
+                  />
+                </div>
+              ) : null}
+
               {academics.map((item, idx) => (
                 <div
                   key={`edu-${idx}`}
@@ -396,6 +434,14 @@ const AppointExpertiseDetails = () => {
                 <EmptyState title="No employment history added yet" text="Experience entries will appear here once the candidate adds them." />
               ) : null}
 
+              {experiences.length > 0 ? (
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <MiniStat label="Roles Listed" value={experiences.length} tone="cyan" />
+                  <MiniStat label="Companies" value={totalCompanies} tone="emerald" />
+                  <MiniStat label="Total Experience" value={`${experienceYears} years`} tone="slate" />
+                </div>
+              ) : null}
+
               {experiences.map((item, idx) => (
                 <div
                   key={`exp-${idx}`}
@@ -424,6 +470,12 @@ const AppointExpertiseDetails = () => {
                       <DetailItem label="Department" value={item?.department} />
                       <DetailItem label="Company Location" value={item?.companyLocation} />
                       <DetailItem label="Area of Expertise" value={item?.areaOfExpertise} />
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {hasText(item?.department) ? <Badge tone="slate">{item.department}</Badge> : null}
+                      {hasText(item?.companyLocation) ? <Badge tone="amber">{item.companyLocation}</Badge> : null}
+                      {hasText(item?.companyBusiness) ? <Badge tone="cyan">{item.companyBusiness}</Badge> : null}
                     </div>
 
                     {hasText(item?.responsibilities) ? (
@@ -468,26 +520,91 @@ const AppointExpertiseDetails = () => {
                 ) : null}
               </div>
 
-              <div className="space-y-3 text-sm text-slate-700">
+              <div className="space-y-4 text-sm text-slate-700">
                 {coursesOrInternships.length === 0 ? (
                   <EmptyState title="No course or internship data" text="Course, internship, and certificate references will appear here." />
                 ) : null}
-                {coursesOrInternships.map((item, idx) => (
-                  <div key={`ci-${idx}`} className="rounded-xl border border-slate-200 p-3">
-                    <p className="mb-2 font-semibold text-slate-900">
-                      {textOrNA(item?.type)} {idx + 1}
-                    </p>
-                    <p>Name: {textOrNA(item?.name)}</p>
-                    <p>Duration: {textOrNA(item?.duration)}</p>
-                    <p>
-                      Certificate: {item?.certificate ? (
-                        <a href={toAbsoluteUrl(item.certificate)} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline">
-                          View
-                        </a>
-                      ) : "N/A"}
-                    </p>
+
+                {courses.length > 0 ? (
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Courses</p>
+                        <p className="text-sm text-slate-600">Structured learning, upskilling, and technical coursework.</p>
+                      </div>
+                      <Badge tone="emerald">{courses.length}</Badge>
+                    </div>
+
+                    <div className="space-y-3">
+                      {courses.map((item, idx) => (
+                        <div key={`course-${idx}`} className="rounded-xl border border-emerald-100 bg-white p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-slate-900">{textOrNA(item?.name || `Course ${idx + 1}`)}</p>
+                              <p className="mt-1 text-xs text-slate-500">Duration: {textOrNA(item?.duration)}</p>
+                            </div>
+                            {item?.certificate ? (
+                              <a href={toAbsoluteUrl(item.certificate)} target="_blank" rel="noreferrer" className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100">
+                                Certificate
+                              </a>
+                            ) : null}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                ) : null}
+
+                {internships.length > 0 ? (
+                  <div className="rounded-2xl border border-cyan-200 bg-cyan-50/40 p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Internships</p>
+                        <p className="text-sm text-slate-600">Hands-on workplace exposure and practical experience.</p>
+                      </div>
+                      <Badge tone="cyan">{internships.length}</Badge>
+                    </div>
+
+                    <div className="space-y-3">
+                      {internships.map((item, idx) => (
+                        <div key={`intern-${idx}`} className="rounded-xl border border-cyan-100 bg-white p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-slate-900">{textOrNA(item?.name || `Internship ${idx + 1}`)}</p>
+                              <p className="mt-1 text-xs text-slate-500">Duration: {textOrNA(item?.duration)}</p>
+                            </div>
+                            {item?.certificate ? (
+                              <a href={toAbsoluteUrl(item.certificate)} target="_blank" rel="noreferrer" className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-700 hover:bg-cyan-100">
+                                Letter
+                              </a>
+                            ) : null}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {otherLearningItems.length > 0 ? (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">Other Learning</p>
+                        <p className="text-sm text-slate-600">Additional learning records shared by the candidate.</p>
+                      </div>
+                      <Badge tone="slate">{otherLearningItems.length}</Badge>
+                    </div>
+
+                    <div className="space-y-3">
+                      {otherLearningItems.map((item, idx) => (
+                        <div key={`other-learning-${idx}`} className="rounded-xl border border-slate-200 bg-white p-3">
+                          <p className="font-semibold text-slate-900">{textOrNA(item?.type)}: {textOrNA(item?.name)}</p>
+                          <p className="mt-1 text-xs text-slate-500">Duration: {textOrNA(item?.duration)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
           </SectionCard>
@@ -499,13 +616,22 @@ const AppointExpertiseDetails = () => {
               hint="Projects shared from seeker resume"
               className="xl:col-span-2"
             >
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="mb-4 grid gap-3 sm:grid-cols-3">
+                <MiniStat label="Projects" value={projects.length} tone="cyan" />
+                <MiniStat label="Live Demos" value={projects.filter((project) => hasText(project?.link)).length} tone="emerald" />
+                <MiniStat label="Portfolio Signals" value={projects.filter((project) => hasText(project?.description)).length} tone="slate" />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
                 {projects.map((project, idx) => (
-                  <div key={`project-${idx}`} className="rounded-xl border border-slate-200 p-4 text-sm text-slate-700">
+                  <div key={`project-${idx}`} className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-cyan-50/40 p-4 text-sm text-slate-700">
                     <div className="flex items-start justify-between gap-3">
-                      <p className="font-semibold text-slate-900">
-                        {idx + 1}. {textOrNA(project?.title || "Project")}
-                      </p>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Project {idx + 1}</p>
+                        <p className="mt-1 font-semibold text-slate-900">
+                          {textOrNA(project?.title || "Project")}
+                        </p>
+                      </div>
                       {hasText(project?.link) ? (
                         <a
                           href={project.link}
@@ -518,9 +644,17 @@ const AppointExpertiseDetails = () => {
                       ) : null}
                     </div>
 
-                    <p className="mt-2 whitespace-pre-line leading-relaxed text-slate-600">
-                      {textOrNA(project?.description)}
-                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Badge tone="cyan">{hasText(project?.link) ? "Service Demo Ready" : "Case Study Only"}</Badge>
+                      <Badge tone="emerald">{hasText(project?.description) ? "Impact Explained" : "Summary Missing"}</Badge>
+                    </div>
+
+                    <div className="mt-3 rounded-xl border border-cyan-100 bg-white/80 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Project Value</p>
+                      <p className="mt-2 whitespace-pre-line leading-relaxed text-slate-600">
+                        {textOrNA(project?.description)}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
