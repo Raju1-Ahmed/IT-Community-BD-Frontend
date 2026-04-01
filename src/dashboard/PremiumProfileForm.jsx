@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import api from "../api/client";
 import PremiumStatusCard from "./PremiumStatusCard";
-import { User, Book, Briefcase, FileText, Edit, Trash2, UploadCloud } from 'lucide-react';
+import { User, Book, Briefcase, FileText, Edit, Trash2, UploadCloud, Sparkles, ChevronRight } from 'lucide-react';
 
 const SECTIONS = [
-  { key: "personal", label: "1. Personal", icon: User },
-  { key: "educationTrain", label: "2. Education/Train", icon: Book },
-  { key: "employment", label: "3. Employment", icon: Briefcase },
-  { key: "courseIntern", label: "4. Course/Intern", icon: FileText },
+  { key: "personal", label: "Personal", icon: User },
+  { key: "educationTrain", label: "Education/Train", icon: Book },
+  { key: "employment", label: "Employment", icon: Briefcase },
+  { key: "courseIntern", label: "Course/Intern", icon: FileText },
 ];
 
 const defaultForm = {
@@ -49,6 +49,15 @@ const defaultForm = {
   coursesOrInternships: [],
 };
 
+const editorFieldClass =
+  "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100";
+
+const secondaryButtonClass =
+  "inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50";
+
+const destructiveButtonClass =
+  "inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-100";
+
 const FileInput = ({ label, id, value, onChange }) => {
   const fileName =
     typeof value === "string"
@@ -57,19 +66,21 @@ const FileInput = ({ label, id, value, onChange }) => {
 
   return (
     <div className="col-span-2">
-      <label className="block text-sm font-medium text-slate-700">{label}</label>
-      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-md">
-        <div className="space-y-1 text-center">
-          <UploadCloud className="mx-auto h-12 w-12 text-slate-400" />
-          <div className="flex text-sm text-slate-600">
-            <label htmlFor={id} className="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-emerald-500">
-              <span>Upload a file</span>
+      <label className="mb-2 block text-sm font-semibold text-slate-700">{label}</label>
+      <div className="rounded-3xl border border-dashed border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 px-6 py-8 shadow-sm transition hover:border-emerald-300 hover:shadow-md">
+        <div className="space-y-3 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-emerald-100">
+            <UploadCloud className="h-7 w-7 text-emerald-600" />
+          </div>
+          <div className="text-sm text-slate-600">
+            <label htmlFor={id} className="relative cursor-pointer rounded-full bg-white px-4 py-2 font-semibold text-emerald-700 shadow-sm ring-1 ring-emerald-100 transition hover:bg-emerald-50 focus-within:outline-none focus-within:ring-2 focus-within:ring-emerald-500">
+              <span>Choose file</span>
               <input id={id} name={id} type="file" className="sr-only" onChange={onChange} />
             </label>
-            <p className="pl-1">or drag and drop</p>
+            <p className="mt-3">Drag and drop or browse from your device</p>
           </div>
           <p className="text-xs text-slate-500">PNG, JPG, PDF up to 10MB</p>
-          {fileName ? <p className="text-sm text-slate-500">{fileName}</p> : null}
+          {fileName ? <p className="text-sm font-medium text-slate-700">{fileName}</p> : null}
         </div>
       </div>
     </div>
@@ -316,25 +327,43 @@ const PremiumProfileForm = ({ embedded = false }) => {
   const isEditing = editingSection === activeSection;
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       {!embedded ? (
         <>
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-            Premium Package: 99 BDT for 30 days. Admin approval is required before public listing.
+          <div className="rounded-3xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-cyan-50 p-5 text-sm text-emerald-900 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-emerald-100">
+                <Sparkles className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900">Premium Package</p>
+                <p className="mt-1 text-slate-600">99 BDT for 30 days.</p>
+              </div>
+            </div>
           </div>
           <PremiumStatusCard profile={profile} minimumExperienceYears={minimumExperienceYears} />
         </>
       ) : null}
 
-      <div className="rounded-xl border border-slate-200 bg-white">
-        <div className="p-4">
-            <h2 className="text-2xl font-bold text-slate-900">Expert Profile</h2>
-            <p className="mt-1 text-sm text-slate-600">Complete your profile to get access to premium features.</p>
+      <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_24px_80px_-48px_rgba(15,23,42,0.45)]">
+        <div className="border-b border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_35%),linear-gradient(135deg,#f8fffc_0%,#ffffff_45%,#f0fdfa_100%)] p-6 md:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Premium Expert Profile
+                </p>
+                <h2 className="text-3xl font-bold tracking-tight text-slate-900">Expert Profile</h2>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-600 shadow-sm">
+                <p className="font-semibold text-slate-900">{SECTIONS.find((s) => s.key === activeSection)?.label}</p>
+              </div>
+            </div>
         </div>
 
-        <div className="flex flex-col md:flex-row min-h-[600px]">
-            <div className="w-full md:w-1/4 border-r border-slate-200">
-                <div className="p-4 space-y-2">
+        <div className="flex min-h-[600px] flex-col md:flex-row bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
+            <div className="w-full border-b border-slate-200 bg-slate-50/70 md:w-1/4 md:border-b-0 md:border-r">
+                <div className="md:sticky md:top-6 p-4 md:p-5 space-y-2">
                     {SECTIONS.map((item) => (
                         <button
                         key={item.key}
@@ -343,24 +372,38 @@ const PremiumProfileForm = ({ embedded = false }) => {
                             setActiveSection(item.key);
                             setEditingSection("");
                         }}
-                        className={`w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm text-left ${activeSection === item.key ? "bg-emerald-600 text-white" : "hover:bg-slate-100 text-slate-700"}`}
+                        className={`group w-full flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm text-left transition-all duration-200 ${
+                          activeSection === item.key
+                            ? "bg-gradient-to-r from-emerald-600 to-cyan-600 text-white shadow-lg shadow-emerald-200"
+                            : "bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md"
+                        }`}
                         >
-                        <item.icon className="w-5 h-5" />
-                        <span>{item.label}</span>
+                        <span className="flex items-center gap-3">
+                          <span className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
+                            activeSection === item.key ? "bg-white/15" : "bg-slate-100 text-emerald-700"
+                          }`}>
+                            <item.icon className="w-5 h-5" />
+                          </span>
+                          <span className="font-medium">{item.label}</span>
+                        </span>
+                        <ChevronRight className={`h-4 w-4 transition ${activeSection === item.key ? "opacity-100" : "opacity-40 group-hover:translate-x-0.5"}`} />
                         </button>
                     ))}
                 </div>
             </div>
 
             <div className="w-full md:w-3/4">
-                <div className="p-4">
-                    <div className="flex items-center justify-between gap-2 mb-4">
-                        <h3 className="text-lg font-semibold text-slate-900">{SECTIONS.find((s) => s.key === activeSection)?.label}</h3>
+                <div className="p-5 md:p-6">
+                    <div className="mb-6 rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <div>
+                          <h3 className="mt-2 text-xl font-semibold text-slate-900">{SECTIONS.find((s) => s.key === activeSection)?.label}</h3>
+                        </div>
                         <div className="flex gap-2">
                         <button
                             type="button"
                             onClick={() => setEditingSection(activeSection)}
-                            className="flex items-center gap-2 rounded-md border border-slate-300 px-3 py-1 text-sm hover:bg-slate-100"
+                            className={secondaryButtonClass}
                         >
                             <Edit className="w-4 h-4" />
                             <span>Edit</span>
@@ -368,18 +411,19 @@ const PremiumProfileForm = ({ embedded = false }) => {
                         <button
                             type="button"
                             onClick={() => clearSection(activeSection)}
-                            className="flex items-center gap-2 rounded-md border border-red-300 px-3 py-1 text-sm text-red-700 hover:bg-red-50"
+                            className={destructiveButtonClass}
                         >
                             <Trash2 className="w-4 h-4" />
                             <span>Delete</span>
                         </button>
                         </div>
+                      </div>
                     </div>
 
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-4 space-y-4 transition-all duration-300 [&_input]:outline-none [&_input]:transition [&_input]:focus:ring-4 [&_input]:focus:ring-emerald-100 [&_select]:outline-none [&_select]:transition [&_textarea]:outline-none [&_textarea]:transition [&_textarea]:focus:ring-4 [&_textarea]:focus:ring-emerald-100">
                         {activeSection === "personal" && (
                         isEditing ? (
-                            <div className="grid gap-3 md:grid-cols-2">
+                            <div className="grid gap-4 md:grid-cols-2 [&_input]:w-full [&_input]:rounded-2xl [&_input]:border [&_input]:border-slate-200 [&_input]:bg-white/90 [&_input]:px-4 [&_input]:py-3 [&_input]:text-sm [&_input]:text-slate-800 [&_input]:shadow-sm [&_input]:transition [&_input]:placeholder:text-slate-400 [&_input]:focus:border-emerald-400 [&_input]:focus:ring-4 [&_input]:focus:ring-emerald-100 [&_select]:w-full [&_select]:rounded-2xl [&_select]:border [&_select]:border-slate-200 [&_select]:bg-white/90 [&_select]:px-4 [&_select]:py-3 [&_select]:text-sm [&_select]:text-slate-800 [&_select]:shadow-sm [&_select]:transition [&_select]:focus:border-emerald-400 [&_select]:focus:ring-4 [&_select]:focus:ring-emerald-100">
                             <input className="w-full rounded-md border p-2" placeholder="First Name" value={form.firstName} onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))} />
                             <input className="w-full rounded-md border p-2" placeholder="Last Name" value={form.lastName} onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))} />
                             <input className="w-full rounded-md border p-2" placeholder="Father's Name" value={form.fatherName} onChange={(e) => setForm((p) => ({ ...p, fatherName: e.target.value }))} />
@@ -510,8 +554,8 @@ const PremiumProfileForm = ({ embedded = false }) => {
                             <input className="w-full rounded-md border p-2" placeholder="Weight (kg)" value={form.weightKg} onChange={(e) => setForm((p) => ({ ...p, weightKg: e.target.value }))} />
                             </div>
                         ) : (
-                            <div className="grid gap-2 md:grid-cols-2">
-                            <p className="text-sm text-slate-700">First Name: {form.firstName || "N/A"}</p>
+                            <div className="grid gap-3 md:grid-cols-2 [&_p]:rounded-2xl [&_p]:border [&_p]:border-slate-200 [&_p]:bg-white [&_p]:p-4 [&_p]:text-sm [&_p]:text-slate-700 [&_p]:shadow-sm">
+                            <p>First Name: {form.firstName || "N/A"}</p>
                             <p className="text-sm text-slate-700">Last Name: {form.lastName || "N/A"}</p>
                             <p className="text-sm text-slate-700">Father's Name: {form.fatherName || "N/A"}</p>
                             <p className="text-sm text-slate-700">Mother's Name: {form.motherName || "N/A"}</p>
@@ -531,17 +575,17 @@ const PremiumProfileForm = ({ embedded = false }) => {
                             <p className="text-sm text-slate-700">Alternate Email: {form.alternateEmail || "N/A"}</p>
                             <p className="text-sm text-slate-700">Blood Group: {form.bloodGroup || "N/A"}</p>
                             <p className="text-sm text-slate-700">Height (meters): {form.heightMeters || "N/A"}</p>
-                            <p className="text-sm text-slate-700">Weight (kg): {form.weightKg || "N/A"}</p>
+                            <p>Weight (kg): {form.weightKg || "N/A"}</p>
                             </div>
                         )
                         )}
 
                         {activeSection === "educationTrain" && (
                         isEditing ? (
-                            <div className="space-y-4">
+                            <div className="space-y-4 [&_input]:w-full [&_input]:rounded-2xl [&_input]:border [&_input]:border-slate-200 [&_input]:bg-white/90 [&_input]:px-4 [&_input]:py-3 [&_input]:text-sm [&_input]:text-slate-800 [&_input]:shadow-sm [&_input]:transition [&_input]:placeholder:text-slate-400 [&_input]:focus:border-emerald-400 [&_input]:focus:ring-4 [&_input]:focus:ring-emerald-100 [&_select]:w-full [&_select]:rounded-2xl [&_select]:border [&_select]:border-slate-200 [&_select]:bg-white/90 [&_select]:px-4 [&_select]:py-3 [&_select]:text-sm [&_select]:text-slate-800 [&_select]:shadow-sm [&_select]:transition [&_select]:focus:border-emerald-400 [&_select]:focus:ring-4 [&_select]:focus:ring-emerald-100 [&_textarea]:w-full [&_textarea]:rounded-2xl [&_textarea]:border [&_textarea]:border-slate-200 [&_textarea]:bg-white/90 [&_textarea]:px-4 [&_textarea]:py-3 [&_textarea]:text-sm [&_textarea]:text-slate-800 [&_textarea]:shadow-sm [&_textarea]:transition [&_textarea]:placeholder:text-slate-400 [&_textarea]:focus:border-emerald-400 [&_textarea]:focus:ring-4 [&_textarea]:focus:ring-emerald-100">
                             {(form.academics || []).map((item, idx) => (
-                                <div key={`academic-${idx}`} className="rounded-md border border-slate-200 p-3">
-                                <div className="mb-3 flex items-center justify-between">
+                                <div key={`academic-${idx}`} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div className="mb-4 flex items-center justify-between">
                                     <p className="text-sm font-semibold text-slate-900">Academic {idx + 1}</p>
                                     <button
                                     type="button"
@@ -551,7 +595,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
                                         academics: p.academics.filter((_, i) => i !== idx)
                                         }))
                                     }
-                                    className="rounded-md border border-red-300 px-2 py-1 text-xs text-red-700"
+                                    className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700"
                                     >
                                     Delete
                                     </button>
@@ -594,7 +638,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
                                     ]
                                 }))
                                 }
-                                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                                className={secondaryButtonClass}
                             >
                                 +Add Education (if require)
                             </button>
@@ -603,17 +647,19 @@ const PremiumProfileForm = ({ embedded = false }) => {
                             <div className="space-y-3">
                             {(form.academics || []).length === 0 ? <p className="text-sm text-slate-700">N/A</p> : null}
                             {(form.academics || []).map((item, idx) => (
-                                <div key={`academic-view-${idx}`} className="rounded-md border border-slate-200 p-3">
-                                <p className="text-sm font-semibold text-slate-900">Academic {idx + 1}</p>
-                                <p className="text-sm text-slate-700">Level of Education: {item.levelOfEducation || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Exam/Degree Title: {item.examDegreeTitle || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Concentration/Major/Group: {item.concentrationMajorGroup || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Institute Name: {item.instituteName || "N/A"}</p>
-                                <p className="text-sm text-slate-700">This is a foreign institute: {item.isForeignInstitute ? "Yes" : "No"}</p>
-                                <p className="text-sm text-slate-700">Result: {item.result || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Year of Passing: {item.yearOfPassing || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Duration (Years): {item.durationYears || "N/A"}</p>
-                                <p className="text-sm text-slate-700 whitespace-pre-line">Achievement Note: {item.achievementNote || "N/A"}</p>
+                                <div key={`academic-view-${idx}`} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <p className="mb-3 text-sm font-semibold text-slate-900">Academic {idx + 1}</p>
+                                <div className="grid gap-3 md:grid-cols-2 [&_p]:rounded-2xl [&_p]:border [&_p]:border-slate-200 [&_p]:bg-slate-50/80 [&_p]:p-4 [&_p]:text-sm [&_p]:text-slate-700">
+                                  <p>Level of Education: {item.levelOfEducation || "N/A"}</p>
+                                  <p>Exam/Degree Title: {item.examDegreeTitle || "N/A"}</p>
+                                  <p>Concentration/Major/Group: {item.concentrationMajorGroup || "N/A"}</p>
+                                  <p>Institute Name: {item.instituteName || "N/A"}</p>
+                                  <p>This is a foreign institute: {item.isForeignInstitute ? "Yes" : "No"}</p>
+                                  <p>Result: {item.result || "N/A"}</p>
+                                  <p>Year of Passing: {item.yearOfPassing || "N/A"}</p>
+                                  <p>Duration (Years): {item.durationYears || "N/A"}</p>
+                                  <p className="md:col-span-2">Achievement Note: {item.achievementNote || "N/A"}</p>
+                                </div>
                                 </div>
                             ))}
                             </div>
@@ -622,17 +668,17 @@ const PremiumProfileForm = ({ embedded = false }) => {
 
                         {activeSection === "employment" && (
                         isEditing ? (
-                            <div className="space-y-4">
+                            <div className="space-y-4 [&_input]:w-full [&_input]:rounded-2xl [&_input]:border [&_input]:border-slate-200 [&_input]:bg-white/90 [&_input]:px-4 [&_input]:py-3 [&_input]:text-sm [&_input]:text-slate-800 [&_input]:shadow-sm [&_input]:transition [&_input]:placeholder:text-slate-400 [&_input]:focus:border-emerald-400 [&_input]:focus:ring-4 [&_input]:focus:ring-emerald-100 [&_textarea]:w-full [&_textarea]:rounded-2xl [&_textarea]:border [&_textarea]:border-slate-200 [&_textarea]:bg-white/90 [&_textarea]:px-4 [&_textarea]:py-3 [&_textarea]:text-sm [&_textarea]:text-slate-800 [&_textarea]:shadow-sm [&_textarea]:transition [&_textarea]:placeholder:text-slate-400 [&_textarea]:focus:border-emerald-400 [&_textarea]:focus:ring-4 [&_textarea]:focus:ring-emerald-100">
                             <input
-                                className="w-full rounded-md border p-2"
+                                className={editorFieldClass}
                                 type="number"
                                 placeholder="Total Experience Years"
                                 value={form.totalExperienceYears}
                                 onChange={(e) => setForm((p) => ({ ...p, totalExperienceYears: e.target.value }))}
                             />
                             {(form.experienceHistory || []).map((item, idx) => (
-                                <div key={`experience-${idx}`} className="rounded-md border border-slate-200 p-3">
-                                <div className="mb-3 flex items-center justify-between">
+                                <div key={`experience-${idx}`} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div className="mb-4 flex items-center justify-between">
                                     <p className="text-sm font-semibold text-slate-900">Experience {idx + 1}</p>
                                     <button
                                     type="button"
@@ -642,7 +688,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
                                         experienceHistory: p.experienceHistory.filter((_, i) => i !== idx)
                                         }))
                                     }
-                                    className="rounded-md border border-red-300 px-2 py-1 text-xs text-red-700"
+                                    className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700"
                                     >
                                     Delete
                                     </button>
@@ -683,26 +729,39 @@ const PremiumProfileForm = ({ embedded = false }) => {
                                     ]
                                 }))
                                 }
-                                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                                className={secondaryButtonClass}
                             >
                                 +Add experience(if require)
                             </button>
                             </div>
                         ) : (
                             <div className="space-y-3">
-                            <p className="text-sm text-slate-700">Total Experience Years: {form.totalExperienceYears || "N/A"}</p>
+                            <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Experience Summary</p>
+                              <p className="mt-2 text-sm text-slate-700">Total Experience Years: <span className="font-semibold text-slate-900">{form.totalExperienceYears || "N/A"}</span></p>
+                            </div>
                             {(form.experienceHistory || []).length === 0 ? <p className="text-sm text-slate-700">N/A</p> : null}
                             {(form.experienceHistory || []).map((item, idx) => (
-                                <div key={`experience-view-${idx}`} className="rounded-md border border-slate-200 p-3">
-                                <p className="text-sm font-semibold text-slate-900">Experience {idx + 1}</p>
-                                <p className="text-sm text-slate-700">Company Name: {item.companyName || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Company Business: {item.companyBusiness || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Designation: {item.designation || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Department: {item.department || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Employment Period: {item.employmentPeriod || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Responsibilities: {item.responsibilities || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Area of Expertise: {item.areaOfExpertise || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Company Location: {item.companyLocation || "N/A"}</p>
+                                <div key={`experience-view-${idx}`} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                  <div>
+                                    <p className="text-sm font-semibold text-slate-900">{item.designation || `Experience ${idx + 1}`}</p>
+                                    <p className="mt-1 text-sm text-slate-600">{item.companyName || "N/A"}{item.department ? ` • ${item.department}` : ""}</p>
+                                  </div>
+                                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                                    {item.employmentPeriod || "N/A"}
+                                  </span>
+                                </div>
+
+                                <div className="mt-4 grid gap-3 md:grid-cols-2 [&_p]:rounded-2xl [&_p]:border [&_p]:border-slate-200 [&_p]:bg-slate-50/80 [&_p]:p-4 [&_p]:text-sm [&_p]:text-slate-700">
+                                  <p>Company Name: {item.companyName || "N/A"}</p>
+                                  <p>Company Business: {item.companyBusiness || "N/A"}</p>
+                                  <p>Designation: {item.designation || "N/A"}</p>
+                                  <p>Department: {item.department || "N/A"}</p>
+                                  <p>Area of Expertise: {item.areaOfExpertise || "N/A"}</p>
+                                  <p>Company Location: {item.companyLocation || "N/A"}</p>
+                                  <p className="md:col-span-2">Responsibilities: {item.responsibilities || "N/A"}</p>
+                                </div>
                                 </div>
                             ))}
                             </div>
@@ -711,10 +770,10 @@ const PremiumProfileForm = ({ embedded = false }) => {
 
                         {activeSection === "courseIntern" && (
                         isEditing ? (
-                            <div className="space-y-4">
+                            <div className="space-y-4 [&_input]:w-full [&_input]:rounded-2xl [&_input]:border [&_input]:border-slate-200 [&_input]:bg-white/90 [&_input]:px-4 [&_input]:py-3 [&_input]:text-sm [&_input]:text-slate-800 [&_input]:shadow-sm [&_input]:transition [&_input]:placeholder:text-slate-400 [&_input]:focus:border-emerald-400 [&_input]:focus:ring-4 [&_input]:focus:ring-emerald-100 [&_select]:w-full [&_select]:rounded-2xl [&_select]:border [&_select]:border-slate-200 [&_select]:bg-white/90 [&_select]:px-4 [&_select]:py-3 [&_select]:text-sm [&_select]:text-slate-800 [&_select]:shadow-sm [&_select]:transition [&_select]:focus:border-emerald-400 [&_select]:focus:ring-4 [&_select]:focus:ring-emerald-100">
                             {(form.coursesOrInternships || []).map((item, idx) => (
-                                <div key={`course-intern-${idx}`} className="rounded-md border border-slate-200 p-3">
-                                <div className="mb-3 flex items-center justify-between">
+                                <div key={`course-intern-${idx}`} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div className="mb-4 flex items-center justify-between">
                                     <p className="text-sm font-semibold text-slate-900">{(item.type || 'Course/Intern') + ' ' + (idx + 1)}</p>
                                     <button
                                     type="button"
@@ -724,7 +783,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
                                         coursesOrInternships: p.coursesOrInternships.filter((_, i) => i !== idx)
                                         }))
                                     }
-                                    className="rounded-md border border-red-300 px-2 py-1 text-xs text-red-700"
+                                    className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700"
                                     >
                                     Delete
                                     </button>
@@ -771,7 +830,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
                                     ]
                                 }))
                                 }
-                                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                                className={secondaryButtonClass}
                             >
                                 + Add Course/Internship
                             </button>
@@ -780,11 +839,33 @@ const PremiumProfileForm = ({ embedded = false }) => {
                             <div className="space-y-3">
                             {(form.coursesOrInternships || []).length === 0 ? <p className="text-sm text-slate-700">N/A</p> : null}
                             {(form.coursesOrInternships || []).map((item, idx) => (
-                                <div key={`course-intern-view-${idx}`} className="rounded-md border border-slate-200 p-3">
-                                <p className="text-sm font-semibold text-slate-900">{item.type} {idx + 1}</p>
-                                <p className="text-sm text-slate-700">{item.type === 'Internship' ? "Company" : "Course Name"}: {item.name || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Duration: {item.duration || "N/A"}</p>
-                                <p className="text-sm text-slate-700">Certificate: {item.certificate ? (<a href={item.certificate} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline">View</a>) : (item.certificateFile ? 'File ready for upload' : 'N/A')}</p>
+                                <div key={`course-intern-view-${idx}`} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                  <div>
+                                    <p className="text-sm font-semibold text-slate-900">{item.name || `${item.type || "Course/Intern"} ${idx + 1}`}</p>
+                                    <p className="mt-1 text-sm text-slate-600">{item.type || "N/A"}</p>
+                                  </div>
+                                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                    item.type === "Internship"
+                                      ? "bg-cyan-50 text-cyan-700"
+                                      : "bg-amber-50 text-amber-700"
+                                  }`}>
+                                    {item.type || "N/A"}
+                                  </span>
+                                </div>
+
+                                <div className="mt-4 grid gap-3 md:grid-cols-2 [&_p]:rounded-2xl [&_p]:border [&_p]:border-slate-200 [&_p]:bg-slate-50/80 [&_p]:p-4 [&_p]:text-sm [&_p]:text-slate-700">
+                                  <p>{item.type === 'Internship' ? "Company" : "Course Name"}: {item.name || "N/A"}</p>
+                                  <p>Duration: {item.duration || "N/A"}</p>
+                                  <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-700">
+                                    <span className="font-medium">Certificate:</span>{" "}
+                                    {item.certificate ? (
+                                      <a href={item.certificate} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline">
+                                        View
+                                      </a>
+                                    ) : item.certificateFile ? "File ready for upload" : "N/A"}
+                                  </div>
+                                </div>
                                 </div>
                             ))}
                             </div>
@@ -793,11 +874,11 @@ const PremiumProfileForm = ({ embedded = false }) => {
                     </div>
 
                     {isEditing && (
-                        <div className="mt-4 flex gap-2">
-                        <button type="button" onClick={() => saveDraft().then(() => setEditingSection(""))} className="rounded-md bg-slate-800 px-4 py-2 text-sm text-white">
+                        <div className="mt-6 flex gap-3 rounded-3xl border border-slate-200 bg-slate-50/80 p-4">
+                        <button type="button" onClick={() => saveDraft().then(() => setEditingSection(""))} className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5">
                             Save
                         </button>
-                        <button type="button" onClick={() => setEditingSection("")} className="rounded-md border border-slate-300 px-4 py-2 text-sm">
+                        <button type="button" onClick={() => setEditingSection("")} className={secondaryButtonClass}>
                             Cancel
                         </button>
                         </div>
