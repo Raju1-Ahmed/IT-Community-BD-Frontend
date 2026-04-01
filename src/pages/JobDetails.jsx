@@ -6,6 +6,8 @@ import {
   ArrowLeft,
   Bookmark,
   BookmarkCheck,
+  BriefcaseBusiness,
+  FilePenLine,
   Printer,
   Share2,
   Send
@@ -28,6 +30,13 @@ const formatDate = (value) => {
     year: "numeric"
   });
 };
+
+const toBulletLines = (value) =>
+  String(value || "")
+    .split(",")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^[.\-•]+/, "").trim());
 
 const IconButton = ({ title, icon, label, onClick, active }) => (
   <button
@@ -136,6 +145,13 @@ const JobDetails = () => {
   if (!job) return <p>Loading...</p>;
 
   const showSection = (name) => activeTab === "All" || activeTab === name;
+  const isSeeker = user?.role === "seeker";
+  const isOwnerEmployer =
+    (user?.role === "employer" || user?.role === "admin") &&
+    user?.id &&
+    job?.postedBy?._id &&
+    String(user.id) === String(job.postedBy._id);
+  const responsibilityLines = toBulletLines(job.responsibilities || job.description);
 
   return (
     <section className="space-y-4">
@@ -150,8 +166,18 @@ const JobDetails = () => {
             Back to Jobs
           </button>
 
-          {user?.role === "seeker" ? (
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {isOwnerEmployer ? (
+              <button
+                type="button"
+                onClick={() => navigate(`/my-jobs/${job._id}`)}
+                className="inline-flex items-center gap-1 rounded-md border border-cyan-300 bg-cyan-50 px-3 py-2 text-sm text-cyan-800 hover:bg-cyan-100"
+              >
+                <FilePenLine size={16} />
+                Manage Job
+              </button>
+            ) : null}
+            {isSeeker ? (
               <IconButton
                 title="Save Job"
                 icon={isSaved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
@@ -159,10 +185,10 @@ const JobDetails = () => {
                 onClick={toggleSaveJob}
                 active={isSaved}
               />
-              <IconButton title="Share Job" icon={<Share2 size={16} />} label="Share" onClick={shareJob} />
-              <IconButton title="Print Job" icon={<Printer size={16} />} label="Print" onClick={printJob} />
-            </div>
-          ) : null}
+            ) : null}
+            <IconButton title="Share Job" icon={<Share2 size={16} />} label="Share" onClick={shareJob} />
+            <IconButton title="Print Job" icon={<Printer size={16} />} label="Print" onClick={printJob} />
+          </div>
         </div>
 
         <p className="text-sm text-slate-500">{job.companyName}</p>
@@ -174,15 +200,30 @@ const JobDetails = () => {
             <p className="text-sm font-semibold text-slate-800">{formatDate(job.applicationDeadline)}</p>
           </div>
 
-          {user?.role === "seeker" ? (
+          <div>
+            <p className="text-xs text-slate-500">Employment Type</p>
+            <p className="text-sm font-semibold text-slate-800">{job.employmentStatusText || "Full Time"}</p>
+          </div>
+
+          <div>
+            <p className="text-xs text-slate-500">Workplace</p>
+            <p className="text-sm font-semibold capitalize text-slate-800">{job.workplace || "office"}</p>
+          </div>
+
+          {isSeeker ? (
             <button onClick={apply} className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
               <Send size={15} />
               Apply Now
             </button>
-          ) : null}
+          ) : (
+            <div className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
+              <BriefcaseBusiness size={15} />
+              {isOwnerEmployer ? "You posted this job" : "Viewing as employer"}
+            </div>
+          )}
         </div>
 
-        {user?.role === "seeker" ? (
+        {isSeeker ? (
           <div className="mt-4 space-y-2">
             <textarea
               className="w-full rounded-md border p-2"
@@ -193,7 +234,7 @@ const JobDetails = () => {
             />
             {message ? <p className="text-sm text-slate-700">{message}</p> : null}
           </div>
-        ) : null}
+        ) : message ? <p className="mt-4 text-sm text-slate-700">{message}</p> : null}
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-4">
@@ -244,7 +285,18 @@ const JobDetails = () => {
       {showSection("Responsibilities") && (
         <div className="rounded-xl border border-slate-200 bg-white p-6">
           <h3 className="text-lg font-semibold text-slate-900">Responsibilities & Context</h3>
-          <p className="mt-3 whitespace-pre-line text-sm text-slate-700">{job.responsibilities || job.description || "N/A"}</p>
+          {responsibilityLines.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-sm text-slate-700">
+              {responsibilityLines.map((item, index) => (
+                <li key={`${item}-${index}`} className="flex items-start gap-2">
+                  <span className="mt-[7px] h-1.5 w-1.5 rounded-full bg-slate-500" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-slate-700">N/A</p>
+          )}
         </div>
       )}
 

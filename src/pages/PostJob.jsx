@@ -3,19 +3,39 @@ import { useNavigate } from "react-router-dom";
 import { PlusCircle } from "lucide-react";
 import api from "../api/client";
 
+const normalizeList = (value) =>
+  value.split(",").map((i) => i.trim()).filter(Boolean);
+
+const Hint = ({ text }) => (
+  <p className="text-xs text-gray-500">{text}</p>
+);
+
+const Input = (props) => (
+  <input className="rounded-md border p-2 w-full" {...props} />
+);
+
+const TextArea = (props) => (
+  <textarea className="rounded-md border p-2 w-full" {...props} />
+);
+
 const PostJob = () => {
   const navigate = useNavigate();
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
   const [form, setForm] = useState({
     title: "",
     companyName: "",
     location: "",
     jobType: "full-time",
     experienceLevel: "junior",
+    salaryNegotiable: false,
     salaryMin: "",
     salaryMax: "",
-    vacancy: "",
-    minAge: "",
-    maxAge: "",
+    vacancy: 1,
+    minAge: 18,
+    maxAge: 60,
     applicationDeadline: "",
     educationRequirements: "",
     additionalRequirements: "",
@@ -23,91 +43,133 @@ const PostJob = () => {
     benefits: "",
     workplace: "office",
     businessArea: "",
-    encourageVideoCv: false,
     skills: "",
     description: ""
   });
-  const [message, setMessage] = useState("");
 
-  const onChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const onChange = (e) => {
+    const { name, value, type, checked } = e.target;
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
+    setForm((prev) => {
+      if (name === "salaryNegotiable") {
+        return {
+          ...prev,
+          salaryNegotiable: checked,
+          salaryMin: checked ? "" : prev.salaryMin,
+          salaryMax: checked ? "" : prev.salaryMax
+        };
+      }
+      return { ...prev, [name]: type === "checkbox" ? checked : value };
+    });
+  };
+
+  const onSubmit = async () => {
+    setLoading(true);
     try {
       await api.post("/jobs", {
         ...form,
-        salaryMin: Number(form.salaryMin) || 0,
-        salaryMax: Number(form.salaryMax) || 0,
-        vacancy: Number(form.vacancy) || 1,
-        minAge: Number(form.minAge) || 18,
-        maxAge: Number(form.maxAge) || 60,
-        skills: form.skills
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean)
+        salaryMin: form.salaryNegotiable ? 0 : Number(form.salaryMin) || 0,
+        salaryMax: form.salaryNegotiable ? 0 : Number(form.salaryMax) || 0,
+        skills: normalizeList(form.skills),
+        responsibilities: normalizeList(form.responsibilities),
+        benefits: normalizeList(form.benefits)
       });
       navigate("/my-jobs");
     } catch (err) {
-      setMessage(err?.response?.data?.message || "Post failed.");
+      setMessage("Post failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6">
-      <h2 className="text-2xl font-bold">Post a Job</h2>
-      <form onSubmit={onSubmit} className="mt-4 grid gap-3 md:grid-cols-2">
-        <input className="rounded-md border p-2" name="title" placeholder="Job title" value={form.title} onChange={onChange} required />
-        <input className="rounded-md border p-2" name="companyName" placeholder="Company name" value={form.companyName} onChange={onChange} required />
-        <input className="rounded-md border p-2" name="location" placeholder="Location" value={form.location} onChange={onChange} required />
-        <select className="rounded-md border p-2" name="jobType" value={form.jobType} onChange={onChange}>
-          <option value="full-time">Full-time</option>
-          <option value="part-time">Part-time</option>
-          <option value="contract">Contract</option>
-          <option value="internship">Internship</option>
-          <option value="remote">Remote</option>
-        </select>
-        <select className="rounded-md border p-2" name="experienceLevel" value={form.experienceLevel} onChange={onChange}>
-          <option value="fresher">Fresher</option>
-          <option value="junior">Junior</option>
-          <option value="mid">Mid</option>
-          <option value="senior">Senior</option>
-        </select>
-        <input className="rounded-md border p-2" name="salaryMin" type="number" placeholder="Salary min" value={form.salaryMin} onChange={onChange} />
-        <input className="rounded-md border p-2" name="salaryMax" type="number" placeholder="Salary max" value={form.salaryMax} onChange={onChange} />
-        <input className="rounded-md border p-2" name="vacancy" type="number" placeholder="Vacancy" value={form.vacancy} onChange={onChange} />
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-600">Application Deadline (Last date to apply)</span>
-          <input className="rounded-md border p-2" name="applicationDeadline" type="date" value={form.applicationDeadline} onChange={onChange} required />
-        </label>
-        <input className="rounded-md border p-2" name="minAge" type="number" placeholder="Min age" value={form.minAge} onChange={onChange} />
-        <input className="rounded-md border p-2" name="maxAge" type="number" placeholder="Max age" value={form.maxAge} onChange={onChange} />
-        <input className="rounded-md border p-2 md:col-span-2" name="educationRequirements" placeholder="Education requirements" value={form.educationRequirements} onChange={onChange} />
-        <input className="rounded-md border p-2 md:col-span-2" name="businessArea" placeholder="Business area (optional)" value={form.businessArea} onChange={onChange} />
-        <select className="rounded-md border p-2" name="workplace" value={form.workplace} onChange={onChange}>
-          <option value="office">Work at office</option>
-          <option value="remote">Work from home</option>
-          <option value="hybrid">Hybrid</option>
-        </select>
-        <input className="md:col-span-2 rounded-md border p-2" name="skills" placeholder="Skills (comma separated)" value={form.skills} onChange={onChange} />
-        <textarea className="md:col-span-2 rounded-md border p-2" rows="4" name="additionalRequirements" placeholder="Additional requirements" value={form.additionalRequirements} onChange={onChange} />
-        <textarea className="md:col-span-2 rounded-md border p-2" rows="5" name="responsibilities" placeholder="Responsibilities and context" value={form.responsibilities} onChange={onChange} />
-        <textarea className="md:col-span-2 rounded-md border p-2" rows="3" name="benefits" placeholder="Compensation and benefits" value={form.benefits} onChange={onChange} />
-        <textarea className="md:col-span-2 rounded-md border p-2" rows="5" name="description" placeholder="Job description" value={form.description} onChange={onChange} required />
-        <label className="md:col-span-2 flex items-center gap-2 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            name="encourageVideoCv"
-            checked={form.encourageVideoCv}
-            onChange={(e) => setForm((prev) => ({ ...prev, encourageVideoCv: e.target.checked }))}
+    <section className="max-w-3xl mx-auto bg-white p-6 rounded-xl border">
+      <h2 className="text-2xl font-bold mb-4">Post a Job</h2>
+
+      {/* STEP INDICATOR */}
+      <div className="flex gap-2 mb-4">
+        {[1, 2, 3].map((s) => (
+          <div
+            key={s}
+            className={`h-2 flex-1 rounded ${
+              step >= s ? "bg-emerald-600" : "bg-gray-200"
+            }`}
           />
-          Applicants are encouraged to submit Video CV
-        </label>
-        <button className="inline-flex w-fit items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white" type="submit">
-          <PlusCircle size={16} />
-          Publish
-        </button>
-      </form>
-      {message ? <p className="mt-3 text-sm">{message}</p> : null}
+        ))}
+      </div>
+
+      {/* STEP 1 */}
+      {step === 1 && (
+        <div className="space-y-3">
+          <Input name="title" placeholder="Job Title" onChange={onChange} />
+          <Hint text="Example: Frontend Developer (React)" />
+
+          <Input name="companyName" placeholder="Company Name" onChange={onChange} />
+          <Hint text="Your company or organization name" />
+
+          <Input name="location" placeholder="Job Location" onChange={onChange} />
+          <Hint text="City, Country or Remote" />
+
+          <Input name="skills" placeholder="Skills" onChange={onChange} />
+          <Hint text="Use comma: React, Node.js, MongoDB" />
+
+          <button onClick={() => setStep(2)} className="btn">
+            Next →
+          </button>
+        </div>
+      )}
+
+      {/* STEP 2 */}
+      {step === 2 && (
+        <div className="space-y-3">
+          <label>
+            <input type="checkbox" name="salaryNegotiable" onChange={onChange} /> Negotiable Salary
+          </label>
+
+          <Input name="salaryMin" type="number" placeholder="Min Salary" onChange={onChange} />
+          <Input name="salaryMax" type="number" placeholder="Max Salary" onChange={onChange} />
+          <Hint text="Enter numbers only (no comma, no text)" />
+
+          <Input name="vacancy" type="number" placeholder="Vacancy" onChange={onChange} />
+          <Hint text="How many people you want to hire" />
+
+          <Input name="applicationDeadline" type="date" onChange={onChange} />
+          <Hint text="Last date to apply" />
+
+          <div className="flex justify-between">
+            <button onClick={() => setStep(1)}>← Back</button>
+            <button onClick={() => setStep(3)}>Next →</button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 3 */}
+      {step === 3 && (
+        <div className="space-y-3">
+          <TextArea name="responsibilities" rows="3" onChange={onChange} />
+          <Hint text="Use comma: Build UI, Fix bugs, API integration" />
+
+          <TextArea name="benefits" rows="3" onChange={onChange} />
+          <Hint text="Use comma: Bonus, Lunch, Insurance" />
+
+          <TextArea name="description" rows="4" onChange={onChange} />
+          <Hint text="Use full sentences with dot. Example: Candidates must be punctual." />
+
+          <div className="flex justify-between">
+            <button onClick={() => setStep(2)}>← Back</button>
+            <button
+              onClick={onSubmit}
+              disabled={loading}
+              className="bg-emerald-600 text-white px-4 py-2 rounded"
+            >
+              <PlusCircle size={16} />
+              {loading ? "Publishing..." : "Publish"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {message && <p className="text-red-500 mt-3">{message}</p>}
     </section>
   );
 };
