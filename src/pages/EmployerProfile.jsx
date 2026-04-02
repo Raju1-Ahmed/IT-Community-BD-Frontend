@@ -210,8 +210,8 @@ const EmployerProfile = () => {
 
           {/* header */}
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-gray-200 overflow-hidden">
-              {profileImagePreview && <img src={profileImagePreview} className="w-full h-full object-cover" />}
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gray-200 aspect-square ring-2 ring-white shadow-sm">
+              {profileImagePreview && <img src={profileImagePreview} className="block h-full w-full rounded-full object-cover object-center" />}
             </div>
 
             <div>

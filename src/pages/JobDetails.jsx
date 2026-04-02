@@ -7,7 +7,10 @@ import {
   Bookmark,
   BookmarkCheck,
   BriefcaseBusiness,
+  CalendarClock,
+  CircleDashed,
   FilePenLine,
+  MapPinned,
   Printer,
   Share2,
   Send
@@ -31,9 +34,20 @@ const formatDate = (value) => {
   });
 };
 
+const formatDateTime = (value) => {
+  if (!value) return "N/A";
+  return new Date(value).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+};
+
 const toBulletLines = (value) =>
   String(value || "")
-    .split(",")
+    .split(/\r?\n|;/)
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => line.replace(/^[.\-•]+/, "").trim());
@@ -52,6 +66,20 @@ const IconButton = ({ title, icon, label, onClick, active }) => (
     {icon}
     <span>{label}</span>
   </button>
+);
+
+const SummaryCard = ({ icon, label, value }) => (
+  <div className="min-w-[170px] flex-1 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm">
+    <div className="flex items-start gap-3">
+      <div className="rounded-xl bg-slate-900 p-2 text-white shadow-sm">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</p>
+        <p className="mt-1 text-sm font-semibold leading-5 text-slate-900">{value}</p>
+      </div>
+    </div>
+  </div>
 );
 
 const JobDetails = () => {
@@ -137,8 +165,7 @@ const JobDetails = () => {
           job.experienceLevel === "fresher"
             ? "Freshers are encouraged to apply"
             : `Level: ${job.experienceLevel}`
-      },
-      { label: "Published", value: formatDate(job.createdAt) }
+      }
     ];
   }, [job]);
 
@@ -152,6 +179,28 @@ const JobDetails = () => {
     job?.postedBy?._id &&
     String(user.id) === String(job.postedBy._id);
   const responsibilityLines = toBulletLines(job.responsibilities || job.description);
+  const topSummaryCards = [
+    {
+      label: "Published",
+      value: formatDateTime(job.createdAt),
+      icon: <CalendarClock size={16} />
+    },
+    {
+      label: "Deadline",
+      value: formatDate(job.applicationDeadline),
+      icon: <CalendarClock size={16} />
+    },
+    {
+      label: "Type",
+      value: job.employmentStatusText || "Full Time",
+      icon: <CircleDashed size={16} />
+    },
+    {
+      label: "Workplace",
+      value: job.workplace || "office",
+      icon: <MapPinned size={16} />
+    }
+  ];
 
   return (
     <section className="space-y-4">
@@ -194,22 +243,22 @@ const JobDetails = () => {
         <p className="text-sm text-slate-500">{job.companyName}</p>
         <h2 className="mt-1 text-3xl font-bold text-slate-900">{job.title}</h2>
 
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {topSummaryCards.map((item) => (
+            <SummaryCard
+              key={item.label}
+              label={item.label}
+              value={
+                item.label === "Workplace"
+                  ? String(item.value).replace(/^\w/, (char) => char.toUpperCase())
+                  : item.value
+              }
+              icon={item.icon}
+            />
+          ))}
+        </div>
+
         <div className="mt-4 flex flex-wrap items-center gap-4">
-          <div>
-            <p className="text-xs text-slate-500">Application Deadline</p>
-            <p className="text-sm font-semibold text-slate-800">{formatDate(job.applicationDeadline)}</p>
-          </div>
-
-          <div>
-            <p className="text-xs text-slate-500">Employment Type</p>
-            <p className="text-sm font-semibold text-slate-800">{job.employmentStatusText || "Full Time"}</p>
-          </div>
-
-          <div>
-            <p className="text-xs text-slate-500">Workplace</p>
-            <p className="text-sm font-semibold capitalize text-slate-800">{job.workplace || "office"}</p>
-          </div>
-
           {isSeeker ? (
             <button onClick={apply} className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
               <Send size={15} />
@@ -265,9 +314,6 @@ const JobDetails = () => {
               </div>
             ))}
           </div>
-          {job.encourageVideoCv ? (
-            <p className="mt-4 text-sm text-slate-700">Applicants are encouraged to submit Video CV.</p>
-          ) : null}
         </div>
       )}
 

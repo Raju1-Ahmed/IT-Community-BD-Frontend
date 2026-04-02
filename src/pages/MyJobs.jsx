@@ -2,6 +2,17 @@
 import { Link } from "react-router-dom";
 import api from "../api/client";
 
+const formatDateTime = (value) => {
+  if (!value) return "N/A";
+  return new Date(value).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+};
+
 const MyJobs = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +59,9 @@ const MyJobs = () => {
               </p>
               <p className="mt-1 text-sm text-slate-600">
                 Salary: {job.salaryMin || 0} - {job.salaryMax || 0} BDT
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                Published: {formatDateTime(job.createdAt)}
               </p>
               <p className="mt-2 text-xs text-emerald-700">Click to open details and edit this job</p>
             </Link>

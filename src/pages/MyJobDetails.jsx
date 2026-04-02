@@ -9,6 +9,24 @@ const normalizeCommaSeparatedText = (value) =>
     .filter(Boolean)
     .join(", ");
 
+const normalizeSemicolonSeparatedText = (value) =>
+  value
+    .split(";")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join("; ");
+
+const formatDateTime = (value) => {
+  if (!value) return "N/A";
+  return new Date(value).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+};
+
 const MyJobDetails = () => {
   const { id } = useParams();
   const [job, setJob] = useState(null);
@@ -67,8 +85,7 @@ const MyJobDetails = () => {
         workplace: foundJob.workplace || "office",
         businessArea: foundJob.businessArea || "",
         skills: Array.isArray(foundJob.skills) ? foundJob.skills.join(", ") : "",
-        description: foundJob.description || "",
-        status: foundJob.status || "active"
+        description: foundJob.description || ""
       });
       setMessage("");
     } catch (error) {
@@ -136,7 +153,7 @@ const MyJobDetails = () => {
 
       {job ? (
         <div className="mb-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
-          Posted on: {new Date(job.createdAt).toLocaleString()}
+          Published Date: {formatDateTime(job.createdAt)}
         </div>
       ) : null}
 
@@ -156,10 +173,6 @@ const MyJobDetails = () => {
           <option value="junior">Junior</option>
           <option value="mid">Mid</option>
           <option value="senior">Senior</option>
-        </select>
-        <select className="rounded-md border p-2" name="status" value={form.status} onChange={onChange}>
-          <option value="active">active</option>
-          <option value="closed">closed</option>
         </select>
         <label className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
           <span className="flex items-center gap-2">
@@ -213,7 +226,7 @@ const MyJobDetails = () => {
         </label>
         <label className="md:col-span-2 flex flex-col gap-1">
           <span className="text-xs text-slate-600">Responsibilities & Context</span>
-          <span className="text-xs text-slate-500">Use commas to separate each point.</span>
+          <span className="text-xs text-slate-500">Use semicolon (;) to separate each responsibility.</span>
           <textarea
             className="rounded-md border p-2"
             rows="5"
@@ -223,15 +236,15 @@ const MyJobDetails = () => {
             onBlur={(e) =>
               setForm((prev) => ({
                 ...prev,
-                responsibilities: normalizeCommaSeparatedText(e.target.value)
+                responsibilities: normalizeSemicolonSeparatedText(e.target.value)
               }))
             }
-            placeholder="Example: Build UI components, Integrate REST APIs, Fix bugs, Support feature delivery"
+            placeholder="Example: Build UI components; Integrate REST APIs; Fix bugs; Support feature delivery"
           />
         </label>
         <label className="md:col-span-2 flex flex-col gap-1">
           <span className="text-xs text-slate-600">Compensation & Other Benefits</span>
-          <span className="text-xs text-slate-500">Use commas to separate benefits.</span>
+          <span className="text-xs text-slate-500">Use this field for bonus, allowance, leave, lunch, or accommodation.</span>
           <textarea
             className="rounded-md border p-2"
             rows="3"
@@ -259,7 +272,6 @@ const MyJobDetails = () => {
             required
           />
         </label>
-
         <button type="submit" disabled={saving} className="w-fit rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-70">
           {saving ? "Saving..." : "Update Job"}
         </button>

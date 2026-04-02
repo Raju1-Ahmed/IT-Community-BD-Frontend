@@ -1,12 +1,12 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
-import Jobs from "./pages/Jobs";
+import Jobs from "./pages/JobsEnhanced";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import JobDetails from "./pages/JobDetails";
-import PostJob from "./pages/PostJob";
-import MyJobs from "./pages/MyJobs";
+import PostJob from "./pages/PostJobSchemaForm";
+import MyJobs from "./pages/MyJobsEnhanced";
 import MyJobDetails from "./pages/MyJobDetails";
 import MyApplications from "./pages/MyApplications";
 import SavedJobs from "./pages/SavedJobs";
