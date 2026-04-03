@@ -42,6 +42,7 @@ const PostJob = () => {
     responsibilities: "",
     benefits: "",
     workplace: "office",
+    genderPreference: "any",
     businessArea: "",
     skills: "",
     description: ""

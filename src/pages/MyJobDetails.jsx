@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../api/client";
+import { Skeleton } from "../components/loaders/Skeleton";
 
 const normalizeCommaSeparatedText = (value) =>
   value
@@ -26,6 +27,26 @@ const formatDateTime = (value) => {
     minute: "2-digit"
   });
 };
+
+const MyJobDetailsSkeleton = () => (
+  <section className="rounded-xl border border-slate-200 bg-white p-6">
+    <div className="mb-4 flex items-center justify-between">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-8 w-28 rounded-md" />
+    </div>
+    <Skeleton className="mb-4 h-12 w-full rounded-lg" />
+    <div className="grid gap-3 md:grid-cols-2">
+      {Array.from({ length: 10 }).map((_, index) => (
+        <Skeleton key={`job-detail-field-${index}`} className="h-11 rounded-md" />
+      ))}
+      <Skeleton className="h-12 rounded-md md:col-span-2" />
+      <Skeleton className="h-24 rounded-md md:col-span-2" />
+      <Skeleton className="h-28 rounded-md md:col-span-2" />
+      <Skeleton className="h-24 rounded-md md:col-span-2" />
+      <Skeleton className="h-11 w-32 rounded-md" />
+    </div>
+  </section>
+);
 
 const MyJobDetails = () => {
   const { id } = useParams();
@@ -140,7 +161,7 @@ const MyJobDetails = () => {
     }
   };
 
-  if (loading) return <p>Loading job details...</p>;
+  if (loading) return <MyJobDetailsSkeleton />;
 
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-6">

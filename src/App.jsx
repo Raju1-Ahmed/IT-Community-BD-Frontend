@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
-import Home from "./pages/Home";
-import Jobs from "./pages/JobsEnhanced";
+import Home from "./pages/HomeFinal";
+import Jobs from "./pages/JobsModern";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import JobDetails from "./pages/JobDetails";
@@ -14,14 +14,15 @@ import AdminDashboard from "./pages/AdminDashboard";
 import SeekerProfile from "./pages/SeekerProfile";
 import SeekerResume from "./pages/SeekerResume";
 import EmployerProfile from "./pages/EmployerProfile";
-import EmployerApplications from "./pages/EmployerApplications";
+import EmployerApplications from "./pages/EmployerApplicationsEnhanced";
 import EmployerCandidateProfile from "./pages/EmployerCandidateProfile";
-import AppointExpertise from "./pages/AppointExpertise";
+import AppointExpertise from "./pages/AppointExpertiseEnhanced";
 import AppointExpertiseDetails from "./pages/AppointExpertiseDetails";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
+import LoaderShowcase from "./pages/LoaderShowcase";
 import Expert from "./dashboard/Expert";
 import AdminPremiumQueue from "./dashboard/AdminPremiumQueue";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -35,6 +36,7 @@ const App = () => {
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-conditions" element={<TermsConditions />} />
+        <Route path="/loader-showcase" element={<LoaderShowcase />} />
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/appoint-expertise" element={<AppointExpertise />} />
         <Route path="/appoint-expertise/:id" element={<AppointExpertiseDetails />} />

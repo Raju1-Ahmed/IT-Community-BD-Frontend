@@ -1,6 +1,25 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/client";
+import { Skeleton } from "../components/loaders/Skeleton";
+
+const SavedJobsSkeleton = () => (
+  <div className="mt-4 space-y-3">
+    {Array.from({ length: 4 }).map((_, index) => (
+      <div key={`saved-job-skeleton-${index}`} className="rounded-lg border border-slate-200 p-4">
+        <div className="space-y-3 animate-pulse">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-56" />
+          <Skeleton className="h-4 w-44" />
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-28 rounded-md" />
+            <Skeleton className="h-10 w-24 rounded-md" />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 const SavedJobs = () => {
   const [savedJobs, setSavedJobs] = useState([]);
@@ -39,9 +58,9 @@ const SavedJobs = () => {
       <h2 className="text-2xl font-bold text-slate-900">Saved Jobs</h2>
       <p className="mt-1 text-sm text-slate-600">Jobs you saved for later review.</p>
 
-      {loading ? <p className="mt-4">Loading...</p> : null}
+      {loading ? <SavedJobsSkeleton /> : null}
 
-      <div className="mt-4 grid gap-3">
+      {!loading ? <div className="mt-4 grid gap-3">
         {savedJobs.map((item) => (
           <article key={item._id} className="rounded-lg border border-slate-200 p-4">
             <h3 className="font-semibold text-slate-900">{item.job?.title || "Job"}</h3>
@@ -73,7 +92,7 @@ const SavedJobs = () => {
             </div>
           </article>
         ))}
-      </div>
+      </div> : null}
 
       {!loading && savedJobs.length === 0 ? (
         <p className="mt-4 text-sm text-slate-600">No saved jobs yet.</p>

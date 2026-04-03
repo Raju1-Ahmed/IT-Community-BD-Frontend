@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/client";
 import PremiumStatusCard from "./PremiumStatusCard";
 import { User, Book, Briefcase, FileText, Edit, Trash2, UploadCloud, Sparkles, ChevronRight } from 'lucide-react';
+import { Skeleton, SkeletonText } from "../components/loaders/Skeleton";
 
 const SECTIONS = [
   { key: "personal", label: "Personal", icon: User },
@@ -87,6 +88,36 @@ const FileInput = ({ label, id, value, onChange }) => {
   );
 };
 
+const SectionTransitionLoader = ({ title = "Loading section..." }) => (
+  <div className="space-y-5 rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
+    <div className="flex items-center justify-between gap-3">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-28 rounded-full" />
+        <Skeleton className="h-7 w-48 rounded-2xl" />
+      </div>
+      <div className="flex gap-2">
+        <Skeleton className="h-11 w-24 rounded-2xl" />
+        <Skeleton className="h-11 w-24 rounded-2xl" />
+      </div>
+    </div>
+
+    <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50/60 via-white to-cyan-50/40 p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">{title}</p>
+      <SkeletonText lines={2} className="mt-4" />
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
+        <Skeleton className="h-14 rounded-2xl" />
+        <Skeleton className="h-14 rounded-2xl" />
+        <Skeleton className="h-14 rounded-2xl" />
+        <Skeleton className="h-14 rounded-2xl" />
+      </div>
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
+        <Skeleton className="h-28 rounded-3xl" />
+        <Skeleton className="h-28 rounded-3xl" />
+      </div>
+    </div>
+  </div>
+);
+
 
 const PremiumProfileForm = ({ embedded = false }) => {
   const [profile, setProfile] = useState(null);
@@ -105,6 +136,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
   const [unions, setUnions] = useState([]);
+  const [sectionLoading, setSectionLoading] = useState(false);
 
   const toPayload = (nextForm) => ({
     skillDetails: Array.isArray(nextForm.skillDetails) ? nextForm.skillDetails : [],
@@ -324,6 +356,20 @@ const PremiumProfileForm = ({ embedded = false }) => {
     }
   };
 
+  const switchSection = (sectionKey) => {
+    if (sectionKey === activeSection) {
+      setEditingSection("");
+      return;
+    }
+
+    setSectionLoading(true);
+    setEditingSection("");
+    setTimeout(() => {
+      setActiveSection(sectionKey);
+      setSectionLoading(false);
+    }, 320);
+  };
+
   const isEditing = editingSection === activeSection;
 
   return (
@@ -368,10 +414,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
                         <button
                         key={item.key}
                         type="button"
-                        onClick={() => {
-                            setActiveSection(item.key);
-                            setEditingSection("");
-                        }}
+                        onClick={() => switchSection(item.key)}
                         className={`group w-full flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm text-left transition-all duration-200 ${
                           activeSection === item.key
                             ? "bg-gradient-to-r from-emerald-600 to-cyan-600 text-white shadow-lg shadow-emerald-200"
@@ -421,6 +464,13 @@ const PremiumProfileForm = ({ embedded = false }) => {
                     </div>
 
                     <div className="mt-4 space-y-4 transition-all duration-300 [&_input]:outline-none [&_input]:transition [&_input]:focus:ring-4 [&_input]:focus:ring-emerald-100 [&_select]:outline-none [&_select]:transition [&_textarea]:outline-none [&_textarea]:transition [&_textarea]:focus:ring-4 [&_textarea]:focus:ring-emerald-100">
+                        {sectionLoading ? (
+                          <SectionTransitionLoader
+                            title={`${SECTIONS.find((s) => s.key === activeSection)?.label || "Section"} ready state`}
+                          />
+                        ) : null}
+                        {!sectionLoading ? (
+                          <>
                         {activeSection === "personal" && (
                         isEditing ? (
                             <div className="grid gap-4 md:grid-cols-2 [&_input]:w-full [&_input]:rounded-2xl [&_input]:border [&_input]:border-slate-200 [&_input]:bg-white/90 [&_input]:px-4 [&_input]:py-3 [&_input]:text-sm [&_input]:text-slate-800 [&_input]:shadow-sm [&_input]:transition [&_input]:placeholder:text-slate-400 [&_input]:focus:border-emerald-400 [&_input]:focus:ring-4 [&_input]:focus:ring-emerald-100 [&_select]:w-full [&_select]:rounded-2xl [&_select]:border [&_select]:border-slate-200 [&_select]:bg-white/90 [&_select]:px-4 [&_select]:py-3 [&_select]:text-sm [&_select]:text-slate-800 [&_select]:shadow-sm [&_select]:transition [&_select]:focus:border-emerald-400 [&_select]:focus:ring-4 [&_select]:focus:ring-emerald-100">
@@ -871,8 +921,6 @@ const PremiumProfileForm = ({ embedded = false }) => {
                             </div>
                         )
                         )}
-                    </div>
-
                     {isEditing && (
                         <div className="mt-6 flex gap-3 rounded-3xl border border-slate-200 bg-slate-50/80 p-4">
                         <button type="button" onClick={() => saveDraft().then(() => setEditingSection(""))} className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5">
@@ -883,6 +931,9 @@ const PremiumProfileForm = ({ embedded = false }) => {
                         </button>
                         </div>
                     )}
+                          </>
+                        ) : null}
+                    </div>
                 </div>
             </div>
         </div>

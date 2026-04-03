@@ -3,12 +3,48 @@ import { Link, useParams } from "react-router-dom";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import api from "../api/client";
 import { getCategoryResumeSections } from "../data/categoryProfileConfig";
+import { Skeleton } from "../components/loaders/Skeleton";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
 
 const hasText = (value) => typeof value === "string" && value.trim().length > 0;
 const normalizeArray = (value) => (Array.isArray(value) ? value : []);
+
+const EmployerCandidateProfileSkeleton = () => (
+  <section className="mx-auto max-w-5xl">
+    <div className="mb-4 flex items-center justify-between gap-2">
+      <Skeleton className="h-10 w-36 rounded-md" />
+      <Skeleton className="h-10 w-28 rounded-md" />
+    </div>
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-lg">
+      <div className="flex flex-wrap">
+        <div className="w-full bg-slate-800 p-8 md:w-1/3">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-16 w-16 rounded-full bg-slate-600" />
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-32 bg-slate-600" />
+                <Skeleton className="h-4 w-24 bg-slate-700" />
+              </div>
+            </div>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Skeleton key={`contact-skeleton-${index}`} className="h-4 w-full bg-slate-700" />
+            ))}
+          </div>
+        </div>
+        <div className="w-full p-8 md:w-2/3">
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-24 w-full rounded-md" />
+            <Skeleton className="h-28 w-full rounded-md" />
+            <Skeleton className="h-24 w-full rounded-md" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
 
 const EmployerCandidateProfile = () => {
   const { id } = useParams();
@@ -36,7 +72,7 @@ const EmployerCandidateProfile = () => {
     window.print();
   };
 
-  if (loading) return <div className="p-10 text-center text-slate-500">Loading candidate resume...</div>;
+  if (loading) return <EmployerCandidateProfileSkeleton />;
   if (!candidate) return <div className="p-10 text-center text-red-500">{message || "Candidate not found."}</div>;
 
   const resumeData = {

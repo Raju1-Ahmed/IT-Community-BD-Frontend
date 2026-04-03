@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/client";
+import LogoLoader from "../components/LogoLoader";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -58,7 +59,7 @@ const AdminDashboard = () => {
     }
   };
 
-  if (loading) return <p>Loading admin dashboard...</p>;
+  if (loading) return <LogoLoader variant="page" label="Loading admin dashboard..." />;
 
   return (
     <section className="space-y-6">

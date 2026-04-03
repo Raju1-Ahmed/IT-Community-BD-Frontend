@@ -9,6 +9,7 @@ import {
   Trash2
 } from "lucide-react";
 import api from "../api/client";
+import { Skeleton } from "../components/loaders/Skeleton";
 
 const formatDateTime = (value) => {
   if (!value) return "N/A";
@@ -42,6 +43,34 @@ const MetaPill = ({ icon, text }) => (
   <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700">
     {icon}
     <span>{text}</span>
+  </div>
+);
+
+const MyJobsSkeleton = () => (
+  <div className="grid gap-4">
+    {Array.from({ length: 4 }).map((_, index) => (
+      <div key={`my-job-skeleton-${index}`} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-7 w-20 rounded-full" />
+            <Skeleton className="h-7 w-24 rounded-full" />
+            <Skeleton className="h-7 w-24 rounded-full" />
+          </div>
+          <Skeleton className="h-7 w-52" />
+          <Skeleton className="h-4 w-36" />
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-8 w-28 rounded-full" />
+            <Skeleton className="h-8 w-36 rounded-full" />
+            <Skeleton className="h-8 w-40 rounded-full" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-10 w-28 rounded-xl" />
+            <Skeleton className="h-10 w-28 rounded-xl" />
+            <Skeleton className="h-10 w-24 rounded-xl" />
+          </div>
+        </div>
+      </div>
+    ))}
   </div>
 );
 
@@ -146,13 +175,9 @@ const MyJobsEnhanced = () => {
         </div>
       </div>
 
-      {loading ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-600 shadow-sm">
-          Loading your jobs...
-        </div>
-      ) : null}
+      {loading ? <MyJobsSkeleton /> : null}
 
-      <div className="grid gap-4">
+      {!loading ? <div className="grid gap-4">
         {jobs.map((job) => (
           <article
             key={job._id}
@@ -234,7 +259,7 @@ const MyJobsEnhanced = () => {
             </div>
           </article>
         ))}
-      </div>
+      </div> : null}
 
       {!loading && jobs.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">

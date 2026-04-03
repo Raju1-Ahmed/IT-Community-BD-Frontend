@@ -95,6 +95,7 @@ const PostJobSchemaForm = () => {
     responsibilities: "",
     benefits: "",
     workplace: "office",
+    genderPreference: "any",
     businessArea: "",
     skills: "",
     description: ""
@@ -200,6 +201,14 @@ const PostJobSchemaForm = () => {
               <option value="office">Work at office</option>
               <option value="remote">Work from home</option>
               <option value="hybrid">Hybrid</option>
+            </Select>
+          </Field>
+
+          <Field label="Preferred Gender">
+            <Select name="genderPreference" value={form.genderPreference} onChange={onChange}>
+              <option value="any">Male/Female Anyone</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
             </Select>
           </Field>
 

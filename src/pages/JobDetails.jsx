@@ -2,6 +2,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { Skeleton } from "../components/loaders/Skeleton";
 import {
   ArrowLeft,
   Bookmark,
@@ -80,6 +81,48 @@ const SummaryCard = ({ icon, label, value }) => (
       </div>
     </div>
   </div>
+);
+
+const JobDetailsSkeleton = () => (
+  <section className="space-y-4">
+    <div className="rounded-xl border border-slate-200 bg-white p-6">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <Skeleton className="h-10 w-36 rounded-md" />
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-24 rounded-md" />
+          <Skeleton className="h-10 w-24 rounded-md" />
+          <Skeleton className="h-10 w-24 rounded-md" />
+        </div>
+      </div>
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="mt-2 h-10 w-2/3" />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Skeleton key={`job-summary-${index}`} className="h-24 rounded-2xl" />
+        ))}
+      </div>
+      <div className="mt-4">
+        <Skeleton className="h-10 w-32 rounded-md" />
+      </div>
+    </div>
+
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex flex-wrap gap-2">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <Skeleton key={`tab-skeleton-${index}`} className="h-10 w-24 rounded-md" />
+        ))}
+      </div>
+    </div>
+
+    <div className="rounded-xl border border-slate-200 bg-white p-6">
+      <Skeleton className="h-7 w-36" />
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <Skeleton key={`detail-row-${index}`} className="h-16 rounded-md" />
+        ))}
+      </div>
+    </div>
+  </section>
 );
 
 const JobDetails = () => {
@@ -165,11 +208,20 @@ const JobDetails = () => {
           job.experienceLevel === "fresher"
             ? "Freshers are encouraged to apply"
             : `Level: ${job.experienceLevel}`
+      },
+      {
+        label: "Gender",
+        value:
+          job.genderPreference === "male"
+            ? "Male"
+            : job.genderPreference === "female"
+              ? "Female"
+              : "Male/Female"
       }
     ];
   }, [job]);
 
-  if (!job) return <p>Loading...</p>;
+  if (!job) return <JobDetailsSkeleton />;
 
   const showSection = (name) => activeTab === "All" || activeTab === name;
   const isSeeker = user?.role === "seeker";
