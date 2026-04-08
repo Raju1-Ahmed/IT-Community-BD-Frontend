@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { PlusCircle, Trash2, User, Briefcase, GraduationCap, Code, Globe, Layers } from "lucide-react";
+import { PlusCircle, Trash2, User, Briefcase, GraduationCap, Code, Globe, Layers, UploadCloud, Image as ImageIcon } from "lucide-react";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -47,6 +47,18 @@ const INITIAL_FORM = {
   cloudTools: "",
   generalSkills: "",
   dateOfBirth: ""
+};
+
+const CATEGORY_UI_HINTS = {
+  "Graphics Design, Video Editing & Motion": {
+    summaryPlaceholder:
+      "Summarize your creative strengths, preferred work types, tools, and the kind of brands or content you usually handle.",
+    skillsPlaceholder:
+      "Skills (comma separated) e.g. Branding, Thumbnail Design, Reel Editing, Motion Graphics, Color Correction",
+    portfolioPlaceholder: "Portfolio URL (Behance / Drive / personal site)",
+    linkedinPlaceholder: "LinkedIn or Behance profile URL",
+    githubPlaceholder: "Showreel URL (YouTube / Vimeo / Drive)"
+  }
 };
 
 const splitSkills = (raw = "") =>
@@ -113,6 +125,7 @@ const SeekerProfile = () => {
   const currentCategory = user?.jobCategory || "";
   const softwareMode = isSoftwareCategory(currentCategory);
   const categorySections = useMemo(() => getCategoryProfileSections(currentCategory), [currentCategory]);
+  const categoryHints = CATEGORY_UI_HINTS[currentCategory] || {};
 
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [blocks, setBlocks] = useState(INITIAL_BLOCKS);
@@ -120,7 +133,9 @@ const SeekerProfile = () => {
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState("");
   const [saving, setSaving] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [message, setMessage] = useState("");
+  const selectedImageName = profileImageFile?.name || "";
 
   useEffect(() => {
     if (!user) return;
@@ -183,6 +198,31 @@ const SeekerProfile = () => {
         (prev[sectionKey] || []).length <= 1 ? [{ ...template }] : (prev[sectionKey] || []).filter((_, idx) => idx !== rowIndex)
     }));
 
+  const uploadProfileImage = async (file) => {
+    if (!file) return;
+    const previousPreview = profileImagePreview;
+    const nextPreview = URL.createObjectURL(file);
+
+    setProfileImageFile(file);
+    setProfileImagePreview(nextPreview);
+    setImageUploading(true);
+    setMessage("");
+
+    try {
+      const payload = new FormData();
+      payload.append("profileImage", file);
+      await api.patch("/auth/profile", payload, { headers: { "Content-Type": "multipart/form-data" } });
+      await refreshUser();
+      setMessage("Profile photo updated.");
+      setProfileImageFile(null);
+    } catch (error) {
+      setProfileImagePreview(previousPreview);
+      setMessage(error?.response?.data?.message || "Profile photo upload failed.");
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -235,24 +275,47 @@ const SeekerProfile = () => {
       </div>
 
       <form onSubmit={onSubmit} className="mt-4 space-y-6">
-        <div className="rounded-md border p-4">
-          <div className="flex items-center gap-4">
-            <div className="h-20 w-20 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200">
-              {profileImagePreview ? <img src={profileImagePreview} alt="Profile preview" className="h-full w-full object-cover" /> : null}
+        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            <div className="h-24 w-24 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
+              {profileImagePreview ? (
+                <img src={profileImagePreview} alt="Profile preview" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-slate-400">
+                  <ImageIcon size={28} />
+                </div>
+              )}
             </div>
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-slate-700">Profile Picture</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0] || null;
-                  setProfileImageFile(file);
-                  if (file) {
-                    setProfileImagePreview(URL.createObjectURL(file));
-                  }
-                }}
-              />
+
+            <div className="flex-1">
+              <label className="mb-2 block text-sm font-semibold text-slate-800">Profile Picture</label>
+              <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-dashed border-blue-300 bg-white px-4 py-4 transition hover:border-blue-400 hover:bg-blue-50/40">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-blue-100 p-3 text-blue-600">
+                    <UploadCloud size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {imageUploading ? "Uploading profile photo..." : selectedImageName || "Upload profile photo"}
+                    </p>
+                    <p className="text-xs text-slate-500">PNG, JPG, JPEG supported. Use a clean square image for best results.</p>
+                  </div>
+                </div>
+                <span className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white">
+                  {imageUploading ? "Uploading..." : selectedImageName ? "Change File" : "Choose File"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={imageUploading}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0] || null;
+                    e.target.value = "";
+                    await uploadProfileImage(file);
+                  }}
+                />
+              </label>
             </div>
           </div>
         </div>
@@ -272,14 +335,41 @@ const SeekerProfile = () => {
             <Globe size={18} />
             <span className="font-semibold">Links</span>
           </div>
-          <input type="url" name="portfolio" value={formData.portfolio} onChange={updateBasic} placeholder="Portfolio URL" className="rounded border p-2" />
-          <input type="url" name="linkedin" value={formData.linkedin} onChange={updateBasic} placeholder="LinkedIn URL" className="rounded border p-2" />
-          <input type="url" name="github" value={formData.github} onChange={updateBasic} placeholder="GitHub URL" className="rounded border p-2" />
+          <input
+            type="url"
+            name="portfolio"
+            value={formData.portfolio}
+            onChange={updateBasic}
+            placeholder={categoryHints.portfolioPlaceholder || "Portfolio URL"}
+            className="rounded border p-2"
+          />
+          <input
+            type="url"
+            name="linkedin"
+            value={formData.linkedin}
+            onChange={updateBasic}
+            placeholder={categoryHints.linkedinPlaceholder || "LinkedIn URL"}
+            className="rounded border p-2"
+          />
+          <input
+            type="url"
+            name="github"
+            value={formData.github}
+            onChange={updateBasic}
+            placeholder={categoryHints.githubPlaceholder || "GitHub URL"}
+            className="rounded border p-2"
+          />
         </div>
 
         <div className="rounded-xl bg-white p-6 shadow-sm">
           <h3 className="mb-2 font-semibold text-slate-700">Professional Summary</h3>
-          <textarea name="summary" value={formData.summary} onChange={updateBasic} className="h-28 w-full rounded border p-2" />
+          <textarea
+            name="summary"
+            value={formData.summary}
+            onChange={updateBasic}
+            placeholder={categoryHints.summaryPlaceholder || ""}
+            className="h-28 w-full rounded border p-2"
+          />
         </div>
 
         <ArraySection
@@ -329,7 +419,13 @@ const SeekerProfile = () => {
               <h3 className="mb-2 flex items-center gap-2 font-semibold text-slate-700">
                 <Code size={18} /> Core Skills
               </h3>
-              <input name="generalSkills" value={formData.generalSkills} onChange={updateBasic} placeholder="Skills (comma separated)" className="w-full rounded border p-2" />
+              <input
+                name="generalSkills"
+                value={formData.generalSkills}
+                onChange={updateBasic}
+                placeholder={categoryHints.skillsPlaceholder || "Skills (comma separated)"}
+                className="w-full rounded border p-2"
+              />
             </div>
 
             {categorySections.map((section) => {
@@ -402,7 +498,11 @@ const SeekerProfile = () => {
           ]}
         />
 
-        <button type="submit" disabled={saving} className="w-full rounded-xl bg-blue-600 py-4 font-bold text-white hover:bg-blue-700 disabled:opacity-70">
+        <button
+          type="submit"
+          disabled={saving || imageUploading}
+          className="w-full rounded-xl bg-blue-600 py-4 font-bold text-white hover:bg-blue-700 disabled:opacity-70"
+        >
           {saving ? "Saving..." : "Generate Full Resume"}
         </button>
       </form>

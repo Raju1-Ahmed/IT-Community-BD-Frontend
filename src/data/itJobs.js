@@ -46,6 +46,15 @@ export const IT_JOBS = [
     ]
   },
   {
+    category: "Graphics Design, Video Editing & Motion",
+    roles: [
+      { role: "Graphic Designer", specializations: ["Social Media Design", "Banner Design", "Brand Identity", "Print Design", "Packaging Design"] },
+      { role: "Video Editor", specializations: ["YouTube Video Editing", "Short Video Editing", "Corporate Video Editing", "Reels/TikTok Editing", "Podcast Editing"] },
+      { role: "Motion Graphics Designer", specializations: ["After Effects", "2D Motion Graphics", "Explainer Video", "Animated Ads", "Logo Animation"] },
+      { role: "Thumbnail & Creative Designer", specializations: ["YouTube Thumbnail", "Ad Creative Design", "Campaign Creative", "E-commerce Product Creative"] }
+    ]
+  },
+  {
     category: "AI & Emerging Technologies",
     roles: [
       { role: "AI Engineer", specializations: ["Generative AI (LLMs)", "NLP (Natural Language Processing)", "Computer Vision", "PyTorch / TensorFlow"] },

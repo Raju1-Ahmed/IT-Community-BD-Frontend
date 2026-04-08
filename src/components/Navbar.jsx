@@ -8,6 +8,7 @@ import {
   FileText,
   LogIn,
   LogOut,
+  MessageSquare,
   Bookmark,
   User,
   LayoutDashboard,
@@ -32,9 +33,11 @@ const Navbar = () => {
 
   const profileImageUrl = useMemo(() => {
     if (!user?.profileImage) return "";
-    return user.profileImage.startsWith("http")
+    const imageUrl = user.profileImage.startsWith("http")
       ? user.profileImage
       : `${BACKEND_ORIGIN}${user.profileImage}`;
+    const version = user.updatedAt ? new Date(user.updatedAt).getTime() : Date.now();
+    return `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}v=${version}`;
   }, [user]);
 
   return (
@@ -53,6 +56,12 @@ const Navbar = () => {
             <Gem size={15} />
             Appoint Expertise
           </NavLink>
+          {user ? (
+            <NavLink to="/messages" className={linkClass}>
+              <MessageSquare size={15} />
+              Message
+            </NavLink>
+          ) : null}
           <NavLink to="/contact" className={linkClass}>
             <Contact size={15} />
             Contact

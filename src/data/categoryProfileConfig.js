@@ -183,6 +183,107 @@ export const CATEGORY_PROFILE_CONFIG = {
       ]
     }
   ],
+  "Graphics Design, Video Editing & Motion": [
+    {
+      key: "portfolioProjects",
+      label: "Portfolio Projects",
+      description: "Show your strongest design, editing, and creative execution work.",
+      template: {
+        projectTitle: "",
+        roleArea: "",
+        projectType: "",
+        clientBrand: "",
+        toolsUsed: "",
+        outcome: "",
+        link: ""
+      },
+      fields: [
+        { key: "projectTitle", label: "Project Title", placeholder: "E-commerce Eid Campaign", type: "text" },
+        { key: "roleArea", label: "Role Area", placeholder: "Graphic Design / Video Editing / Motion", type: "text" },
+        { key: "projectType", label: "Project Type", placeholder: "Social post / Ad creative / Video edit", type: "text" },
+        { key: "clientBrand", label: "Client / Brand", placeholder: "Fashion House BD", type: "text" },
+        { key: "toolsUsed", label: "Tools Used", placeholder: "Photoshop, Illustrator, Premiere Pro", type: "text" },
+        { key: "outcome", label: "Outcome", placeholder: "Improved engagement and brand consistency", type: "textarea" },
+        { key: "link", label: "Portfolio Link", placeholder: "https://...", type: "url" }
+      ]
+    },
+    {
+      key: "showreelPortfolio",
+      label: "Showreel & Portfolio Links",
+      description: "Add your public creative profiles and best presentation links.",
+      template: {
+        platform: "",
+        contentFocus: "",
+        audienceOrClient: "",
+        link: ""
+      },
+      fields: [
+        { key: "platform", label: "Platform", placeholder: "Behance / Dribbble / YouTube / Vimeo / Drive", type: "text" },
+        { key: "contentFocus", label: "Content Focus", placeholder: "Brand design / Short-form editing / Motion ads", type: "text" },
+        { key: "audienceOrClient", label: "Audience / Client Type", placeholder: "Agency, e-commerce, creators, startups", type: "text" },
+        { key: "link", label: "Link", placeholder: "https://...", type: "url" }
+      ]
+    },
+    {
+      key: "softwareProficiency",
+      label: "Software Proficiency",
+      description: "List your design and editing software strengths clearly.",
+      template: {
+        toolName: "",
+        level: "",
+        years: "",
+        workType: "",
+        strongestTask: ""
+      },
+      fields: [
+        { key: "toolName", label: "Tool Name", placeholder: "Adobe Photoshop / Premiere Pro / After Effects", type: "text" },
+        { key: "level", label: "Level", placeholder: "Basic / Intermediate / Advanced", type: "text" },
+        { key: "years", label: "Years of Experience", placeholder: "2 years", type: "text" },
+        { key: "workType", label: "Primary Use", placeholder: "Thumbnail design / Reel editing / Motion graphics", type: "text" },
+        { key: "strongestTask", label: "Strongest Task", placeholder: "Color grading / Banner design / Logo animation", type: "text" }
+      ]
+    },
+    {
+      key: "contentProduction",
+      label: "Content Production Work",
+      description: "Capture what type of content you create and where it is used.",
+      template: {
+        contentType: "",
+        platform: "",
+        format: "",
+        turnaround: "",
+        result: "",
+        link: ""
+      },
+      fields: [
+        { key: "contentType", label: "Content Type", placeholder: "Short video / Banner / Explainer animation", type: "text" },
+        { key: "platform", label: "Platform", placeholder: "Facebook, YouTube, Instagram, Website", type: "text" },
+        { key: "format", label: "Format", placeholder: "Reel, Thumbnail, Poster, Motion ad", type: "text" },
+        { key: "turnaround", label: "Turnaround", placeholder: "Same day / 2-3 days / Weekly content batch", type: "text" },
+        { key: "result", label: "Performance / Result", placeholder: "Higher CTR, views, reach, or brand impact", type: "textarea" },
+        { key: "link", label: "Sample Link", placeholder: "https://...", type: "url" }
+      ]
+    },
+    {
+      key: "creativeCampaigns",
+      label: "Campaign & Client Work",
+      description: "Show how your creative work supported business or campaign goals.",
+      template: {
+        campaignName: "",
+        deliverables: "",
+        objective: "",
+        collaboration: "",
+        result: ""
+      },
+      fields: [
+        { key: "campaignName", label: "Campaign / Client Work", placeholder: "Ramadan product launch visuals", type: "text" },
+        { key: "deliverables", label: "Deliverables", placeholder: "Posters, reels, thumbnails, motion ads", type: "text" },
+        { key: "objective", label: "Objective", placeholder: "Brand awareness / lead generation / conversion", type: "text" },
+        { key: "collaboration", label: "Worked With", placeholder: "Marketing team / founder / video team", type: "text" },
+        { key: "result", label: "Result", placeholder: "Reached more users and improved campaign quality", type: "textarea" }
+      ]
+    }
+  ],
   "AI & Emerging Technologies": [
     {
       key: "aiProjects",

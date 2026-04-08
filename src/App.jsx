@@ -18,6 +18,9 @@ import EmployerApplications from "./pages/EmployerApplicationsEnhanced";
 import EmployerCandidateProfile from "./pages/EmployerCandidateProfile";
 import AppointExpertise from "./pages/AppointExpertiseEnhanced";
 import AppointExpertiseDetails from "./pages/AppointExpertiseDetails";
+import MessagePage from "./pages/MessagePage";
+import HiringInvite from "./pages/HiringInvite";
+import HiringDirectMail from "./pages/HiringDirectMail";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -40,6 +43,38 @@ const App = () => {
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/appoint-expertise" element={<AppointExpertise />} />
         <Route path="/appoint-expertise/:id" element={<AppointExpertiseDetails />} />
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute roles={["employer", "seeker", "admin"]}>
+              <MessagePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/messages/:id"
+          element={
+            <ProtectedRoute roles={["employer", "seeker", "admin"]}>
+              <MessagePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hire-invite/:id"
+          element={
+            <ProtectedRoute roles={["employer", "admin"]}>
+              <HiringInvite />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/direct-mail/:id"
+          element={
+            <ProtectedRoute roles={["employer", "admin"]}>
+              <HiringDirectMail />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/jobs/:id" element={<JobDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
