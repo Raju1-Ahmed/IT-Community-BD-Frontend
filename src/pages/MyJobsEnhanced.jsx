@@ -183,6 +183,10 @@ const MyJobsEnhanced = () => {
             key={job._id}
             className="group rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md"
           >
+            <Link
+              to={`/my-jobs/${job._id}/candidate-applications`}
+              className="block"
+            >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -203,12 +207,12 @@ const MyJobsEnhanced = () => {
                   </span>
                 </div>
 
-                <Link to={`/my-jobs/${job._id}`} className="mt-3 block">
+                <div className="mt-3 block">
                   <h3 className="text-xl font-semibold text-slate-900 transition group-hover:text-emerald-700">
                     {job.title}
                   </h3>
                   <p className="mt-1 text-sm text-slate-600">{job.companyName}</p>
-                </Link>
+                </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <MetaPill icon={<MapPin size={14} className="text-emerald-700" />} text={job.location} />
@@ -219,6 +223,8 @@ const MyJobsEnhanced = () => {
                   />
                 </div>
               </div>
+            </div>
+            </Link>
 
               <div className="flex shrink-0 flex-wrap items-center gap-2">
                 <Link
@@ -227,6 +233,14 @@ const MyJobsEnhanced = () => {
                 >
                   <PencilLine size={16} />
                   Open & Edit
+                </Link>
+
+                <Link
+                  to={`/my-jobs/${job._id}/candidate-applications`}
+                  className="inline-flex items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-800 transition hover:bg-cyan-100"
+                >
+                  <BriefcaseBusiness size={16} />
+                  Candidate Application
                 </Link>
 
                 <button
@@ -256,7 +270,6 @@ const MyJobsEnhanced = () => {
                   Delete
                 </button>
               </div>
-            </div>
           </article>
         ))}
       </div> : null}

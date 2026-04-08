@@ -1,7 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, MessageSquare, Paperclip, Search, Send } from "lucide-react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Loader2, MessageSquare, Paperclip, Search, Send } from "lucide-react";
 import { Link, useLocation, useParams } from "react-router-dom";
+import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { getSocket } from "../lib/socket";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
 
 const getInitials = (name = "") =>
   name
@@ -12,79 +17,390 @@ const getInitials = (name = "") =>
     .join("")
     .toUpperCase();
 
+const toAbsoluteUrl = (url) => {
+  const value = String(url || "").trim();
+  if (!value) return "";
+  if (value.startsWith("http")) return value;
+  return `${BACKEND_ORIGIN}${value}`;
+};
+
+const formatConversationTime = (value) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const sameDay = date.toDateString() === now.toDateString();
+  if (sameDay) {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) {
+    return "Yesterday";
+  }
+
+  return date.toLocaleDateString([], { day: "2-digit", month: "short" });
+};
+
+const formatMessageTime = (value) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
+
+const buildPreview = (conversation) => {
+  const text = String(conversation?.lastMessageText || "").trim();
+  if (text) return text;
+  return conversation?.lastMessageType === "file" ? "Shared an attachment" : "No messages yet";
+};
+
+const normalizeConversation = (conversation) => ({
+  id: String(conversation?.id || ""),
+  participant: {
+    id: String(conversation?.participant?.id || ""),
+    name: conversation?.participant?.name || "Unknown user",
+    role: conversation?.participant?.currentPosition || conversation?.participant?.role || "Professional",
+    status: conversation?.participant?.location || "Available for chat",
+    profileImage: conversation?.participant?.profileImage || "",
+    email: conversation?.participant?.email || ""
+  },
+  lastMessageText: conversation?.lastMessageText || "",
+  lastMessageType: conversation?.lastMessageType || "text",
+  lastMessageAt: conversation?.lastMessageAt || "",
+  unreadCount: Number(conversation?.unreadCount || 0)
+});
+
+const normalizeMessage = (message, userId) => ({
+  id: String(message?.id || ""),
+  conversationId: String(message?.conversationId || ""),
+  senderId: String(message?.senderId || ""),
+  sender: String(message?.senderId || "") === String(userId) ? "me" : "person",
+  text: message?.text || "",
+  attachments: Array.isArray(message?.attachments) ? message.attachments : [],
+  time: formatMessageTime(message?.createdAt),
+  createdAt: message?.createdAt || "",
+  seen: Boolean(message?.seen)
+});
+
+const isPendingConversationId = (value) => String(value || "").startsWith("pending-");
+
+const upsertConversation = (items, conversation) => {
+  const next = normalizeConversation(conversation);
+  const filtered = items.filter(
+    (item) => item.id !== next.id && item.participant.id !== next.participant.id
+  );
+  return [next, ...filtered].sort(
+    (a, b) => new Date(b.lastMessageAt || 0).getTime() - new Date(a.lastMessageAt || 0).getTime()
+  );
+};
+
+const appendUniqueMessage = (items, message) => {
+  if (!message?.id) return items;
+  if (items.some((item) => item.id === message.id)) return items;
+  return [...items, message].sort(
+    (a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
+  );
+};
+
 const MessagePage = () => {
   const { id } = useParams();
   const location = useLocation();
   const { user } = useAuth();
-  const candidateName = location.state?.candidateName || "Candidate";
-  const candidateRole = location.state?.candidateRole || "Professional";
-
-  const personList = useMemo(
-    () => [
-      {
-        id: "candidate-main",
-        name: candidateName,
-        role: candidateRole,
-        status: "Active now",
-        preview: "Sure, please share the project scope and timeline.",
-        avatar: "",
-        unread: 2
-      },
-      {
-        id: "sadia-ui",
-        name: "Sadia Rahman",
-        role: "UI/UX Designer",
-        status: "Online",
-        preview: "I can send the updated portfolio and Behance link.",
-        avatar: "",
-        unread: 0
-      },
-      {
-        id: "nafi-motion",
-        name: "Nafi Hasan",
-        role: "Motion Graphics Designer",
-        status: "Last active 1h ago",
-        preview: "The animation draft is ready for your review.",
-        avatar: "",
-        unread: 1
-      }
-    ],
-    [candidateName, candidateRole]
-  );
-
-  const [activePersonId, setActivePersonId] = useState("candidate-main");
+  const [conversations, setConversations] = useState([]);
+  const [activeConversationId, setActiveConversationId] = useState("");
+  const [messagesByConversation, setMessagesByConversation] = useState({});
   const [chatText, setChatText] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [searchText, setSearchText] = useState("");
-  const [messagesByPerson, setMessagesByPerson] = useState({
-    "candidate-main": [
-      { id: "m1", sender: "person", text: `Hello, this is ${candidateName}.`, time: "09:15 AM" },
-      { id: "m2", sender: "me", text: "I reviewed your expertise profile and would like to discuss a hiring opportunity.", time: "09:18 AM" },
-      { id: "m3", sender: "person", text: "Sure, please share the project scope and timeline.", time: "09:20 AM" }
-    ],
-    "sadia-ui": [
-      { id: "m4", sender: "person", text: "Hi, I specialize in product and mobile UI design.", time: "Yesterday" },
-      { id: "m5", sender: "me", text: "Please share your latest dashboard case study.", time: "Yesterday" },
-      { id: "m6", sender: "person", text: "I can send the updated portfolio and Behance link.", time: "Yesterday" }
-    ],
-    "nafi-motion": [
-      { id: "m7", sender: "me", text: "Can you handle short-form ad edits this week?", time: "11:10 AM" },
-      { id: "m8", sender: "person", text: "Yes, the animation draft is ready for your review.", time: "11:22 AM" }
-    ]
-  });
+  const [loadingConversations, setLoadingConversations] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [typingUser, setTypingUser] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const socketRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const activeConversationRef = useRef("");
+  const requestedParticipantIdRef = useRef("");
+  const messageEndRef = useRef(null);
+  const pendingParticipantId = id || "";
+  const backProfileId = location.state?.expertiseProfileId || "";
+
+  const ensureConversationStarted = async (participantId) => {
+    if (!participantId) return null;
+
+    const { data } = await api.post(
+      "/messages/conversations/start",
+      { participantId },
+      { meta: { skipLoader: true } }
+    );
+
+    if (!data?.conversation) return null;
+
+    setConversations((current) => upsertConversation(current, data.conversation));
+    setActiveConversationId(String(data.conversation.id));
+    return normalizeConversation(data.conversation);
+  };
 
   useEffect(() => {
-    if (id) {
-      setActivePersonId("candidate-main");
-    }
-  }, [id]);
+    activeConversationRef.current = activeConversationId;
+  }, [activeConversationId]);
 
-  const filteredPeople = personList.filter((person) =>
-    `${person.name} ${person.role} ${person.preview}`.toLowerCase().includes(searchText.toLowerCase())
+  const candidateSeedConversation = useMemo(() => {
+    if (!pendingParticipantId || !location.state?.candidateName) return null;
+    return normalizeConversation({
+      id: `pending-${pendingParticipantId}`,
+      participant: {
+        id: pendingParticipantId,
+        name: location.state.candidateName,
+        email: location.state.candidateEmail || "",
+        currentPosition: location.state.candidateRole || "",
+        location: "Available for chat",
+        profileImage: ""
+      },
+      unreadCount: 0
+    });
+  }, [location.state, pendingParticipantId]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadConversations = async () => {
+      setLoadingConversations(true);
+      setErrorMessage("");
+
+      try {
+        const { data } = await api.get("/messages/conversations", { meta: { skipLoader: true } });
+        if (ignore) return;
+
+        let nextConversations = Array.isArray(data?.conversations)
+          ? data.conversations.map(normalizeConversation)
+          : [];
+
+        if (
+          candidateSeedConversation &&
+          !nextConversations.some((item) => item.participant.id === candidateSeedConversation.participant.id)
+        ) {
+          nextConversations = [candidateSeedConversation, ...nextConversations];
+        }
+
+        setConversations(nextConversations);
+
+        if (!pendingParticipantId && nextConversations.length > 0) {
+          setActiveConversationId((current) => current || nextConversations[0].id);
+        }
+      } catch (error) {
+        if (!ignore) {
+          setErrorMessage(error?.response?.data?.message || "Failed to load conversations.");
+        }
+      } finally {
+        if (!ignore) {
+          setLoadingConversations(false);
+        }
+      }
+    };
+
+    loadConversations();
+
+    return () => {
+      ignore = true;
+    };
+  }, [candidateSeedConversation, pendingParticipantId]);
+
+  useEffect(() => {
+    if (!pendingParticipantId || !user?.id) return;
+    if (requestedParticipantIdRef.current === pendingParticipantId) return;
+
+    let ignore = false;
+
+    const openOrCreateConversation = async () => {
+      try {
+        requestedParticipantIdRef.current = pendingParticipantId;
+        const conversation = await ensureConversationStarted(pendingParticipantId);
+        if (ignore || !conversation) return;
+      } catch (error) {
+        if (!ignore) {
+          setErrorMessage(error?.response?.data?.message || "Failed to open this conversation.");
+        }
+      }
+    };
+
+    openOrCreateConversation();
+
+    return () => {
+      ignore = true;
+    };
+  }, [pendingParticipantId, user?.id]);
+
+  useEffect(() => {
+    if (!activeConversationId) return;
+    if (isPendingConversationId(activeConversationId)) return;
+    if (messagesByConversation[activeConversationId]) return;
+
+    let ignore = false;
+
+    const loadMessages = async () => {
+      setLoadingMessages(true);
+
+      try {
+        const { data } = await api.get(`/messages/conversations/${activeConversationId}/messages`, {
+          meta: { skipLoader: true }
+        });
+        if (ignore) return;
+
+        const normalized = Array.isArray(data?.messages)
+          ? data.messages.map((message) => normalizeMessage(message, user?.id))
+          : [];
+
+        setMessagesByConversation((current) => ({
+          ...current,
+          [activeConversationId]: normalized
+        }));
+      } catch (error) {
+        if (!ignore) {
+          setErrorMessage(error?.response?.data?.message || "Failed to load conversation history.");
+        }
+      } finally {
+        if (!ignore) {
+          setLoadingMessages(false);
+        }
+      }
+    };
+
+    loadMessages();
+
+    return () => {
+      ignore = true;
+    };
+  }, [activeConversationId, messagesByConversation, user?.id]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    socketRef.current = socket;
+
+    const handleNewMessage = (incomingMessage) => {
+      const normalized = normalizeMessage(incomingMessage, user?.id);
+
+      setMessagesByConversation((current) => ({
+        ...current,
+        [normalized.conversationId]: appendUniqueMessage(current[normalized.conversationId] || [], normalized)
+      }));
+
+      setConversations((current) => {
+        const existing = current.find((item) => item.id === normalized.conversationId);
+        if (!existing) return current;
+
+        return upsertConversation(current, {
+          ...existing,
+          id: normalized.conversationId,
+          participant: {
+            ...existing.participant,
+            currentPosition: existing.participant.role
+          },
+          lastMessageText: normalized.text || normalized.attachments[0]?.name || "Attachment",
+          lastMessageType: normalized.attachments.length ? (normalized.text ? "mixed" : "file") : "text",
+          lastMessageAt: normalized.createdAt,
+          unreadCount:
+            normalized.conversationId === activeConversationRef.current || normalized.sender === "me"
+              ? 0
+              : (existing.unreadCount || 0) + 1
+        });
+      });
+
+      if (normalized.conversationId === activeConversationRef.current) {
+        socket.emit("message:seen", { conversationId: normalized.conversationId });
+      }
+    };
+
+    const handleConversationUpdate = ({ conversationId, message }) => {
+      setConversations((current) => {
+        const existing = current.find((item) => item.id === conversationId);
+        if (!existing) return current;
+
+        return upsertConversation(current, {
+          ...existing,
+          id: conversationId,
+          participant: {
+            ...existing.participant,
+            currentPosition: existing.participant.role
+          },
+          lastMessageText: message?.text || message?.attachments?.[0]?.name || "Attachment",
+          lastMessageType: message?.type || (message?.attachments?.length ? "file" : "text"),
+          lastMessageAt: message?.createdAt,
+          unreadCount:
+            conversationId === activeConversationRef.current || String(message?.senderId || "") === String(user?.id || "")
+              ? 0
+              : (existing.unreadCount || 0) + 1
+        });
+      });
+    };
+
+    const handleTyping = ({ conversationId, userId, userName }) => {
+      if (conversationId === activeConversationRef.current && String(userId) !== String(user?.id || "")) {
+        setTypingUser(userName || "Typing...");
+      }
+    };
+
+    const handleStopTyping = ({ conversationId, userId }) => {
+      if (conversationId === activeConversationRef.current && String(userId) !== String(user?.id || "")) {
+        setTypingUser("");
+      }
+    };
+
+    socket.on("message:new", handleNewMessage);
+    socket.on("conversation:update", handleConversationUpdate);
+    socket.on("message:typing", handleTyping);
+    socket.on("message:stopTyping", handleStopTyping);
+
+    return () => {
+      socket.off("message:new", handleNewMessage);
+      socket.off("conversation:update", handleConversationUpdate);
+      socket.off("message:typing", handleTyping);
+      socket.off("message:stopTyping", handleStopTyping);
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket || !activeConversationId || isPendingConversationId(activeConversationId)) return undefined;
+
+    socket.emit("conversation:join", { conversationId: activeConversationId });
+    socket.emit("message:seen", { conversationId: activeConversationId });
+    setTypingUser("");
+    setConversations((current) =>
+      current.map((item) => (item.id === activeConversationId ? { ...item, unreadCount: 0 } : item))
+    );
+
+    return () => {
+      socket.emit("conversation:leave", { conversationId: activeConversationId });
+    };
+  }, [activeConversationId]);
+
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [activeConversationId, messagesByConversation, typingUser]);
+
+  useEffect(() => () => clearTimeout(typingTimeoutRef.current), []);
+
+  const filteredPeople = conversations.filter((conversation) =>
+    `${conversation.participant.name} ${conversation.participant.role} ${buildPreview(conversation)}`
+      .toLowerCase()
+      .includes(searchText.toLowerCase())
   );
 
-  const activePerson = filteredPeople.find((item) => item.id === activePersonId) || personList.find((item) => item.id === activePersonId) || personList[0];
-  const activeMessages = messagesByPerson[activePerson.id] || [];
+  const activeConversation =
+    filteredPeople.find((item) => item.id === activeConversationId) ||
+    conversations.find((item) => item.id === activeConversationId) ||
+    conversations[0] ||
+    candidateSeedConversation;
+  const activeMessages = activeConversation ? messagesByConversation[activeConversation.id] || [] : [];
 
   const handleFiles = (event) => {
     const files = Array.from(event.target.files || []);
@@ -93,23 +409,92 @@ const MessagePage = () => {
     event.target.value = "";
   };
 
-  const sendMessage = () => {
+  const handleTextChange = (event) => {
+    const value = event.target.value;
+    setChatText(value);
+
+    if (!activeConversation?.id || !socketRef.current || isPendingConversationId(activeConversation.id)) return;
+
+    socketRef.current.emit("message:typing", { conversationId: activeConversation.id });
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      socketRef.current?.emit("message:stopTyping", { conversationId: activeConversation.id });
+    }, 1200);
+  };
+
+  const sendMessage = async () => {
+    if (!activeConversation?.id) return;
     if (!chatText.trim() && attachments.length === 0) return;
-    setMessagesByPerson((prev) => ({
-      ...prev,
-      [activePerson.id]: [
-        ...(prev[activePerson.id] || []),
-        {
-          id: `msg-${Date.now()}`,
-          sender: "me",
-          text: chatText.trim() || "Shared files",
-          attachments: attachments.map((file) => file.name),
-          time: "Just now"
+
+    setSendingMessage(true);
+    setErrorMessage("");
+
+    try {
+      let resolvedConversation = activeConversation;
+
+      if (isPendingConversationId(activeConversation.id)) {
+        resolvedConversation = await ensureConversationStarted(activeConversation.participant.id);
+      }
+
+      if (!resolvedConversation?.id || isPendingConversationId(resolvedConversation.id)) {
+        throw new Error("Conversation is not ready yet.");
+      }
+
+      const uploadedAttachments = [];
+
+      for (const file of attachments) {
+        const formData = new FormData();
+        formData.append("attachment", file);
+
+        const { data } = await api.post("/messages/attachments", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+          meta: { skipLoader: true }
+        });
+
+        if (data?.attachment) {
+          uploadedAttachments.push(data.attachment);
         }
-      ]
-    }));
-    setChatText("");
-    setAttachments([]);
+      }
+
+      const { data } = await api.post(
+        `/messages/conversations/${resolvedConversation.id}/messages`,
+        {
+          text: chatText.trim(),
+          attachments: uploadedAttachments
+        },
+        { meta: { skipLoader: true } }
+      );
+
+      if (data?.message) {
+        const normalized = normalizeMessage(data.message, user?.id);
+        setMessagesByConversation((current) => ({
+          ...current,
+          [resolvedConversation.id]: appendUniqueMessage(current[resolvedConversation.id] || [], normalized)
+        }));
+
+        setConversations((current) =>
+          upsertConversation(current, {
+            ...resolvedConversation,
+            participant: {
+              ...resolvedConversation.participant,
+              currentPosition: resolvedConversation.participant.role
+            },
+            lastMessageText: normalized.text || normalized.attachments[0]?.name || "Attachment",
+            lastMessageType: normalized.attachments.length ? (normalized.text ? "mixed" : "file") : "text",
+            lastMessageAt: normalized.createdAt,
+            unreadCount: 0
+          })
+        );
+      }
+
+      setChatText("");
+      setAttachments([]);
+      socketRef.current?.emit("message:stopTyping", { conversationId: resolvedConversation.id });
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || error?.message || "Failed to send message.");
+    } finally {
+      setSendingMessage(false);
+    }
   };
 
   return (
@@ -123,9 +508,9 @@ const MessagePage = () => {
           <p className="text-sm text-slate-600">Messenger-style conversation workspace for employer communication.</p>
         </div>
 
-        {id ? (
+        {backProfileId ? (
           <Link
-            to={`/appoint-expertise/${id}`}
+            to={`/appoint-expertise/${backProfileId}`}
             className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
             <ArrowLeft size={16} /> Back to Details
@@ -150,38 +535,60 @@ const MessagePage = () => {
           </div>
 
           <div className="max-h-[620px] space-y-2 overflow-y-auto p-3">
-            {filteredPeople.map((person) => (
+            {loadingConversations ? (
+              <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                <Loader2 size={16} className="animate-spin" /> Loading conversations...
+              </div>
+            ) : null}
+
+            {!loadingConversations && filteredPeople.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+                No conversations found yet.
+              </div>
+            ) : null}
+
+            {filteredPeople.map((conversation) => (
               <button
-                key={person.id}
+                key={conversation.id}
                 type="button"
-                onClick={() => setActivePersonId(person.id)}
+                onClick={() => setActiveConversationId(conversation.id)}
                 className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
-                  activePersonId === person.id
+                  activeConversationId === conversation.id
                     ? "border-emerald-300 bg-emerald-50 text-slate-900"
                     : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
-                    {getInitials(person.name)}
-                  </div>
+                  {conversation.participant.profileImage ? (
+                    <img
+                      src={toAbsoluteUrl(conversation.participant.profileImage)}
+                      alt={conversation.participant.name}
+                      className="h-11 w-11 shrink-0 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
+                      {getInitials(conversation.participant.name)}
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold">{person.name}</p>
-                        <p className="mt-1 truncate text-xs text-slate-500">{person.role}</p>
+                        <p className="truncate text-sm font-semibold">{conversation.participant.name}</p>
+                        <p className="mt-1 truncate text-xs text-slate-500">{conversation.participant.role}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        {person.unread ? (
+                        {conversation.unreadCount ? (
                           <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                            {person.unread}
+                            {conversation.unreadCount}
                           </span>
                         ) : null}
-                        <span className={`h-2.5 w-2.5 rounded-full ${activePersonId === person.id ? "bg-emerald-500" : "bg-slate-300"}`} />
+                        <span className={`h-2.5 w-2.5 rounded-full ${activeConversationId === conversation.id ? "bg-emerald-500" : "bg-slate-300"}`} />
                       </div>
                     </div>
-                    <p className="mt-2 truncate text-xs text-slate-500">{person.preview}</p>
-                    <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">{person.status}</p>
+                    <p className="mt-2 truncate text-xs text-slate-500">{buildPreview(conversation)}</p>
+                    <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                      {formatConversationTime(conversation.lastMessageAt) || conversation.participant.status}
+                    </p>
                   </div>
                 </div>
               </button>
@@ -191,20 +598,53 @@ const MessagePage = () => {
 
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
-                {getInitials(activePerson.name)}
+            {activeConversation ? (
+              <div className="flex items-center gap-3">
+                {activeConversation.participant.profileImage ? (
+                  <img
+                    src={toAbsoluteUrl(activeConversation.participant.profileImage)}
+                    alt={activeConversation.participant.name}
+                    className="h-11 w-11 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
+                    {getInitials(activeConversation.participant.name)}
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{activeConversation.participant.name}</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {activeConversation.participant.role} {user?.name ? `· chatting as ${user.name}` : ""}
+                  </p>
+                </div>
               </div>
+            ) : (
               <div>
-                <p className="text-sm font-semibold text-slate-900">{activePerson.name}</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {activePerson.role} {user?.name ? `· chatting as ${user.name}` : ""}
-                </p>
+                <p className="text-sm font-semibold text-slate-900">Select a conversation</p>
+                <p className="mt-1 text-xs text-slate-500">Choose a person from the list to start chatting.</p>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="max-h-[460px] space-y-3 overflow-y-auto px-4 py-4">
+            {loadingMessages ? (
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <Loader2 size={16} className="animate-spin" /> Loading conversation history...
+              </div>
+            ) : null}
+
+            {errorMessage ? (
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {errorMessage}
+              </div>
+            ) : null}
+
+            {!loadingMessages && activeConversation && activeMessages.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+                No messages yet. Start the conversation from below.
+              </div>
+            ) : null}
+
             {activeMessages.map((item) => (
               <div
                 key={item.id}
@@ -215,25 +655,40 @@ const MessagePage = () => {
                 }`}
               >
                 <p className="whitespace-pre-line">{item.text}</p>
-                {item.attachments?.length ? (
+                {item.attachments.length ? (
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {item.attachments.map((fileName) => (
-                      <span key={fileName} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600">
-                        {fileName}
-                      </span>
+                    {item.attachments.map((file) => (
+                      <a
+                        key={`${item.id}-${file.url}`}
+                        href={toAbsoluteUrl(file.url)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50"
+                      >
+                        {file.name}
+                      </a>
                     ))}
                   </div>
                 ) : null}
                 <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-slate-400">{item.time}</p>
               </div>
             ))}
+
+            {typingUser ? (
+              <div className="max-w-[85%] rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                {typingUser} is typing...
+              </div>
+            ) : null}
+
+            <div ref={messageEndRef} />
           </div>
 
           <div className="border-t border-slate-200 bg-slate-50 p-4">
             <textarea
               value={chatText}
-              onChange={(e) => setChatText(e.target.value)}
+              onChange={handleTextChange}
               placeholder="Write your message here..."
+              disabled={!activeConversation || sendingMessage}
               className="h-28 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none"
             />
 
@@ -246,17 +701,18 @@ const MessagePage = () => {
             </div>
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+              <label className={`inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 ${activeConversation ? "cursor-pointer hover:bg-slate-50" : "cursor-not-allowed opacity-60"}`}>
                 <Paperclip size={15} /> Share Files
-                <input type="file" multiple className="hidden" onChange={handleFiles} />
+                <input type="file" multiple className="hidden" onChange={handleFiles} disabled={!activeConversation || sendingMessage} />
               </label>
 
               <button
                 type="button"
                 onClick={sendMessage}
-                className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                disabled={!activeConversation || sendingMessage}
+                className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <Send size={15} /> Send
+                {sendingMessage ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} {sendingMessage ? "Sending..." : "Send"}
               </button>
             </div>
           </div>

@@ -403,8 +403,13 @@ const AppointExpertiseDetails = () => {
               <SectionCard icon={Sparkles} title="Hiring Communication Flow" hint="Start structured communication for appointment and hiring">
                 <div className="space-y-3">
                   <Link
-                    to={`/messages/${id}`}
-                    state={{ candidateName: seeker?.name || "", candidateRole: profile?.preferredRole || seeker?.jobRole || seeker?.currentPosition || "", candidateEmail: seeker?.email || profile?.primaryEmail || "" }}
+                    to={`/messages/${seeker?._id || seeker?.id || ""}`}
+                    state={{
+                      candidateName: seeker?.name || "",
+                      candidateRole: profile?.preferredRole || seeker?.jobRole || seeker?.currentPosition || "",
+                      candidateEmail: seeker?.email || profile?.primaryEmail || "",
+                      expertiseProfileId: id
+                    }}
                     className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-emerald-300 hover:bg-emerald-50/60"
                   >
                     <div>

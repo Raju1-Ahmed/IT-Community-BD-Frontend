@@ -1,5 +1,7 @@
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
+import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { getCategoryResumeSections } from "../data/categoryProfileConfig";
 
@@ -10,8 +12,105 @@ const hasText = (value) => typeof value === "string" && value.trim().length > 0;
 
 const normalizeArray = (value) => (Array.isArray(value) ? value : []);
 
+const formatInsightDate = (value) => {
+  if (!value) return "No views yet";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "No views yet";
+
+  return date.toLocaleString([], {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+};
+
+const buildTopEmployers = (recentViews = []) => {
+  const employerMap = new Map();
+
+  recentViews.forEach((item) => {
+    const key = item.employerName || "Employer";
+    const existing = employerMap.get(key) || {
+      employerName: key,
+      total: 0,
+      lastViewedAt: item.viewedAt
+    };
+
+    existing.total += 1;
+    if (new Date(item.viewedAt || 0) > new Date(existing.lastViewedAt || 0)) {
+      existing.lastViewedAt = item.viewedAt;
+    }
+
+    employerMap.set(key, existing);
+  });
+
+  return Array.from(employerMap.values())
+    .sort((a, b) => b.total - a.total || new Date(b.lastViewedAt || 0) - new Date(a.lastViewedAt || 0))
+    .slice(0, 5);
+};
+
 const SeekerResume = () => {
   const { user } = useAuth();
+  const [insights, setInsights] = useState({
+    totalViews: 0,
+    uniqueEmployers: 0,
+    viewsThisWeek: 0,
+    lastViewedAt: null,
+    recentViews: []
+  });
+  const [insightsLoading, setInsightsLoading] = useState(true);
+
+  const loadResumeInsights = useCallback(async (ignore = false) => {
+      setInsightsLoading(true);
+      try {
+        const { data } = await api.get("/users/me/resume-insights", { meta: { skipLoader: true } });
+        if (ignore) return;
+        setInsights(data?.insights || {
+          totalViews: 0,
+          uniqueEmployers: 0,
+          viewsThisWeek: 0,
+          lastViewedAt: null,
+          recentViews: []
+        });
+      } catch (_error) {
+        if (!ignore) {
+          setInsights({
+            totalViews: 0,
+            uniqueEmployers: 0,
+            viewsThisWeek: 0,
+            lastViewedAt: null,
+            recentViews: []
+          });
+        }
+      } finally {
+        if (!ignore) {
+          setInsightsLoading(false);
+        }
+      }
+    }, []);
+
+  useEffect(() => {
+    let ignore = false;
+
+    loadResumeInsights(ignore);
+
+    const handleFocus = () => {
+      loadResumeInsights(ignore);
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      ignore = true;
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [loadResumeInsights]);
+
+  const repeatViews = Math.max((insights.totalViews || 0) - (insights.uniqueEmployers || 0), 0);
+  const recentEventPreview = (insights.recentViews || []).slice(0, 5);
+  const topEmployers = buildTopEmployers(insights.recentViews || []);
 
   const resumeData = {
     fullName: user?.name || "Your Name",
@@ -95,6 +194,110 @@ const SeekerResume = () => {
           }
         `}
       </style>
+
+      <div className="no-print mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Resume Insights</p>
+            <h2 className="mt-1 text-xl font-bold text-slate-900">Employer view activity on your resume</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {insightsLoading ? "Loading insights..." : `Last viewed: ${formatInsightDate(insights.lastViewedAt)}`}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => loadResumeInsights()}
+            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Refresh
+          </button>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs text-slate-500">Total Views</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">{insightsLoading ? "..." : insights.totalViews}</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs text-slate-500">Unique Employers</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">{insightsLoading ? "..." : insights.uniqueEmployers}</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs text-slate-500">Views This Week</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">{insightsLoading ? "..." : insights.viewsThisWeek}</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs text-slate-500">Repeat Views</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">
+              {insightsLoading ? "..." : repeatViews}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="rounded-xl border border-slate-200">
+            <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-sm font-semibold text-slate-900">Top Employers</p>
+            </div>
+
+            <div className="divide-y divide-slate-200">
+              {insightsLoading ? (
+                <div className="px-4 py-4 text-sm text-slate-500">Loading employer summary...</div>
+              ) : null}
+
+              {!insightsLoading && topEmployers.length === 0 ? (
+                <div className="px-4 py-4 text-sm text-slate-500">No employer summary available yet.</div>
+              ) : null}
+
+              {!insightsLoading
+                ? topEmployers.map((item) => (
+                    <div key={`${item.employerName}-${item.lastViewedAt}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                      <div>
+                        <p className="font-semibold text-slate-900">{item.employerName}</p>
+                        <p className="text-xs text-slate-500">Last viewed {formatInsightDate(item.lastViewedAt)}</p>
+                      </div>
+                      <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+                        {item.total} view{item.total > 1 ? "s" : ""}
+                      </div>
+                    </div>
+                  ))
+                : null}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200">
+            <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-sm font-semibold text-slate-900">Latest 5 View Events</p>
+            </div>
+
+            <div className="divide-y divide-slate-200">
+              {insightsLoading ? (
+                <div className="px-4 py-4 text-sm text-slate-500">Loading recent views...</div>
+              ) : null}
+
+              {!insightsLoading && recentEventPreview.length === 0 ? (
+                <div className="px-4 py-4 text-sm text-slate-500">No employer has viewed your resume yet.</div>
+              ) : null}
+
+              {!insightsLoading
+                ? recentEventPreview.map((item) => (
+                    <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+                      <div>
+                        <p className="font-semibold text-slate-900">{item.employerName || "Employer"}</p>
+                        <p className="text-xs text-slate-500">
+                          {item.sourceType === "expertise_profile" ? "Viewed from expertise profile" : "Viewed from candidate resume"}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-slate-700">{formatInsightDate(item.viewedAt)}</p>
+                      </div>
+                    </div>
+                  ))
+                : null}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="no-print mb-4 flex items-center justify-end gap-2">
         <Link to="/seeker-profile" className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">

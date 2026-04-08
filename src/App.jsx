@@ -8,6 +8,7 @@ import JobDetails from "./pages/JobDetails";
 import PostJob from "./pages/PostJobSchemaForm";
 import MyJobs from "./pages/MyJobsEnhanced";
 import MyJobDetails from "./pages/MyJobDetails";
+import MyJobCandidateApplications from "./pages/MyJobCandidateApplications";
 import MyApplications from "./pages/MyApplications";
 import SavedJobs from "./pages/SavedJobs";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -99,6 +100,14 @@ const App = () => {
           element={
             <ProtectedRoute roles={["employer", "admin"]}>
               <MyJobDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-jobs/:id/candidate-applications"
+          element={
+            <ProtectedRoute roles={["employer", "admin"]}>
+              <MyJobCandidateApplications />
             </ProtectedRoute>
           }
         />
