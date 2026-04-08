@@ -15,6 +15,7 @@ const ProtectedRoute = ({ children, roles }) => {
     location.pathname === "/post-job" ||
     location.pathname === "/my-jobs" ||
     location.pathname === "/employer-applications" ||
+    location.pathname === "/messages" ||
     location.pathname.startsWith("/messages/") ||
     location.pathname.startsWith("/hire-invite/") ||
     location.pathname.startsWith("/direct-mail/") ||

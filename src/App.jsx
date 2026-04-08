@@ -20,6 +20,7 @@ import EmployerCandidateProfile from "./pages/EmployerCandidateProfile";
 import AppointExpertise from "./pages/AppointExpertiseEnhanced";
 import AppointExpertiseDetails from "./pages/AppointExpertiseDetails";
 import MessagePage from "./pages/MessagePage";
+import ForumPage from "./pages/ForumPage";
 import HiringInvite from "./pages/HiringInvite";
 import HiringDirectMail from "./pages/HiringDirectMail";
 import AboutUs from "./pages/AboutUs";
@@ -42,6 +43,7 @@ const App = () => {
         <Route path="/terms-conditions" element={<TermsConditions />} />
         <Route path="/loader-showcase" element={<LoaderShowcase />} />
         <Route path="/jobs" element={<Jobs />} />
+        <Route path="/forum" element={<ForumPage />} />
         <Route path="/appoint-expertise" element={<AppointExpertise />} />
         <Route path="/appoint-expertise/:id" element={<AppointExpertiseDetails />} />
         <Route

@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Loader2, MessageSquare, Paperclip, Search, Send } from "lucide-react";
+import { ArrowLeft, CheckCheck, Loader2, MessageSquare, Paperclip, Search, Send } from "lucide-react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -52,6 +52,22 @@ const formatMessageTime = (value) => {
   if (Number.isNaN(date.getTime())) return "";
 
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
+
+const formatMessageDayLabel = (value) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) return "Today";
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+
+  return date.toLocaleDateString([], { day: "2-digit", month: "long", year: "numeric" });
 };
 
 const buildPreview = (conversation) => {
@@ -123,11 +139,13 @@ const MessagePage = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [typingUser, setTypingUser] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [attachmentUploadProgress, setAttachmentUploadProgress] = useState({});
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const activeConversationRef = useRef("");
   const requestedParticipantIdRef = useRef("");
   const messageEndRef = useRef(null);
+  const composerRef = useRef(null);
   const pendingParticipantId = id || "";
   const backProfileId = location.state?.expertiseProfileId || "";
 
@@ -389,6 +407,12 @@ const MessagePage = () => {
 
   useEffect(() => () => clearTimeout(typingTimeoutRef.current), []);
 
+  useEffect(() => {
+    if (!composerRef.current) return;
+    composerRef.current.style.height = "0px";
+    composerRef.current.style.height = `${Math.min(composerRef.current.scrollHeight, 180)}px`;
+  }, [chatText]);
+
   const filteredPeople = conversations.filter((conversation) =>
     `${conversation.participant.name} ${conversation.participant.role} ${buildPreview(conversation)}`
       .toLowerCase()
@@ -401,12 +425,32 @@ const MessagePage = () => {
     conversations[0] ||
     candidateSeedConversation;
   const activeMessages = activeConversation ? messagesByConversation[activeConversation.id] || [] : [];
+  const threadMessages = activeMessages.map((message, index) => {
+    const previous = activeMessages[index - 1];
+    const currentDay = formatMessageDayLabel(message.createdAt);
+    const previousDay = previous ? formatMessageDayLabel(previous.createdAt) : "";
+
+    return {
+      ...message,
+      showDayLabel: !previous || currentDay !== previousDay,
+      dayLabel: currentDay
+    };
+  });
 
   const handleFiles = (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
     setAttachments((prev) => [...prev, ...files]);
     event.target.value = "";
+  };
+
+  const removeAttachment = (fileName) => {
+    setAttachments((current) => current.filter((file) => file.name !== fileName));
+    setAttachmentUploadProgress((current) => {
+      const next = { ...current };
+      delete next[fileName];
+      return next;
+    });
   };
 
   const handleTextChange = (event) => {
@@ -420,6 +464,13 @@ const MessagePage = () => {
     typingTimeoutRef.current = setTimeout(() => {
       socketRef.current?.emit("message:stopTyping", { conversationId: activeConversation.id });
     }, 1200);
+  };
+
+  const handleComposerKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
+    }
   };
 
   const sendMessage = async () => {
@@ -448,7 +499,15 @@ const MessagePage = () => {
 
         const { data } = await api.post("/messages/attachments", formData, {
           headers: { "Content-Type": "multipart/form-data" },
-          meta: { skipLoader: true }
+          meta: { skipLoader: true },
+          onUploadProgress: (progressEvent) => {
+            const total = progressEvent.total || file.size || 1;
+            const value = Math.max(8, Math.round((progressEvent.loaded / total) * 100));
+            setAttachmentUploadProgress((current) => ({
+              ...current,
+              [file.name]: value
+            }));
+          }
         });
 
         if (data?.attachment) {
@@ -489,6 +548,7 @@ const MessagePage = () => {
 
       setChatText("");
       setAttachments([]);
+      setAttachmentUploadProgress({});
       socketRef.current?.emit("message:stopTyping", { conversationId: resolvedConversation.id });
     } catch (error) {
       setErrorMessage(error?.response?.data?.message || error?.message || "Failed to send message.");
@@ -521,8 +581,15 @@ const MessagePage = () => {
       <div className="grid gap-4 xl:grid-cols-[0.34fr_0.66fr]">
         <aside className="rounded-2xl border border-slate-200 bg-white">
           <div className="border-b border-slate-200 p-4">
-            <p className="text-sm font-semibold text-slate-900">People</p>
-            <p className="mt-1 text-xs text-slate-500">Recent and active conversations</p>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">People</p>
+                <p className="mt-1 text-xs text-slate-500">Recent and active conversations</p>
+              </div>
+              <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                {filteredPeople.length} active
+              </div>
+            </div>
             <div className="relative mt-4">
               <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -536,9 +603,20 @@ const MessagePage = () => {
 
           <div className="max-h-[620px] space-y-2 overflow-y-auto p-3">
             {loadingConversations ? (
-              <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                <Loader2 size={16} className="animate-spin" /> Loading conversations...
-              </div>
+              <>
+                {[...Array(5)].map((_, index) => (
+                  <div key={index} className="animate-pulse rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                    <div className="flex items-start gap-3">
+                      <div className="h-11 w-11 rounded-full bg-slate-200" />
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div className="h-3 w-32 rounded bg-slate-200" />
+                        <div className="h-3 w-24 rounded bg-slate-100" />
+                        <div className="h-3 w-40 rounded bg-slate-100" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
             ) : null}
 
             {!loadingConversations && filteredPeople.length === 0 ? (
@@ -586,9 +664,14 @@ const MessagePage = () => {
                       </div>
                     </div>
                     <p className="mt-2 truncate text-xs text-slate-500">{buildPreview(conversation)}</p>
-                    <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">
-                      {formatConversationTime(conversation.lastMessageAt) || conversation.participant.status}
-                    </p>
+                    <div className="mt-2 flex items-center justify-between gap-3">
+                      <p className="truncate text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                        {formatConversationTime(conversation.lastMessageAt) || conversation.participant.status}
+                      </p>
+                      <p className="truncate text-[11px] text-slate-400">
+                        {conversation.unreadCount ? "Unread" : "Up to date"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </button>
@@ -599,23 +682,36 @@ const MessagePage = () => {
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-4">
             {activeConversation ? (
-              <div className="flex items-center gap-3">
-                {activeConversation.participant.profileImage ? (
-                  <img
-                    src={toAbsoluteUrl(activeConversation.participant.profileImage)}
-                    alt={activeConversation.participant.name}
-                    className="h-11 w-11 shrink-0 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
-                    {getInitials(activeConversation.participant.name)}
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  {activeConversation.participant.profileImage ? (
+                    <img
+                      src={toAbsoluteUrl(activeConversation.participant.profileImage)}
+                      alt={activeConversation.participant.name}
+                      className="h-11 w-11 shrink-0 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
+                      {getInitials(activeConversation.participant.name)}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{activeConversation.participant.name}</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {activeConversation.participant.role} {user?.name ? `· chatting as ${user.name}` : ""}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {activeConversation.participant.email || activeConversation.participant.status}
+                    </p>
                   </div>
-                )}
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">{activeConversation.participant.name}</p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {activeConversation.participant.role} {user?.name ? `· chatting as ${user.name}` : ""}
-                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
+                    Active conversation
+                  </span>
+                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-500">
+                    {activeMessages.length} messages
+                  </span>
                 </div>
               </div>
             ) : (
@@ -626,10 +722,12 @@ const MessagePage = () => {
             )}
           </div>
 
-          <div className="max-h-[460px] space-y-3 overflow-y-auto px-4 py-4">
+          <div className="max-h-[460px] space-y-3 overflow-y-auto bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-4 py-4">
             {loadingMessages ? (
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Loader2 size={16} className="animate-spin" /> Loading conversation history...
+              <div className="space-y-3 animate-pulse">
+                <div className="mx-auto h-8 w-32 rounded-full bg-slate-100" />
+                <div className="ml-auto h-20 w-64 max-w-[85%] rounded-2xl bg-emerald-100/70" />
+                <div className="h-24 w-72 max-w-[85%] rounded-2xl bg-slate-100" />
               </div>
             ) : null}
 
@@ -645,37 +743,53 @@ const MessagePage = () => {
               </div>
             ) : null}
 
-            {activeMessages.map((item) => (
-              <div
-                key={item.id}
-                className={`rounded-2xl px-4 py-3 text-sm ${
-                  item.sender === "me"
-                    ? "ml-auto max-w-[85%] bg-emerald-50 text-slate-800"
-                    : "max-w-[85%] bg-slate-50 text-slate-700"
-                }`}
-              >
-                <p className="whitespace-pre-line">{item.text}</p>
-                {item.attachments.length ? (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {item.attachments.map((file) => (
-                      <a
-                        key={`${item.id}-${file.url}`}
-                        href={toAbsoluteUrl(file.url)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50"
-                      >
-                        {file.name}
-                      </a>
-                    ))}
+            {threadMessages.map((item) => (
+              <div key={item.id}>
+                {item.showDayLabel ? (
+                  <div className="mb-3 flex items-center justify-center">
+                    <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400 shadow-sm">
+                      {item.dayLabel}
+                    </span>
                   </div>
                 ) : null}
-                <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-slate-400">{item.time}</p>
+
+                <div
+                  className={`rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                    item.sender === "me"
+                      ? "ml-auto max-w-[85%] border border-emerald-200 bg-emerald-50 text-slate-800"
+                      : "max-w-[85%] border border-slate-200 bg-white text-slate-700"
+                  }`}
+                >
+                  <p className="whitespace-pre-line">{item.text}</p>
+                  {item.attachments.length ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {item.attachments.map((file) => (
+                        <a
+                          key={`${item.id}-${file.url}`}
+                          href={toAbsoluteUrl(file.url)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100"
+                        >
+                          <Paperclip size={12} /> {file.name}
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">{item.time}</p>
+                    {item.sender === "me" ? (
+                      <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${item.seen ? "text-emerald-600" : "text-slate-400"}`}>
+                        <CheckCheck size={12} /> {item.seen ? "Seen" : "Sent"}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
               </div>
             ))}
 
             {typingUser ? (
-              <div className="max-w-[85%] rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              <div className="max-w-[85%] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm">
                 {typingUser} is typing...
               </div>
             ) : null}
@@ -684,19 +798,58 @@ const MessagePage = () => {
           </div>
 
           <div className="border-t border-slate-200 bg-slate-50 p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-800">Reply to {activeConversation?.participant.name || "conversation"}</p>
+                <p className="text-xs text-slate-500">Press Enter to send, Shift + Enter for a new line.</p>
+              </div>
+              {attachments.length ? (
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  {attachments.length} file{attachments.length > 1 ? "s" : ""} ready
+                </span>
+              ) : null}
+            </div>
             <textarea
+              ref={composerRef}
               value={chatText}
               onChange={handleTextChange}
+              onKeyDown={handleComposerKeyDown}
               placeholder="Write your message here..."
               disabled={!activeConversation || sendingMessage}
-              className="h-28 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none"
+              className="min-h-[92px] w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none"
             />
 
             <div className="mt-3 flex flex-wrap gap-2">
               {attachments.map((file) => (
-                <span key={`${file.name}-${file.size}`} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600">
-                  {file.name}
-                </span>
+                <div
+                  key={`${file.name}-${file.size}`}
+                  className="min-w-[180px] rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-slate-700">{file.name}</p>
+                      <p className="mt-1 text-[11px] text-slate-400">{Math.max(1, Math.round(file.size / 1024))} KB</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(file.name)}
+                      className="text-[11px] font-semibold text-slate-400 hover:text-red-500"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  {sendingMessage && attachmentUploadProgress[file.name] ? (
+                    <div className="mt-2">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-emerald-500 transition-all"
+                          style={{ width: `${attachmentUploadProgress[file.name]}%` }}
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] text-slate-400">Uploading {attachmentUploadProgress[file.name]}%</p>
+                    </div>
+                  ) : null}
+                </div>
               ))}
             </div>
 

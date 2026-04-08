@@ -15,6 +15,7 @@ const LoaderRuntime = () => {
     location.pathname === "/register" ||
     location.pathname === "/contact" ||
     location.pathname === "/about" ||
+    location.pathname === "/forum" ||
     location.pathname === "/my-applications" ||
     location.pathname === "/saved-jobs" ||
     location.pathname === "/expert-profile" ||
@@ -22,6 +23,10 @@ const LoaderRuntime = () => {
     location.pathname === "/post-job" ||
     location.pathname === "/my-jobs" ||
     location.pathname === "/employer-applications" ||
+    location.pathname === "/messages" ||
+    location.pathname.startsWith("/messages/") ||
+    location.pathname.startsWith("/hire-invite/") ||
+    location.pathname.startsWith("/direct-mail/") ||
     location.pathname.startsWith("/my-jobs/") ||
     location.pathname.startsWith("/employer/candidate/") ||
     location.pathname === "/admin" ||

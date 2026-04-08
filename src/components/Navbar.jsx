@@ -9,6 +9,7 @@ import {
   LogIn,
   LogOut,
   MessageSquare,
+  MessagesSquare,
   Bookmark,
   User,
   LayoutDashboard,
@@ -55,6 +56,10 @@ const Navbar = () => {
           <NavLink to="/appoint-expertise" className={linkClass}>
             <Gem size={15} />
             Appoint Expertise
+          </NavLink>
+          <NavLink to="/forum" className={linkClass}>
+            <MessagesSquare size={15} />
+            Forum
           </NavLink>
           {user ? (
             <NavLink to="/messages" className={linkClass}>
