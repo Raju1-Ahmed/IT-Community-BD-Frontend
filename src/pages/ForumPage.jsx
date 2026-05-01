@@ -1,16 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  ImagePlus,
-  Lightbulb,
-  Loader2,
-  MessageCircle,
-  PartyPopper,
-  RefreshCcw,
-  SendHorizontal,
-  Share2,
-  ThumbsUp,
-  Trash2
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { ImagePlus, Loader2, RefreshCcw, SendHorizontal, Share2, Trash2 } from "lucide-react";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
@@ -18,10 +7,10 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000
 const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
 
 const FORUM_REACTIONS = [
-  { key: "like", label: "Like", icon: ThumbsUp, activeClass: "bg-blue-50 text-blue-700 border-blue-200" },
-  { key: "insightful", label: "Insightful", icon: Lightbulb, activeClass: "bg-amber-50 text-amber-700 border-amber-200" },
-  { key: "support", label: "Support", icon: MessageCircle, activeClass: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  { key: "celebrate", label: "Celebrate", icon: PartyPopper, activeClass: "bg-pink-50 text-pink-700 border-pink-200" }
+  { key: "like", label: "Like", icon: Share2, activeClass: "bg-blue-50 text-blue-700 border-blue-200" },
+  { key: "insightful", label: "Insightful", icon: RefreshCcw, activeClass: "bg-amber-50 text-amber-700 border-amber-200" },
+  { key: "support", label: "Support", icon: ImagePlus, activeClass: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  { key: "celebrate", label: "Celebrate", icon: SendHorizontal, activeClass: "bg-pink-50 text-pink-700 border-pink-200" }
 ];
 
 const getInitials = (name = "") =>
@@ -60,8 +49,6 @@ const formatRelativeTime = (value) => {
 const ForumPage = () => {
   const { user } = useAuth();
   const [posts, setPosts] = useState([]);
-  const [tags, setTags] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
   const [composerText, setComposerText] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [commentDrafts, setCommentDrafts] = useState({});
@@ -73,15 +60,6 @@ const ForumPage = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const activeReactionLookup = useMemo(
-    () =>
-      FORUM_REACTIONS.reduce((acc, item) => {
-        acc[item.key] = item;
-        return acc;
-      }, {}),
-    []
-  );
-
   const loadForum = async ({ silent = false } = {}) => {
     if (silent) {
       setRefreshing(true);
@@ -91,13 +69,8 @@ const ForumPage = () => {
     setErrorMessage("");
 
     try {
-      const [metaRes, postsRes] = await Promise.all([
-        api.get("/forum/meta", { meta: { skipLoader: true } }),
-        api.get("/forum/posts", { meta: { skipLoader: true } })
-      ]);
-
-      setTags(Array.isArray(metaRes.data?.tags) ? metaRes.data.tags : []);
-      setPosts(Array.isArray(postsRes.data?.posts) ? postsRes.data.posts : []);
+      const { data } = await api.get("/forum/posts", { meta: { skipLoader: true } });
+      setPosts(Array.isArray(data?.posts) ? data.posts : []);
     } catch (error) {
       setErrorMessage(error?.response?.data?.message || "Failed to load forum feed.");
     } finally {
@@ -121,10 +94,11 @@ const ForumPage = () => {
     setAttachments((current) => current.filter((file) => file.name !== targetName));
   };
 
-  const toggleTag = (tag) => {
-    setSelectedTags((current) =>
-      current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag].slice(0, 4)
-    );
+  const handleComposerKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleCreatePost();
+    }
   };
 
   const handleCreatePost = async () => {
@@ -163,7 +137,6 @@ const ForumPage = () => {
         "/forum/posts",
         {
           content: composerText.trim(),
-          tags: selectedTags,
           attachments: uploadedAttachments
         },
         { meta: { skipLoader: true } }
@@ -172,7 +145,6 @@ const ForumPage = () => {
       if (data?.post) {
         setPosts((current) => [data.post, ...current]);
         setComposerText("");
-        setSelectedTags([]);
         setAttachments([]);
         setSuccessMessage("Your post is now live in the community feed.");
       }
@@ -273,72 +245,49 @@ const ForumPage = () => {
 
   return (
     <section className="space-y-6">
-      <div className="rounded-[28px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.16),_transparent_32%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-6 shadow-sm md:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              Community Forum
-            </p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">Tech discussions for the Bangladesh IT community</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              Share problems, post updates, ask for help, and discuss tools, hiring, freelancing, networking, cybersecurity,
-              graphics, and more in one live community feed.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => loadForum({ silent: true })}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            {refreshing ? <Loader2 size={15} className="animate-spin" /> : <RefreshCcw size={15} />}
-            Refresh Feed
-          </button>
-        </div>
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[0.72fr_0.28fr]">
-        <div className="space-y-6">
-          <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-            <div className="flex items-start gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">
+      <div className="space-y-6">
+          <section className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">
                 {getInitials(user?.name || "IT")}
               </div>
               <div className="min-w-0 flex-1">
-                <h2 className="text-lg font-semibold text-slate-900">Create a post</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  {user ? "Share a problem, update, opinion, or helpful resource with the community." : "Login to create a forum post and join the discussion."}
-                </p>
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                  <input
+                    value={composerText}
+                    onChange={(event) => setComposerText(event.target.value)}
+                    onKeyDown={handleComposerKeyDown}
+                    disabled={!user || posting}
+                    placeholder={
+                      user
+                        ? "Share a problem, update, opinion, or helpful resource with the community."
+                        : "Login to create a forum post and join the discussion."
+                    }
+                    className="h-12 w-full rounded-full border border-slate-200 bg-slate-50 px-5 text-sm outline-none transition focus:border-emerald-300 focus:bg-white"
+                  />
+
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <label className={`inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 ${user ? "cursor-pointer hover:bg-slate-50" : "cursor-not-allowed opacity-60"}`}>
+                      <ImagePlus size={15} />
+                      Add file
+                      <input type="file" multiple className="hidden" onChange={handleComposerFiles} disabled={!user || posting} />
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={handleCreatePost}
+                      disabled={!user || posting}
+                      className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {posting ? <Loader2 size={16} className="animate-spin" /> : <SendHorizontal size={16} />}
+                      {posting ? "Posting..." : "Post"}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="mt-5 space-y-4">
-              <textarea
-                value={composerText}
-                onChange={(event) => setComposerText(event.target.value)}
-                disabled={!user || posting}
-                placeholder="What would you like to discuss with the IT Community BD today?"
-                className="min-h-[150px] w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm outline-none transition focus:border-emerald-300 focus:bg-white"
-              />
-
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => toggleTag(tag)}
-                    disabled={!user || posting}
-                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                      selectedTags.includes(tag)
-                        ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                        : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-
+            <div className="mt-3 space-y-4">
               <div className="flex flex-wrap gap-3">
                 {attachments.map((file) => (
                   <div
@@ -369,24 +318,6 @@ const ForumPage = () => {
               {successMessage ? (
                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{successMessage}</div>
               ) : null}
-
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <label className={`inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 ${user ? "cursor-pointer hover:bg-slate-50" : "cursor-not-allowed opacity-60"}`}>
-                  <ImagePlus size={15} />
-                  Add image or file
-                  <input type="file" multiple className="hidden" onChange={handleComposerFiles} disabled={!user || posting} />
-                </label>
-
-                <button
-                  type="button"
-                  onClick={handleCreatePost}
-                  disabled={!user || posting}
-                  className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {posting ? <Loader2 size={16} className="animate-spin" /> : <SendHorizontal size={16} />}
-                  {posting ? "Publishing..." : "Post to Community"}
-                </button>
-              </div>
             </div>
           </section>
 
@@ -459,16 +390,6 @@ const ForumPage = () => {
                       </button>
                     ) : null}
                   </div>
-
-                  {post.tags?.length ? (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {post.tags.map((tag) => (
-                        <span key={tag} className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
 
                   <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-700">{post.content}</p>
 
@@ -586,30 +507,6 @@ const ForumPage = () => {
               );
             })}
           </section>
-        </div>
-
-        <aside className="space-y-6">
-          <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Forum topics</h2>
-            <p className="mt-2 text-sm text-slate-500">Use these popular topics when starting or joining a discussion.</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <span key={tag} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">How this helps</h2>
-            <div className="mt-4 space-y-4 text-sm text-slate-600">
-              <p>Post technical problems, recent updates, opinions, and useful resources for the community.</p>
-              <p>React and comment on the same page so discussions feel fast, open, and community-driven.</p>
-              <p>Share useful posts with teammates and keep helpful discussions visible across the platform.</p>
-            </div>
-          </section>
-        </aside>
       </div>
     </section>
   );

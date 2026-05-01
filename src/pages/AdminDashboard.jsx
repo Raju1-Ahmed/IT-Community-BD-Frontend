@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/client";
 import LogoLoader from "../components/LogoLoader";
@@ -62,21 +62,26 @@ const AdminDashboard = () => {
   if (loading) return <LogoLoader variant="page" label="Loading admin dashboard..." />;
 
   return (
-    <section className="space-y-6">
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <section className="space-y-5 lg:space-y-6">
+      <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Website Admin Panel</h2>
-            <p className="text-sm text-slate-600">Owner controls for users, jobs, applications, premium and contact inbox.</p>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Website Admin Panel</h2>
+            <p className="mt-1 max-w-2xl text-sm text-slate-600">
+              Owner controls for users, jobs, applications, premium and contact inbox.
+            </p>
           </div>
-          <Link to="/admin/premium-queue" className="rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
+          <Link
+            to="/admin/premium-queue"
+            className="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 sm:w-auto"
+          >
             Open Premium Queue
           </Link>
         </div>
-        {message ? <p className="mt-2 text-sm text-slate-700">{message}</p> : null}
+        {message ? <p className="mt-3 text-sm text-slate-700">{message}</p> : null}
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-8">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-8">
         <StatCard label="Users" value={stats?.users} />
         <StatCard label="Employers" value={stats?.employers} />
         <StatCard label="Seekers" value={stats?.seekers} />
@@ -87,11 +92,10 @@ const AdminDashboard = () => {
         <StatCard label="Premium Pending" value={stats?.premiumPendingReview} />
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 className="text-xl font-semibold">Users</h3>
-        <div className="mt-3 overflow-x-auto">
+      <SectionCard title="Users">
+        <div className="mt-4 hidden overflow-x-auto md:block">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 text-slate-600">
               <tr>
                 <th className="p-2">Name</th>
                 <th className="p-2">Email</th>
@@ -107,7 +111,7 @@ const AdminDashboard = () => {
                   <td className="p-2">{user.role}</td>
                   <td className="p-2">
                     <select
-                      className="rounded-md border p-1"
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2"
                       value={user.role}
                       onChange={(e) => updateUserRole(user._id, e.target.value)}
                     >
@@ -121,13 +125,42 @@ const AdminDashboard = () => {
             </tbody>
           </table>
         </div>
-      </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 className="text-xl font-semibold">Jobs</h3>
-        <div className="mt-3 overflow-x-auto">
+        <div className="mt-4 grid gap-3 md:hidden">
+          {users.map((user) => (
+            <article key={user._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-slate-900">{user.name || "Unnamed user"}</p>
+                  <p className="mt-1 break-all text-xs text-slate-500">{user.email || "No email"}</p>
+                </div>
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold capitalize text-slate-600 shadow-sm">
+                  {user.role}
+                </span>
+              </div>
+              <div className="mt-4">
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Change Role
+                </label>
+                <select
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm"
+                  value={user.role}
+                  onChange={(e) => updateUserRole(user._id, e.target.value)}
+                >
+                  <option value="seeker">seeker</option>
+                  <option value="employer">employer</option>
+                  <option value="admin">admin</option>
+                </select>
+              </div>
+            </article>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Jobs">
+        <div className="mt-4 hidden overflow-x-auto md:block">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 text-slate-600">
               <tr>
                 <th className="p-2">Title</th>
                 <th className="p-2">Company</th>
@@ -143,7 +176,7 @@ const AdminDashboard = () => {
                   <td className="p-2">{job.status}</td>
                   <td className="p-2">
                     <select
-                      className="rounded-md border p-1"
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2"
                       value={job.status}
                       onChange={(e) => updateJobStatus(job._id, e.target.value)}
                     >
@@ -156,13 +189,41 @@ const AdminDashboard = () => {
             </tbody>
           </table>
         </div>
-      </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 className="text-xl font-semibold">Recent Applications</h3>
-        <div className="mt-3 overflow-x-auto">
+        <div className="mt-4 grid gap-3 md:hidden">
+          {jobs.map((job) => (
+            <article key={job._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900">{job.title || "Untitled job"}</p>
+                  <p className="mt-1 text-xs text-slate-500">{job.companyName || "No company name"}</p>
+                </div>
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold capitalize text-slate-600 shadow-sm">
+                  {job.status}
+                </span>
+              </div>
+              <div className="mt-4">
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Update Status
+                </label>
+                <select
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm"
+                  value={job.status}
+                  onChange={(e) => updateJobStatus(job._id, e.target.value)}
+                >
+                  <option value="active">active</option>
+                  <option value="closed">closed</option>
+                </select>
+              </div>
+            </article>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Recent Applications">
+        <div className="mt-4 hidden overflow-x-auto md:block">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 text-slate-600">
               <tr>
                 <th className="p-2">Candidate</th>
                 <th className="p-2">Email</th>
@@ -182,13 +243,35 @@ const AdminDashboard = () => {
             </tbody>
           </table>
         </div>
-      </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 className="text-xl font-semibold">Contact Inbox</h3>
-        <div className="mt-3 overflow-x-auto">
+        <div className="mt-4 grid gap-3 md:hidden">
+          {applications.map((application) => (
+            <article key={application._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900">
+                    {application.candidate?.name || "Unknown candidate"}
+                  </p>
+                  <p className="mt-1 break-all text-xs text-slate-500">
+                    {application.candidate?.email || "No email"}
+                  </p>
+                </div>
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold capitalize text-slate-600 shadow-sm">
+                  {application.status}
+                </span>
+              </div>
+              <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+                <span className="font-semibold text-slate-900">Job:</span> {application.job?.title || "N/A"}
+              </div>
+            </article>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Contact Inbox">
+        <div className="mt-4 hidden overflow-x-auto md:block">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 text-slate-600">
               <tr>
                 <th className="p-2">Name</th>
                 <th className="p-2">Email</th>
@@ -208,17 +291,45 @@ const AdminDashboard = () => {
             </tbody>
           </table>
         </div>
-      </div>
+
+        <div className="mt-4 grid gap-3 md:hidden">
+          {contacts.map((c) => (
+            <article key={c._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-slate-900">{c.name || "Unknown sender"}</p>
+                  <p className="mt-1 break-all text-xs text-slate-500">{c.email || "No email"}</p>
+                </div>
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+                  {c.subject || "No subject"}
+                </span>
+              </div>
+              <p className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm leading-6 text-slate-600 shadow-sm">
+                {c.message}
+              </p>
+            </article>
+          ))}
+        </div>
+      </SectionCard>
     </section>
   );
 };
 
 const StatCard = ({ label, value }) => {
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-4">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-slate-900">{value ?? 0}</p>
+    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-sm">{label}</p>
+      <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{value ?? 0}</p>
     </article>
+  );
+};
+
+const SectionCard = ({ title, children }) => {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
+      <h3 className="text-lg font-semibold text-slate-900 sm:text-xl">{title}</h3>
+      {children}
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
-import Home from "./pages/HomeFinal";
+import ForumPage from "./pages/ForumPage";
 import Jobs from "./pages/JobsModern";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -13,6 +13,7 @@ import MyApplications from "./pages/MyApplications";
 import SavedJobs from "./pages/SavedJobs";
 import AdminDashboard from "./pages/AdminDashboard";
 import SeekerProfile from "./pages/SeekerProfile";
+import SeekerMyProfile from "./pages/SeekerMyProfile";
 import SeekerResume from "./pages/SeekerResume";
 import EmployerProfile from "./pages/EmployerProfile";
 import EmployerApplications from "./pages/EmployerApplicationsEnhanced";
@@ -20,7 +21,6 @@ import EmployerCandidateProfile from "./pages/EmployerCandidateProfile";
 import AppointExpertise from "./pages/AppointExpertiseEnhanced";
 import AppointExpertiseDetails from "./pages/AppointExpertiseDetails";
 import MessagePage from "./pages/MessagePage";
-import ForumPage from "./pages/ForumPage";
 import HiringInvite from "./pages/HiringInvite";
 import HiringDirectMail from "./pages/HiringDirectMail";
 import AboutUs from "./pages/AboutUs";
@@ -36,7 +36,7 @@ const App = () => {
   return (
     <Routes>
       <Route element={<MainLayout />}>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<ForumPage />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
@@ -150,6 +150,14 @@ const App = () => {
           element={
             <ProtectedRoute roles={["seeker", "admin"]}>
               <SavedJobs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-profile"
+          element={
+            <ProtectedRoute roles={["seeker", "admin"]}>
+              <SeekerMyProfile />
             </ProtectedRoute>
           }
         />

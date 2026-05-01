@@ -9,6 +9,7 @@ const LoaderRuntime = () => {
   const { increment, decrement, visible, pendingCount, routeLoading } = useLoader();
   const location = useLocation();
   const suppressBrandOverlay =
+    location.pathname === "/my-profile" ||
     location.pathname === "/seeker-profile" ||
     location.pathname === "/seeker-resume" ||
     location.pathname === "/login" ||

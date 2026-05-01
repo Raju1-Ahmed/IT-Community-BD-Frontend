@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, CheckCheck, Loader2, MessageSquare, Paperclip, Search, Send } from "lucide-react";
+import { ArrowLeft, CheckCheck, Loader2, Paperclip, Search, Send } from "lucide-react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -45,6 +45,22 @@ const formatConversationTime = (value) => {
   return date.toLocaleDateString([], { day: "2-digit", month: "short" });
 };
 
+const formatLastSeen = (value) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return `Last active ${date.toLocaleDateString([], {
+    hour: "2-digit",
+    minute: "2-digit"
+  })} · ${date.toLocaleDateString([], {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  })}`;
+};
+
 const formatMessageTime = (value) => {
   if (!value) return "";
 
@@ -82,9 +98,11 @@ const normalizeConversation = (conversation) => ({
     id: String(conversation?.participant?.id || ""),
     name: conversation?.participant?.name || "Unknown user",
     role: conversation?.participant?.currentPosition || conversation?.participant?.role || "Professional",
-    status: conversation?.participant?.location || "Available for chat",
+    status: "",
     profileImage: conversation?.participant?.profileImage || "",
-    email: conversation?.participant?.email || ""
+    email: conversation?.participant?.email || "",
+    isOnline: Boolean(conversation?.participant?.isOnline),
+    lastSeen: conversation?.participant?.lastSeen || null
   },
   lastMessageText: conversation?.lastMessageText || "",
   lastMessageType: conversation?.lastMessageType || "text",
@@ -140,6 +158,7 @@ const MessagePage = () => {
   const [typingUser, setTypingUser] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [attachmentUploadProgress, setAttachmentUploadProgress] = useState({});
+  const [mobileThreadOpen, setMobileThreadOpen] = useState(false);
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const activeConversationRef = useRef("");
@@ -173,15 +192,17 @@ const MessagePage = () => {
     if (!pendingParticipantId || !location.state?.candidateName) return null;
     return normalizeConversation({
       id: `pending-${pendingParticipantId}`,
-      participant: {
-        id: pendingParticipantId,
-        name: location.state.candidateName,
-        email: location.state.candidateEmail || "",
-        currentPosition: location.state.candidateRole || "",
-        location: "Available for chat",
-        profileImage: ""
-      },
-      unreadCount: 0
+        participant: {
+          id: pendingParticipantId,
+          name: location.state.candidateName,
+          email: location.state.candidateEmail || "",
+          currentPosition: location.state.candidateRole || "",
+          location: "",
+          profileImage: "",
+          isOnline: false,
+          lastSeen: null
+        },
+        unreadCount: 0
     });
   }, [location.state, pendingParticipantId]);
 
@@ -372,16 +393,35 @@ const MessagePage = () => {
       }
     };
 
+    const handlePresenceUpdate = ({ userId, isOnline, lastSeen }) => {
+      setConversations((current) =>
+        current.map((item) =>
+          item.participant.id === String(userId)
+            ? {
+                ...item,
+                participant: {
+                  ...item.participant,
+                  isOnline: Boolean(isOnline),
+                  lastSeen: lastSeen || item.participant.lastSeen || null
+                }
+              }
+            : item
+        )
+      );
+    };
+
     socket.on("message:new", handleNewMessage);
     socket.on("conversation:update", handleConversationUpdate);
     socket.on("message:typing", handleTyping);
     socket.on("message:stopTyping", handleStopTyping);
+    socket.on("presence:update", handlePresenceUpdate);
 
     return () => {
       socket.off("message:new", handleNewMessage);
       socket.off("conversation:update", handleConversationUpdate);
       socket.off("message:typing", handleTyping);
       socket.off("message:stopTyping", handleStopTyping);
+      socket.off("presence:update", handlePresenceUpdate);
     };
   }, [user?.id]);
 
@@ -406,6 +446,12 @@ const MessagePage = () => {
   }, [activeConversationId, messagesByConversation, typingUser]);
 
   useEffect(() => () => clearTimeout(typingTimeoutRef.current), []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.innerWidth >= 1024) return;
+    setMobileThreadOpen(Boolean(activeConversationId));
+  }, [activeConversationId]);
 
   useEffect(() => {
     if (!composerRef.current) return;
@@ -558,37 +604,23 @@ const MessagePage = () => {
   };
 
   return (
-    <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-6 lg:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-            <MessageSquare size={14} /> Messages
-          </p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-900">Inbox</h2>
-          <p className="text-sm text-slate-600">Messenger-style conversation workspace for employer communication.</p>
-        </div>
-
-        {backProfileId ? (
+    <section className="space-y-4 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4 md:p-6 lg:p-8">
+      {backProfileId ? (
+        <div className="flex justify-end">
           <Link
             to={`/appoint-expertise/${backProfileId}`}
             className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
             <ArrowLeft size={16} /> Back to Details
           </Link>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-4 xl:grid-cols-[0.34fr_0.66fr]">
-        <aside className="rounded-2xl border border-slate-200 bg-white">
+      <div className="grid gap-4 lg:grid-cols-[minmax(300px,0.34fr)_minmax(0,0.66fr)]">
+        <aside className={`rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen ? "hidden lg:block" : "block"}`}>
           <div className="border-b border-slate-200 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">People</p>
-                <p className="mt-1 text-xs text-slate-500">Recent and active conversations</p>
-              </div>
-              <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                {filteredPeople.length} active
-              </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900">People</p>
             </div>
             <div className="relative mt-4">
               <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -629,7 +661,12 @@ const MessagePage = () => {
               <button
                 key={conversation.id}
                 type="button"
-                onClick={() => setActiveConversationId(conversation.id)}
+                onClick={() => {
+                  setActiveConversationId(conversation.id);
+                  if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                    setMobileThreadOpen(true);
+                  }
+                }}
                 className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
                   activeConversationId === conversation.id
                     ? "border-emerald-300 bg-emerald-50 text-slate-900"
@@ -637,39 +674,40 @@ const MessagePage = () => {
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  {conversation.participant.profileImage ? (
-                    <img
-                      src={toAbsoluteUrl(conversation.participant.profileImage)}
-                      alt={conversation.participant.name}
-                      className="h-11 w-11 shrink-0 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
-                      {getInitials(conversation.participant.name)}
-                    </div>
-                  )}
+                  <div className="relative shrink-0">
+                    {conversation.participant.profileImage ? (
+                      <img
+                        src={toAbsoluteUrl(conversation.participant.profileImage)}
+                        alt={conversation.participant.name}
+                        className="h-11 w-11 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
+                        {getInitials(conversation.participant.name)}
+                      </div>
+                    )}
+                    {conversation.participant.isOnline ? (
+                      <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
+                    ) : null}
+                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold">{conversation.participant.name}</p>
                         <p className="mt-1 truncate text-xs text-slate-500">{conversation.participant.role}</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {conversation.unreadCount ? (
-                          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                            {conversation.unreadCount}
-                          </span>
-                        ) : null}
-                        <span className={`h-2.5 w-2.5 rounded-full ${activeConversationId === conversation.id ? "bg-emerald-500" : "bg-slate-300"}`} />
-                      </div>
+                      {conversation.unreadCount ? (
+                        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                          {conversation.unreadCount}
+                        </span>
+                      ) : null}
                     </div>
                     <p className="mt-2 truncate text-xs text-slate-500">{buildPreview(conversation)}</p>
                     <div className="mt-2 flex items-center justify-between gap-3">
                       <p className="truncate text-[11px] uppercase tracking-[0.18em] text-slate-400">
-                        {formatConversationTime(conversation.lastMessageAt) || conversation.participant.status}
-                      </p>
-                      <p className="truncate text-[11px] text-slate-400">
-                        {conversation.unreadCount ? "Unread" : "Up to date"}
+                        {conversation.participant.isOnline
+                          ? "Online"
+                          : formatLastSeen(conversation.participant.lastSeen) || formatConversationTime(conversation.lastMessageAt)}
                       </p>
                     </div>
                   </div>
@@ -679,39 +717,49 @@ const MessagePage = () => {
           </div>
         </aside>
 
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <section className={`overflow-hidden rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen || !activeConversation ? "block" : "hidden lg:block"}`}>
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-4">
             {activeConversation ? (
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  {activeConversation.participant.profileImage ? (
-                    <img
-                      src={toAbsoluteUrl(activeConversation.participant.profileImage)}
-                      alt={activeConversation.participant.name}
-                      className="h-11 w-11 shrink-0 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
-                      {getInitials(activeConversation.participant.name)}
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{activeConversation.participant.name}</p>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setMobileThreadOpen(false)}
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm lg:hidden"
+                    aria-label="Back to people list"
+                  >
+                    <ArrowLeft size={18} />
+                  </button>
+                  <div className="relative shrink-0">
+                    {activeConversation.participant.profileImage ? (
+                      <img
+                        src={toAbsoluteUrl(activeConversation.participant.profileImage)}
+                        alt={activeConversation.participant.name}
+                        className="h-11 w-11 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
+                        {getInitials(activeConversation.participant.name)}
+                      </div>
+                    )}
+                    {activeConversation.participant.isOnline ? (
+                      <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900">{activeConversation.participant.name}</p>
                     <p className="mt-1 text-xs text-slate-500">
                       {activeConversation.participant.role} {user?.name ? `· chatting as ${user.name}` : ""}
                     </p>
                     <p className="mt-1 text-xs text-slate-400">
-                      {activeConversation.participant.email || activeConversation.participant.status}
+                      {activeConversation.participant.isOnline
+                        ? "Online"
+                        : formatLastSeen(activeConversation.participant.lastSeen)}
                     </p>
+                    {activeConversation.participant.email ? (
+                      <p className="mt-1 break-all text-xs text-slate-400">{activeConversation.participant.email}</p>
+                    ) : null}
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
-                    Active conversation
-                  </span>
-                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-500">
-                    {activeMessages.length} messages
-                  </span>
                 </div>
               </div>
             ) : (
@@ -722,7 +770,7 @@ const MessagePage = () => {
             )}
           </div>
 
-          <div className="max-h-[460px] space-y-3 overflow-y-auto bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-4 py-4">
+          <div className="max-h-[420px] space-y-3 overflow-y-auto bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-3 py-4 sm:max-h-[460px] sm:px-4">
             {loadingMessages ? (
               <div className="space-y-3 animate-pulse">
                 <div className="mx-auto h-8 w-32 rounded-full bg-slate-100" />
@@ -756,8 +804,8 @@ const MessagePage = () => {
                 <div
                   className={`rounded-2xl px-4 py-3 text-sm shadow-sm ${
                     item.sender === "me"
-                      ? "ml-auto max-w-[85%] border border-emerald-200 bg-emerald-50 text-slate-800"
-                      : "max-w-[85%] border border-slate-200 bg-white text-slate-700"
+                      ? "ml-auto max-w-[92%] border border-emerald-200 bg-emerald-50 text-slate-800 sm:max-w-[85%]"
+                      : "max-w-[92%] border border-slate-200 bg-white text-slate-700 sm:max-w-[85%]"
                   }`}
                 >
                   <p className="whitespace-pre-line">{item.text}</p>
@@ -789,7 +837,7 @@ const MessagePage = () => {
             ))}
 
             {typingUser ? (
-              <div className="max-w-[85%] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm">
+              <div className="max-w-[92%] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm sm:max-w-[85%]">
                 {typingUser} is typing...
               </div>
             ) : null}
@@ -797,18 +845,14 @@ const MessagePage = () => {
             <div ref={messageEndRef} />
           </div>
 
-          <div className="border-t border-slate-200 bg-slate-50 p-4">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-slate-800">Reply to {activeConversation?.participant.name || "conversation"}</p>
-                <p className="text-xs text-slate-500">Press Enter to send, Shift + Enter for a new line.</p>
-              </div>
-              {attachments.length ? (
+          <div className="border-t border-slate-200 bg-slate-50 p-3 sm:p-4">
+            {attachments.length ? (
+              <div className="mb-3 flex flex-wrap items-center justify-end gap-3">
                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                   {attachments.length} file{attachments.length > 1 ? "s" : ""} ready
                 </span>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
             <textarea
               ref={composerRef}
               value={chatText}
@@ -816,14 +860,14 @@ const MessagePage = () => {
               onKeyDown={handleComposerKeyDown}
               placeholder="Write your message here..."
               disabled={!activeConversation || sendingMessage}
-              className="min-h-[92px] w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none"
+              className="min-h-[88px] w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none"
             />
 
             <div className="mt-3 flex flex-wrap gap-2">
               {attachments.map((file) => (
                 <div
                   key={`${file.name}-${file.size}`}
-                  className="min-w-[180px] rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 shadow-sm"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 shadow-sm sm:min-w-[180px] sm:w-auto"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -853,7 +897,7 @@ const MessagePage = () => {
               ))}
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <label className={`inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 ${activeConversation ? "cursor-pointer hover:bg-slate-50" : "cursor-not-allowed opacity-60"}`}>
                 <Paperclip size={15} /> Share Files
                 <input type="file" multiple className="hidden" onChange={handleFiles} disabled={!activeConversation || sendingMessage} />
@@ -863,7 +907,7 @@ const MessagePage = () => {
                 type="button"
                 onClick={sendMessage}
                 disabled={!activeConversation || sendingMessage}
-                className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:py-2"
               >
                 {sendingMessage ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} {sendingMessage ? "Sending..." : "Send"}
               </button>

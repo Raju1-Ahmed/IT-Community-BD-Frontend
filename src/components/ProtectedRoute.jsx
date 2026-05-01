@@ -6,6 +6,7 @@ const ProtectedRoute = ({ children, roles }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   const useNeutralSkeleton =
+    location.pathname === "/my-profile" ||
     location.pathname === "/seeker-profile" ||
     location.pathname === "/seeker-resume" ||
     location.pathname === "/my-applications" ||
