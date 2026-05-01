@@ -1,4 +1,4 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { BriefcaseBusiness, Contact, FileText, ShieldCheck, ScrollText } from "lucide-react";
 
 const Footer = () => {

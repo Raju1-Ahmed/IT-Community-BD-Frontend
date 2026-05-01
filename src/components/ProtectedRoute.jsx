@@ -1,45 +1,35 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import LogoLoader from "./LogoLoader";
+import { Skeleton, SkeletonText } from "./loaders/Skeleton";
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const useNeutralSkeleton =
-    location.pathname === "/my-profile" ||
-    location.pathname === "/seeker-profile" ||
-    location.pathname === "/seeker-resume" ||
-    location.pathname === "/my-applications" ||
-    location.pathname === "/saved-jobs" ||
-    location.pathname === "/expert-profile" ||
-    location.pathname === "/employer-profile" ||
-    location.pathname === "/post-job" ||
-    location.pathname === "/my-jobs" ||
-    location.pathname === "/employer-applications" ||
-    location.pathname === "/messages" ||
-    location.pathname.startsWith("/messages/") ||
-    location.pathname.startsWith("/hire-invite/") ||
-    location.pathname.startsWith("/direct-mail/") ||
-    location.pathname.startsWith("/my-jobs/") ||
-    location.pathname.startsWith("/employer/candidate/") ||
-    location.pathname === "/admin";
 
-  if (loading && useNeutralSkeleton) {
+  if (loading) {
     return (
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="space-y-4 animate-pulse">
-          <div className="h-8 w-40 rounded-xl bg-slate-200" />
-          <div className="h-4 w-72 max-w-full rounded bg-slate-200" />
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="h-40 rounded-2xl bg-slate-100" />
-            <div className="h-40 rounded-2xl bg-slate-100" />
+      <div className="mx-auto max-w-5xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <Skeleton className="h-8 w-44 rounded-2xl" />
+            <SkeletonText lines={2} className="max-w-xl" />
+          </div>
+          <div className="grid gap-4 lg:grid-cols-[1.35fr_0.95fr]">
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
+              <Skeleton className="h-12 w-full rounded-2xl" />
+              <Skeleton className="h-32 w-full rounded-3xl" />
+              <Skeleton className="h-32 w-full rounded-3xl" />
+            </div>
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
+              <Skeleton className="h-24 w-full rounded-3xl" />
+              <Skeleton className="h-24 w-full rounded-3xl" />
+              <Skeleton className="h-24 w-full rounded-3xl" />
+            </div>
           </div>
         </div>
       </div>
     );
   }
-
-  if (loading) return <LogoLoader variant="page" label="Checking access..." />;
   if (!user) return <Navigate to="/login" replace />;
   if (roles && !roles.includes(user.role)) return <Navigate to="/" replace />;
 

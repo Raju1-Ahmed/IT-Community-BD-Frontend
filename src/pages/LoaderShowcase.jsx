@@ -1,7 +1,4 @@
 import { useState } from "react";
-import LogoLoader from "../components/LogoLoader";
-import ButtonLoader from "../components/loaders/ButtonLoader";
-import PageLoader from "../components/loaders/PageLoader";
 import { Skeleton, SkeletonCard, SkeletonTableRows, SkeletonText } from "../components/loaders/Skeleton";
 import { useLoader } from "../hooks/useLoader";
 
@@ -56,7 +53,7 @@ const LoaderShowcase = () => {
             onClick={simulateButton}
             className="rounded-2xl border border-cyan-300 bg-cyan-50 px-5 py-3 text-sm font-semibold text-cyan-800 transition hover:bg-cyan-100"
           >
-            {buttonLoading ? <ButtonLoader label="Processing..." /> : "Trigger Button Loader"}
+            {buttonLoading ? "Processing..." : "Trigger Button Loader"}
           </button>
         </div>
       </div>
@@ -64,26 +61,46 @@ const LoaderShowcase = () => {
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="space-y-4 rounded-[32px] border border-slate-200 bg-white/85 p-6 shadow-sm">
           <h2 className="text-xl font-semibold text-slate-900">Section Loader</h2>
-          <LogoLoader label="Loading jobs..." />
+          <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-12 w-12 rounded-2xl" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-4 w-28 rounded-full" />
+                  <Skeleton className="h-3 w-40 max-w-full rounded-full" />
+                </div>
+              </div>
+              <Skeleton className="h-24 rounded-3xl" />
+              <Skeleton className="h-24 rounded-3xl" />
+            </div>
+          </div>
         </div>
 
         <div className="space-y-4 rounded-[32px] border border-slate-200 bg-white/85 p-6 shadow-sm">
           <h2 className="text-xl font-semibold text-slate-900">Inline Loader</h2>
-          <div className="flex items-center gap-4">
-            <LogoLoader
-              variant="inline"
-              size="sm"
-              speed="fast"
-              label="Loading page..."
-              className="rounded-full border border-white/70 bg-white/90 px-5 py-3 shadow-lg"
-            />
+          <div className="rounded-full border border-slate-200 bg-white px-5 py-3 shadow-sm">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-9 w-9 rounded-2xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-24 rounded-full" />
+                <Skeleton className="h-3 w-32 rounded-full" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {pagePreview ? (
         <div className="rounded-[32px] border border-slate-200 bg-white/70 p-6 shadow-sm">
-          <PageLoader label="Loading dashboard..." />
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-44 rounded-2xl" />
+            <SkeletonText lines={2} className="max-w-lg" />
+            <div className="grid gap-4 lg:grid-cols-3">
+              <Skeleton className="h-32 rounded-3xl" />
+              <Skeleton className="h-32 rounded-3xl" />
+              <Skeleton className="h-32 rounded-3xl" />
+            </div>
+          </div>
         </div>
       ) : null}
 

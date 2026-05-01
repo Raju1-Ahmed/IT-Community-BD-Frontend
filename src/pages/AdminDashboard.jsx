@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/client";
-import LogoLoader from "../components/LogoLoader";
+import { Skeleton, SkeletonTableRows, SkeletonText } from "../components/loaders/Skeleton";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -59,7 +59,35 @@ const AdminDashboard = () => {
     }
   };
 
-  if (loading) return <LogoLoader variant="page" label="Loading admin dashboard..." />;
+  if (loading) {
+    return (
+      <section className="space-y-5 lg:space-y-6">
+        <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
+          <div className="space-y-4">
+            <Skeleton className="h-9 w-60 rounded-2xl" />
+            <SkeletonText lines={2} className="max-w-2xl" />
+            <Skeleton className="h-12 w-52 rounded-2xl" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-8">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <article key={`admin-stat-skeleton-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+              <Skeleton className="h-4 w-20 rounded-full" />
+              <Skeleton className="mt-4 h-8 w-16 rounded-2xl" />
+            </article>
+          ))}
+        </div>
+        <div className="space-y-5">
+          {["Users", "Jobs", "Recent Applications", "Contact Inbox"].map((title) => (
+            <div key={title} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
+              <Skeleton className="h-7 w-40 rounded-2xl" />
+              <SkeletonTableRows rows={4} columns={4} className="mt-5" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-5 lg:space-y-6">

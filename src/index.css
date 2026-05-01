@@ -35,19 +35,6 @@ body {
   .home-hero {
     animation: hero-float 900ms ease-out both;
   }
-
-  .logo-loader-ring {
-    animation: logo-loader-pulse 1400ms ease-in-out infinite;
-  }
-
-  .logo-loader-icon {
-    animation: logo-loader-spin 2200ms linear infinite;
-  }
-}
-
-.logo-loader-ring {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 1), rgba(20, 184, 166, 0.88), rgba(34, 211, 238, 0.9));
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
 }
 
 .skeleton-shimmer {
@@ -70,29 +57,6 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes logo-loader-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes logo-loader-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.1);
-    transform: scale(1);
-  }
-
-  50% {
-    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0.04);
-    transform: scale(1.03);
   }
 }
 
