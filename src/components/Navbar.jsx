@@ -69,7 +69,7 @@ const Navbar = () => {
   ];
 
   const seekerMenuItems = [
-    { to: "/my-profile", label: "My Profile", icon: User },
+    { to: "/seeker-profile", label: "My Profile", icon: User },
     { to: "/seeker-resume", label: "My Resume", icon: FileText },
     { to: "/my-applications", label: "My Applications", icon: FolderKanban },
     { to: "/saved-jobs", label: "Saved Jobs", icon: Bookmark },

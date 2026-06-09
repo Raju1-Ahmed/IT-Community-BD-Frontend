@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
-import { UserPlus } from "lucide-react";
+import { Link, useLocation, useParams } from "react-router-dom";
+import { Loader2, MessageSquare, UserPlus } from "lucide-react";
+import api from "../api/client";
 import HiringWorkspaceShell from "../components/hiring/HiringWorkspaceShell";
 
 const HiringInvite = () => {
   const location = useLocation();
+  const { id } = useParams();
   const candidateName = location.state?.candidateName || "Candidate";
   const candidateRole = location.state?.candidateRole || "Professional";
   const [inviteForm, setInviteForm] = useState({
@@ -15,10 +17,36 @@ const HiringInvite = () => {
     note: ""
   });
   const [status, setStatus] = useState("");
+  const [participantId, setParticipantId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const submitInvite = () => {
-    if (!inviteForm.title.trim()) return;
-    setStatus("Invite draft prepared. Backend delivery can be connected next.");
+  const submitInvite = async () => {
+    if (!inviteForm.title.trim()) {
+      setStatus("Hiring title or project name is required.");
+      return;
+    }
+
+    setSubmitting(true);
+    setStatus("");
+    setParticipantId("");
+
+    try {
+      const { data } = await api.post(
+        "/messages/hire-invites",
+        {
+          expertiseProfileId: id,
+          ...inviteForm
+        },
+        { meta: { skipLoader: true } }
+      );
+
+      setParticipantId(data?.conversation?.participant?.id || "");
+      setStatus("Hire invite sent to the candidate inbox.");
+    } catch (error) {
+      setStatus(error?.response?.data?.message || "Failed to send hire invite.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -74,13 +102,30 @@ const HiringInvite = () => {
           <button
             type="button"
             onClick={submitInvite}
-            className="rounded-full bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700"
+            disabled={submitting}
+            className="inline-flex items-center gap-2 rounded-full bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Prepare Invite
+            {submitting ? <Loader2 size={15} className="animate-spin" /> : <UserPlus size={15} />}
+            {submitting ? "Sending..." : "Prepare Invite"}
           </button>
         </div>
 
-        {status ? <p className="mt-4 rounded-xl bg-cyan-50 px-4 py-3 text-sm text-cyan-700">{status}</p> : null}
+        {status ? (
+          <div className="mt-4 rounded-xl bg-cyan-50 px-4 py-3 text-sm text-cyan-700">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p>{status}</p>
+              {participantId ? (
+                <Link
+                  to={`/messages/${participantId}`}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-semibold text-cyan-700 ring-1 ring-cyan-200 hover:bg-cyan-100"
+                >
+                  <MessageSquare size={14} />
+                  Open Inbox
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </div>
     </HiringWorkspaceShell>
   );

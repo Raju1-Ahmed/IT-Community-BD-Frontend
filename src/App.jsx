@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
+import Home from "./pages/HomeFinal";
 import ForumPage from "./pages/ForumPage";
 import Jobs from "./pages/JobsModern";
 import Login from "./pages/Login";
@@ -13,7 +14,6 @@ import MyApplications from "./pages/MyApplications";
 import SavedJobs from "./pages/SavedJobs";
 import AdminDashboard from "./pages/AdminDashboard";
 import SeekerProfile from "./pages/SeekerProfile";
-import SeekerMyProfile from "./pages/SeekerMyProfile";
 import SeekerResume from "./pages/SeekerResume";
 import EmployerProfile from "./pages/EmployerProfile";
 import EmployerApplications from "./pages/EmployerApplicationsEnhanced";
@@ -36,7 +36,7 @@ const App = () => {
   return (
     <Routes>
       <Route element={<MainLayout />}>
-        <Route path="/" element={<ForumPage />} />
+        <Route path="/" element={<Home />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
@@ -150,14 +150,6 @@ const App = () => {
           element={
             <ProtectedRoute roles={["seeker", "admin"]}>
               <SavedJobs />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/my-profile"
-          element={
-            <ProtectedRoute roles={["seeker", "admin"]}>
-              <SeekerMyProfile />
             </ProtectedRoute>
           }
         />

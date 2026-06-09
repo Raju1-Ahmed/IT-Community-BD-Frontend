@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, CheckCheck, Loader2, Paperclip, Search, Send } from "lucide-react";
+import { ArrowLeft, CalendarDays, CheckCheck, Clock3, DollarSign, Loader2, Paperclip, Search, Send, UserPlus } from "lucide-react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -87,6 +87,9 @@ const formatMessageDayLabel = (value) => {
 };
 
 const buildPreview = (conversation) => {
+  if (conversation?.lastMessageType === "hire_invite") {
+    return String(conversation?.lastMessageText || "Hire invite received").trim();
+  }
   const text = String(conversation?.lastMessageText || "").trim();
   if (text) return text;
   return conversation?.lastMessageType === "file" ? "Shared an attachment" : "No messages yet";
@@ -116,7 +119,9 @@ const normalizeMessage = (message, userId) => ({
   senderId: String(message?.senderId || ""),
   sender: String(message?.senderId || "") === String(userId) ? "me" : "person",
   text: message?.text || "",
+  type: message?.type || "text",
   attachments: Array.isArray(message?.attachments) ? message.attachments : [],
+  hireInvite: message?.hireInvite || null,
   time: formatMessageTime(message?.createdAt),
   createdAt: message?.createdAt || "",
   seen: Boolean(message?.seen)
@@ -134,10 +139,38 @@ const upsertConversation = (items, conversation) => {
   );
 };
 
+const InviteMeta = ({ icon: Icon, label, value }) => (
+  <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+    <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+      <Icon size={12} />
+      {label}
+    </div>
+    <p className="mt-1 text-sm font-semibold text-slate-800">{value}</p>
+  </div>
+);
+
+const InviteStatusBadge = ({ status }) => {
+  const value = String(status || "pending").toLowerCase();
+  const classes = {
+    pending: "border-amber-200 bg-amber-50 text-amber-700",
+    accepted: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    declined: "border-red-200 bg-red-50 text-red-700",
+    expired: "border-slate-200 bg-slate-50 text-slate-600"
+  };
+
+  return (
+    <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold capitalize ${classes[value] || classes.pending}`}>
+      {value}
+    </span>
+  );
+};
+
 const appendUniqueMessage = (items, message) => {
   if (!message?.id) return items;
-  if (items.some((item) => item.id === message.id)) return items;
-  return [...items, message].sort(
+  const nextItems = items.some((item) => item.id === message.id)
+    ? items.map((item) => (item.id === message.id ? { ...item, ...message } : item))
+    : [...items, message];
+  return nextItems.sort(
     (a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
   );
 };
@@ -155,6 +188,7 @@ const MessagePage = () => {
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [updatingInviteId, setUpdatingInviteId] = useState("");
   const [typingUser, setTypingUser] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [attachmentUploadProgress, setAttachmentUploadProgress] = useState({});
@@ -334,7 +368,20 @@ const MessagePage = () => {
 
       setConversations((current) => {
         const existing = current.find((item) => item.id === normalized.conversationId);
-        if (!existing) return current;
+        if (!existing) {
+          return upsertConversation(current, {
+            id: normalized.conversationId,
+            participant: {
+              id: normalized.senderId,
+              name: normalized.senderName || "New conversation",
+              role: "Professional"
+            },
+            lastMessageText: normalized.text || normalized.attachments[0]?.name || "Attachment",
+            lastMessageType: normalized.type || (normalized.attachments.length ? (normalized.text ? "mixed" : "file") : "text"),
+            lastMessageAt: normalized.createdAt,
+            unreadCount: normalized.sender === "me" ? 0 : 1
+          });
+        }
 
         return upsertConversation(current, {
           ...existing,
@@ -344,7 +391,7 @@ const MessagePage = () => {
             currentPosition: existing.participant.role
           },
           lastMessageText: normalized.text || normalized.attachments[0]?.name || "Attachment",
-          lastMessageType: normalized.attachments.length ? (normalized.text ? "mixed" : "file") : "text",
+          lastMessageType: normalized.type || (normalized.attachments.length ? (normalized.text ? "mixed" : "file") : "text"),
           lastMessageAt: normalized.createdAt,
           unreadCount:
             normalized.conversationId === activeConversationRef.current || normalized.sender === "me"
@@ -361,7 +408,20 @@ const MessagePage = () => {
     const handleConversationUpdate = ({ conversationId, message }) => {
       setConversations((current) => {
         const existing = current.find((item) => item.id === conversationId);
-        if (!existing) return current;
+        if (!existing) {
+          return upsertConversation(current, {
+            id: conversationId,
+            participant: {
+              id: String(message?.senderId || ""),
+              name: message?.senderName || "New conversation",
+              role: "Professional"
+            },
+            lastMessageText: message?.text || message?.attachments?.[0]?.name || "Attachment",
+            lastMessageType: message?.type || (message?.attachments?.length ? "file" : "text"),
+            lastMessageAt: message?.createdAt,
+            unreadCount: String(message?.senderId || "") === String(user?.id || "") ? 0 : 1
+          });
+        }
 
         return upsertConversation(current, {
           ...existing,
@@ -490,6 +550,35 @@ const MessagePage = () => {
     event.target.value = "";
   };
 
+  const updateInviteStatus = async (messageId, status) => {
+    setUpdatingInviteId(messageId);
+    setErrorMessage("");
+
+    try {
+      const { data } = await api.patch(
+        `/messages/hire-invites/${messageId}/status`,
+        { status },
+        { meta: { skipLoader: true } }
+      );
+
+      if (data?.message) {
+        const normalized = normalizeMessage(data.message, user?.id);
+        setMessagesByConversation((current) => ({
+          ...current,
+          [normalized.conversationId]: appendUniqueMessage(current[normalized.conversationId] || [], normalized)
+        }));
+
+        if (data?.conversation) {
+          setConversations((current) => upsertConversation(current, data.conversation));
+        }
+      }
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || "Failed to update invite status.");
+    } finally {
+      setUpdatingInviteId("");
+    }
+  };
+
   const removeAttachment = (fileName) => {
     setAttachments((current) => current.filter((file) => file.name !== fileName));
     setAttachmentUploadProgress((current) => {
@@ -585,7 +674,7 @@ const MessagePage = () => {
               currentPosition: resolvedConversation.participant.role
             },
             lastMessageText: normalized.text || normalized.attachments[0]?.name || "Attachment",
-            lastMessageType: normalized.attachments.length ? (normalized.text ? "mixed" : "file") : "text",
+            lastMessageType: normalized.type || (normalized.attachments.length ? (normalized.text ? "mixed" : "file") : "text"),
             lastMessageAt: normalized.createdAt,
             unreadCount: 0
           })
@@ -808,7 +897,64 @@ const MessagePage = () => {
                       : "max-w-[92%] border border-slate-200 bg-white text-slate-700 sm:max-w-[85%]"
                   }`}
                 >
-                  <p className="whitespace-pre-line">{item.text}</p>
+                  {item.type === "hire_invite" && item.hireInvite ? (
+                    <div className="overflow-hidden rounded-2xl border border-cyan-200 bg-white">
+                      <div className="border-b border-cyan-100 bg-cyan-50 px-4 py-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex items-start gap-3">
+                          <span className="rounded-xl bg-cyan-600 p-2 text-white">
+                            <UserPlus size={16} />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-slate-900">Invite for Hire</p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              {item.sender === "me" ? "Sent hiring proposal" : "Received hiring proposal"}
+                            </p>
+                          </div>
+                          </div>
+                          <InviteStatusBadge status={item.hireInvite.status} />
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 p-4">
+                        <div>
+                          <p className="text-base font-semibold text-slate-900">{item.hireInvite.title || "Hiring proposal"}</p>
+                          {item.hireInvite.note ? (
+                            <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{item.hireInvite.note}</p>
+                          ) : null}
+                        </div>
+
+                        <div className="grid gap-2 sm:grid-cols-3">
+                          <InviteMeta icon={DollarSign} label="Budget" value={item.hireInvite.budget || "Not specified"} />
+                          <InviteMeta icon={CalendarDays} label="Start" value={item.hireInvite.startDate || "Flexible"} />
+                          <InviteMeta icon={Clock3} label="Timeline" value={item.hireInvite.timeline || "Not specified"} />
+                        </div>
+
+                        {item.sender !== "me" && String(item.hireInvite.status || "pending") === "pending" ? (
+                          <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:justify-end">
+                            <button
+                              type="button"
+                              onClick={() => updateInviteStatus(item.id, "declined")}
+                              disabled={updatingInviteId === item.id}
+                              className="inline-flex items-center justify-center rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {updatingInviteId === item.id ? "Updating..." : "Decline"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updateInviteStatus(item.id, "accepted")}
+                              disabled={updatingInviteId === item.id}
+                              className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {updatingInviteId === item.id ? "Updating..." : "Accept"}
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-line">{item.text}</p>
+                  )}
                   {item.attachments.length ? (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {item.attachments.map((file) => (
