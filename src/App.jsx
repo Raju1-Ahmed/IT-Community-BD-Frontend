@@ -31,6 +31,7 @@ import LoaderShowcase from "./pages/LoaderShowcase";
 import Expert from "./dashboard/Expert";
 import AdminPremiumQueue from "./dashboard/AdminPremiumQueue";
 import ProtectedRoute from "./components/ProtectedRoute";
+import NotFound from "./pages/NotFound";
 
 const App = () => {
   return (
@@ -201,7 +202,7 @@ const App = () => {
           }
         />
       </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
