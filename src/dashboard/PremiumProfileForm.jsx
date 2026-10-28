@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../api/client";
 import PremiumStatusCard from "./PremiumStatusCard";
-import { User, Book, Briefcase, FileText, Edit, Trash2, UploadCloud, Sparkles, ChevronRight } from 'lucide-react';
+import { User, MapPin, Book, Briefcase, Sparkles, FileText, Edit, Trash2, UploadCloud, Check, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Skeleton, SkeletonText } from "../components/loaders/Skeleton";
 
-const SECTIONS = [
-  { key: "personal", label: "Personal", icon: User },
-  { key: "educationTrain", label: "Education/Train", icon: Book },
-  { key: "employment", label: "Employment", icon: Briefcase },
-  { key: "courseIntern", label: "Course/Intern", icon: FileText },
+const STEPS = [
+  { key: "basic", section: "personal", label: "Basic Information", shortLabel: "Basic", icon: User },
+  { key: "contact", section: "personal", label: "Contact & Location", shortLabel: "Contact", icon: MapPin },
+  { key: "education", section: "educationTrain", label: "Education", shortLabel: "Education", icon: Book },
+  { key: "experience", section: "employment", label: "Work Experience", shortLabel: "Experience", icon: Briefcase },
+  { key: "skills", section: "courseIntern", label: "Skills & Extras", shortLabel: "Skills", icon: Sparkles },
+  { key: "review", section: "review", label: "Review & Submit", shortLabel: "Review", icon: FileText },
 ];
 
 const defaultForm = {
@@ -53,13 +55,45 @@ const defaultForm = {
 const editorFieldClass =
   "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100";
 
+const ReviewStep = ({ form, onEdit }) => {
+  const items = [
+    ["Name", [form.firstName, form.lastName].filter(Boolean).join(" ")],
+    ["Preferred role", form.preferredRole],
+    ["Location", [form.districtName, form.upazilaName].filter(Boolean).join(", ") || form.location],
+    ["Education records", `${form.academics?.length || 0} added`],
+    ["Experience records", `${form.experienceHistory?.length || 0} added`],
+    ["Skills", form.skills || `${form.skillDetails?.length || 0} added`],
+    ["Courses / internships", `${form.coursesOrInternships?.length || 0} added`],
+  ];
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-3xl border border-emerald-200 bg-emerald-50/70 p-5">
+        <p className="text-sm font-semibold text-emerald-800">Your profile is ready for a final review.</p>
+        <p className="mt-1 text-sm text-emerald-700">Check the summary below before submitting your expert profile.</p>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {items.map(([label, value]) => (
+          <div key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</p>
+            <p className="mt-2 text-sm font-medium text-slate-900">{value || "Not added yet"}</p>
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={onEdit} className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">
+        Edit profile information
+      </button>
+    </div>
+  );
+};
+
 const secondaryButtonClass =
   "inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50";
 
 const destructiveButtonClass =
   "inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-100";
 
-const FileInput = ({ label, id, value, onChange }) => {
+const FileInput = ({ label, id, value, onChange, onClear }) => {
   const fileName =
     typeof value === "string"
       ? value.split("/").pop()
@@ -76,12 +110,27 @@ const FileInput = ({ label, id, value, onChange }) => {
           <div className="text-sm text-slate-600">
             <label htmlFor={id} className="relative cursor-pointer rounded-full bg-white px-4 py-2 font-semibold text-emerald-700 shadow-sm ring-1 ring-emerald-100 transition hover:bg-emerald-50 focus-within:outline-none focus-within:ring-2 focus-within:ring-emerald-500">
               <span>Choose file</span>
-              <input id={id} name={id} type="file" className="sr-only" onChange={onChange} />
+              <input key={`${id}-${fileName || "empty"}`} id={id} name={id} type="file" className="sr-only" onChange={onChange} />
             </label>
             <p className="mt-3">Drag and drop or browse from your device</p>
           </div>
           <p className="text-xs text-slate-500">PNG, JPG, PDF up to 10MB</p>
-          {fileName ? <p className="text-sm font-medium text-slate-700">{fileName}</p> : null}
+          {fileName ? (
+            <div className="mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-white px-3 py-2 text-left shadow-sm">
+              <p className="min-w-0 truncate text-sm font-medium text-slate-700">{fileName}</p>
+              {onClear ? (
+                <button
+                  type="button"
+                  onClick={onClear}
+                  className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 hover:text-rose-700"
+                  aria-label={`Remove ${fileName}`}
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Remove
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
@@ -169,8 +218,10 @@ const PremiumProfileForm = ({ embedded = false }) => {
   });
   const [minimumExperienceYears, setMinimumExperienceYears] = useState(3);
   const [message, setMessage] = useState("");
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [activeStep, setActiveStep] = useState(0);
   const [activeSection, setActiveSection] = useState("personal");
-  const [editingSection, setEditingSection] = useState("");
+  const [editingSection, setEditingSection] = useState("personal");
   const [form, setForm] = useState(defaultForm);
   const [docs, setDocs] = useState({
     cv: null,
@@ -201,20 +252,22 @@ const PremiumProfileForm = ({ embedded = false }) => {
   });
 
   const loadProfile = useCallback(async () => {
-    const { data } = await api.get("/premium/me");
-    const p = data.profile || {};
-    setProfile(p);
-    setInsights(
-      data.insights || {
-        totalViews: 0,
-        uniqueEmployers: 0,
-        viewsThisWeek: 0,
-        lastViewedAt: null,
-        recentViews: []
-      }
-    );
-    setMinimumExperienceYears(data.minimumExperienceYears || 3);
-    setForm({
+    setProfileLoading(true);
+    try {
+      const { data } = await api.get("/premium/me");
+      const p = data.profile || {};
+      setProfile(p);
+      setInsights(
+        data.insights || {
+          totalViews: 0,
+          uniqueEmployers: 0,
+          viewsThisWeek: 0,
+          lastViewedAt: null,
+          recentViews: []
+        }
+      );
+      setMinimumExperienceYears(data.minimumExperienceYears || 3);
+      setForm({
       headline: p.headline || "",
       summary: p.summary || "",
       firstName: p.firstName || "",
@@ -254,21 +307,15 @@ const PremiumProfileForm = ({ embedded = false }) => {
           : [],
       experienceHistory: Array.isArray(p.experienceHistory) ? p.experienceHistory : [],
       academics: Array.isArray(p.academics) ? p.academics : [],
-      coursesOrInternships: Array.isArray(p.coursesOrInternships) ? p.coursesOrInternships : [],
-    });
+        coursesOrInternships: Array.isArray(p.coursesOrInternships) ? p.coursesOrInternships : [],
+      });
+    } finally {
+      setProfileLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     loadProfile();
-    const handleFocus = () => {
-      loadProfile();
-    };
-
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
   }, [loadProfile]);
 
   useEffect(() => {
@@ -434,10 +481,37 @@ const PremiumProfileForm = ({ embedded = false }) => {
     }, 320);
   };
 
+  const goToStep = (stepIndex) => {
+    const nextStep = Math.max(0, Math.min(STEPS.length - 1, stepIndex));
+    setSectionLoading(true);
+    setEditingSection("");
+    setTimeout(() => {
+      setActiveStep(nextStep);
+      setActiveSection(STEPS[nextStep].section);
+      setEditingSection(STEPS[nextStep].section === "review" ? "" : STEPS[nextStep].section);
+      setSectionLoading(false);
+    }, 180);
+  };
+
+  const saveAndNext = async () => {
+    if (activeStep === STEPS.length - 1) return;
+    await saveDraft();
+    goToStep(activeStep + 1);
+  };
+
+  const isReviewStep = activeStep === STEPS.length - 1;
   const isEditing = editingSection === activeSection;
   const repeatViews = Math.max((insights.totalViews || 0) - (insights.uniqueEmployers || 0), 0);
   const recentEventPreview = (insights.recentViews || []).slice(0, 5);
   const topEmployers = buildTopEmployers(insights.recentViews || []);
+
+  if (profileLoading) {
+    return (
+      <section className="rounded-[32px] border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <p className="text-sm font-medium text-slate-600">Loading your expert profile…</p>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-6">
@@ -557,63 +631,50 @@ const PremiumProfileForm = ({ embedded = false }) => {
                 <h2 className="text-3xl font-bold tracking-tight text-slate-900">Expert Profile</h2>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-600 shadow-sm">
-                <p className="font-semibold text-slate-900">{SECTIONS.find((s) => s.key === activeSection)?.label}</p>
+                <p className="font-semibold text-slate-900">Step {activeStep + 1} of {STEPS.length}</p>
+                <p className="mt-0.5 text-xs text-slate-500">{STEPS[activeStep].label}</p>
               </div>
             </div>
         </div>
 
-        <div className="flex min-h-[600px] flex-col md:flex-row bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
-            <div className="w-full border-b border-slate-200 bg-slate-50/70 md:w-1/4 md:border-b-0 md:border-r">
-                <div className="md:sticky md:top-6 p-4 md:p-5 space-y-2">
-                    {SECTIONS.map((item) => (
+        <div className="bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
+            <div className="border-b border-slate-200 bg-slate-50/70 p-4 md:p-6">
+                <div className="flex items-start justify-between gap-2 overflow-x-auto pb-1">
+                    {STEPS.map((item, index) => (
                         <button
                         key={item.key}
                         type="button"
-                        onClick={() => switchSection(item.key)}
-                        className={`group w-full flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm text-left transition-all duration-200 ${
-                          activeSection === item.key
+                        onClick={() => index <= activeStep && goToStep(index)}
+                        disabled={index > activeStep}
+                        className={`group relative flex min-w-[92px] flex-1 flex-col items-center gap-2 rounded-2xl px-2 py-2 text-center text-xs transition-all duration-200 md:min-w-0 ${
+                          activeStep === index
                             ? "bg-gradient-to-r from-emerald-600 to-cyan-600 text-white shadow-lg shadow-emerald-200"
-                            : "bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md"
+                            : index < activeStep
+                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100"
+                              : "bg-white text-slate-400 ring-1 ring-slate-200"
                         }`}
                         >
-                        <span className="flex items-center gap-3">
-                          <span className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
-                            activeSection === item.key ? "bg-white/15" : "bg-slate-100 text-emerald-700"
+                        <span className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                            activeStep === index ? "bg-white/15" : index < activeStep ? "bg-emerald-100 text-emerald-700" : "bg-slate-100"
                           }`}>
-                            <item.icon className="w-5 h-5" />
+                            {index < activeStep ? <Check className="h-4 w-4" /> : <item.icon className="h-4 w-4" />}
                           </span>
-                          <span className="font-medium">{item.label}</span>
-                        </span>
-                        <ChevronRight className={`h-4 w-4 transition ${activeSection === item.key ? "opacity-100" : "opacity-40 group-hover:translate-x-0.5"}`} />
+                          <span className="hidden font-semibold md:block">{item.label}</span>
+                          <span className="font-semibold md:hidden">{item.shortLabel}</span>
                         </button>
                     ))}
                 </div>
             </div>
 
-            <div className="w-full md:w-3/4">
-                <div className="p-5 md:p-6">
+            <div className="w-full">
+                <div className="p-5 md:p-8">
                     <div className="mb-6 rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
                       <div className="flex items-center justify-between gap-3 flex-wrap">
                         <div>
-                          <h3 className="mt-2 text-xl font-semibold text-slate-900">{SECTIONS.find((s) => s.key === activeSection)?.label}</h3>
+                          <h3 className="mt-2 text-xl font-semibold text-slate-900">{STEPS[activeStep].label}</h3>
                         </div>
-                        <div className="flex gap-2">
-                        <button
-                            type="button"
-                            onClick={() => setEditingSection(activeSection)}
-                            className={secondaryButtonClass}
-                        >
-                            <Edit className="w-4 h-4" />
-                            <span>Edit</span>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => clearSection(activeSection)}
-                            className={destructiveButtonClass}
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            <span>Delete</span>
-                        </button>
+                        <div className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+                          {isReviewStep ? "Ready to submit" : "Complete this step"}
                         </div>
                       </div>
                     </div>
@@ -621,14 +682,21 @@ const PremiumProfileForm = ({ embedded = false }) => {
                     <div className="mt-4 space-y-4 transition-all duration-300 [&_input]:outline-none [&_input]:transition [&_input]:focus:ring-4 [&_input]:focus:ring-emerald-100 [&_select]:outline-none [&_select]:transition [&_textarea]:outline-none [&_textarea]:transition [&_textarea]:focus:ring-4 [&_textarea]:focus:ring-emerald-100">
                         {sectionLoading ? (
                           <SectionTransitionLoader
-                            title={`${SECTIONS.find((s) => s.key === activeSection)?.label || "Section"} ready state`}
+                            title={`${STEPS[activeStep]?.label || "Section"} ready state`}
                           />
                         ) : null}
                         {!sectionLoading ? (
                           <>
+                        {isReviewStep ? (
+                          <ReviewStep form={form} onEdit={() => goToStep(0)} />
+                        ) : null}
                         {activeSection === "personal" && (
                         isEditing ? (
                             <div className="grid gap-4 md:grid-cols-2 [&_input]:w-full [&_input]:rounded-2xl [&_input]:border [&_input]:border-slate-200 [&_input]:bg-white/90 [&_input]:px-4 [&_input]:py-3 [&_input]:text-sm [&_input]:text-slate-800 [&_input]:shadow-sm [&_input]:transition [&_input]:placeholder:text-slate-400 [&_input]:focus:border-emerald-400 [&_input]:focus:ring-4 [&_input]:focus:ring-emerald-100 [&_select]:w-full [&_select]:rounded-2xl [&_select]:border [&_select]:border-slate-200 [&_select]:bg-white/90 [&_select]:px-4 [&_select]:py-3 [&_select]:text-sm [&_select]:text-slate-800 [&_select]:shadow-sm [&_select]:transition [&_select]:focus:border-emerald-400 [&_select]:focus:ring-4 [&_select]:focus:ring-emerald-100">
+                            {activeStep === 0 ? (
+                              <>
+                            <input className="w-full rounded-md border p-2 md:col-span-2" placeholder="Profile headline" value={form.headline} onChange={(e) => setForm((p) => ({ ...p, headline: e.target.value }))} />
+                            <textarea className="w-full rounded-md border p-2 md:col-span-2" rows="3" placeholder="Short professional summary" value={form.summary} onChange={(e) => setForm((p) => ({ ...p, summary: e.target.value }))} />
                             <input className="w-full rounded-md border p-2" placeholder="First Name" value={form.firstName} onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))} />
                             <input className="w-full rounded-md border p-2" placeholder="Last Name" value={form.lastName} onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))} />
                             <input className="w-full rounded-md border p-2" placeholder="Father's Name" value={form.fatherName} onChange={(e) => setForm((p) => ({ ...p, fatherName: e.target.value }))} />
@@ -655,6 +723,13 @@ const PremiumProfileForm = ({ embedded = false }) => {
                                 <option value="Divorced">Divorced</option>
                                 <option value="Widowed">Widowed</option>
                             </select>
+                              </>
+                            ) : null}
+                            {activeStep === 1 ? (
+                              <>
+                            <input className="w-full rounded-md border p-2 md:col-span-2" placeholder="Preferred Role" value={form.preferredRole} onChange={(e) => setForm((p) => ({ ...p, preferredRole: e.target.value }))} />
+                            <input className="w-full rounded-md border p-2" type="number" placeholder="Expected Salary" value={form.expectedSalary} onChange={(e) => setForm((p) => ({ ...p, expectedSalary: e.target.value }))} />
+                            <input className="w-full rounded-md border p-2" placeholder="Current Location / Address" value={form.location} onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} />
                             <select
                                 className="w-full rounded-md border p-2"
                                 value={form.divisionId}
@@ -757,6 +832,8 @@ const PremiumProfileForm = ({ embedded = false }) => {
                             </select>
                             <input className="w-full rounded-md border p-2" placeholder="Height (meters)" value={form.heightMeters} onChange={(e) => setForm((p) => ({ ...p, heightMeters: e.target.value }))} />
                             <input className="w-full rounded-md border p-2" placeholder="Weight (kg)" value={form.weightKg} onChange={(e) => setForm((p) => ({ ...p, weightKg: e.target.value }))} />
+                              </>
+                            ) : null}
                             </div>
                         ) : (
                             <div className="grid gap-3 md:grid-cols-2 [&_p]:rounded-2xl [&_p]:border [&_p]:border-slate-200 [&_p]:bg-white [&_p]:p-4 [&_p]:text-sm [&_p]:text-slate-700 [&_p]:shadow-sm">
@@ -810,10 +887,24 @@ const PremiumProfileForm = ({ embedded = false }) => {
                                     <input className="rounded-md border p-2" placeholder="Exam/Degree Title" value={item.examDegreeTitle || ""} onChange={(e) => setForm((p) => ({ ...p, academics: p.academics.map((a, i) => (i === idx ? { ...a, examDegreeTitle: e.target.value } : a)) }))} />
                                     <input className="rounded-md border p-2" placeholder="Concentration/Major/Group" value={item.concentrationMajorGroup || ""} onChange={(e) => setForm((p) => ({ ...p, academics: p.academics.map((a, i) => (i === idx ? { ...a, concentrationMajorGroup: e.target.value } : a)) }))} />
                                     <input className="rounded-md border p-2" placeholder="Institute Name" value={item.instituteName || ""} onChange={(e) => setForm((p) => ({ ...p, academics: p.academics.map((a, i) => (i === idx ? { ...a, instituteName: e.target.value } : a)) }))} />
-                                    <label className="flex items-center gap-2 text-sm">
-                                    <input type="checkbox" checked={Boolean(item.isForeignInstitute)} onChange={(e) => setForm((p) => ({ ...p, academics: p.academics.map((a, i) => (i === idx ? { ...a, isForeignInstitute: e.target.checked } : a)) }))} />
-                                    This is a foreign institute
-                                    </label>
+                                    <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 md:col-span-2">
+                                      <div>
+                                        <p className="text-sm font-semibold text-slate-900">Foreign institute</p>
+                                        <p className="mt-0.5 text-xs text-slate-500">Qualification completed outside Bangladesh</p>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={Boolean(item.isForeignInstitute)}
+                                        aria-label={`Foreign institute for academic record ${idx + 1}`}
+                                        onClick={() => setForm((p) => ({ ...p, academics: p.academics.map((a, i) => (i === idx ? { ...a, isForeignInstitute: !a.isForeignInstitute } : a)) }))}
+                                        className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors focus:outline-none focus:ring-4 focus:ring-emerald-100 ${
+                                          item.isForeignInstitute ? "bg-emerald-600" : "bg-slate-300"
+                                        }`}
+                                      >
+                                        <span className={`h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${item.isForeignInstitute ? "translate-x-5" : "translate-x-0"}`} />
+                                      </button>
+                                    </div>
                                     <input className="rounded-md border p-2" placeholder="Result" value={item.result || ""} onChange={(e) => setForm((p) => ({ ...p, academics: p.academics.map((a, i) => (i === idx ? { ...a, result: e.target.value } : a)) }))} />
                                     <input className="rounded-md border p-2" placeholder="Year of Passing" value={item.yearOfPassing || ""} onChange={(e) => setForm((p) => ({ ...p, academics: p.academics.map((a, i) => (i === idx ? { ...a, yearOfPassing: e.target.value } : a)) }))} />
                                     <input className="rounded-md border p-2" placeholder="Duration (Years)" value={item.durationYears || ""} onChange={(e) => setForm((p) => ({ ...p, academics: p.academics.map((a, i) => (i === idx ? { ...a, durationYears: e.target.value } : a)) }))} />
@@ -877,9 +968,18 @@ const PremiumProfileForm = ({ embedded = false }) => {
                             <input
                                 className={editorFieldClass}
                                 type="number"
+                                min="0"
+                                max="60"
+                                step="0.1"
+                                inputMode="decimal"
                                 placeholder="Total Experience Years"
                                 value={form.totalExperienceYears}
-                                onChange={(e) => setForm((p) => ({ ...p, totalExperienceYears: e.target.value }))}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  if (/^\d*(\.\d{0,1})?$/.test(value)) {
+                                    setForm((p) => ({ ...p, totalExperienceYears: value }));
+                                  }
+                                }}
                             />
                             {(form.experienceHistory || []).map((item, idx) => (
                                 <div key={`experience-${idx}`} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -899,16 +999,16 @@ const PremiumProfileForm = ({ embedded = false }) => {
                                     </button>
                                 </div>
                                 <div className="grid gap-3 md:grid-cols-2">
-                                    <input className="rounded-md border p-2" placeholder="Company Name" value={item.companyName || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, companyName: e.target.value } : x)) }))} />
-                                    <input className="rounded-md border p-2" placeholder="Company Business" value={item.companyBusiness || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, companyBusiness: e.target.value } : x)) }))} />
-                                    <input className="rounded-md border p-2" placeholder="Designation" value={item.designation || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, designation: e.target.value } : x)) }))} />
-                                    <input className="rounded-md border p-2" placeholder="Department" value={item.department || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, department: e.target.value } : x)) }))} />
-                                    <input className="rounded-md border p-2" placeholder="Employment Period" value={item.employmentPeriod || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, employmentPeriod: e.target.value } : x)) }))} />
-                                    <input className="rounded-md border p-2" placeholder="Area of Expertise" value={item.areaOfExpertise || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, areaOfExpertise: e.target.value } : x)) }))} />
-                                    <input className="rounded-md border p-2" placeholder="Company Location" value={item.companyLocation || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, companyLocation: e.target.value } : x)) }))} />
-                                    <FileInput label="Company Clearance" id="cv-upload" value={docs.cv} onChange={(e) => setDocs((p) => ({ ...p, cv: e.target.files?.[0] || null }))} />
-                                    <FileInput label="Company Id Card" id="experience-letter-upload" value={docs.experienceLetter} onChange={(e) => setDocs((p) => ({ ...p, experienceLetter: e.target.files?.[0] || null }))} />
-                                    <FileInput label="Appointment Letter" id="company-id-card-upload" value={docs.companyIdCard} onChange={(e) => setDocs((p) => ({ ...p, companyIdCard: e.target.files?.[0] || null }))} />
+                                    <input type="text" autoComplete="organization" className="rounded-md border p-2" placeholder="Company Name" value={item.companyName || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, companyName: e.target.value } : x)) }))} />
+                                    <input type="text" autoComplete="off" className="rounded-md border p-2" placeholder="Company Business" value={item.companyBusiness || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, companyBusiness: e.target.value } : x)) }))} />
+                                    <input type="text" autoComplete="organization-title" className="rounded-md border p-2" placeholder="Designation" value={item.designation || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, designation: e.target.value } : x)) }))} />
+                                    <input type="text" autoComplete="organization-title" className="rounded-md border p-2" placeholder="Department" value={item.department || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, department: e.target.value } : x)) }))} />
+                                    <input type="text" autoComplete="off" className="rounded-md border p-2" placeholder="Employment Period (e.g. 2021–2024)" value={item.employmentPeriod || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, employmentPeriod: e.target.value } : x)) }))} />
+                                    <input type="text" autoComplete="off" className="rounded-md border p-2" placeholder="Area of Expertise" value={item.areaOfExpertise || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, areaOfExpertise: e.target.value } : x)) }))} />
+                                    <input type="text" autoComplete="street-address" className="rounded-md border p-2" placeholder="Company Location" value={item.companyLocation || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, companyLocation: e.target.value } : x)) }))} />
+                                    <FileInput label="Company Clearance" id="cv-upload" value={docs.cv} onChange={(e) => setDocs((p) => ({ ...p, cv: e.target.files?.[0] || null }))} onClear={() => setDocs((p) => ({ ...p, cv: null }))} />
+                                    <FileInput label="Company Id Card" id="experience-letter-upload" value={docs.experienceLetter} onChange={(e) => setDocs((p) => ({ ...p, experienceLetter: e.target.files?.[0] || null }))} onClear={() => setDocs((p) => ({ ...p, experienceLetter: null }))} />
+                                    <FileInput label="Appointment Letter" id="company-id-card-upload" value={docs.companyIdCard} onChange={(e) => setDocs((p) => ({ ...p, companyIdCard: e.target.files?.[0] || null }))} onClear={() => setDocs((p) => ({ ...p, companyIdCard: null }))} />
                                     <textarea className="md:col-span-2 rounded-md border p-2" rows="3" placeholder="Responsibilities" value={item.responsibilities || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, responsibilities: e.target.value } : x)) }))} />
                                 </div>
                                 </div>
@@ -976,6 +1076,11 @@ const PremiumProfileForm = ({ embedded = false }) => {
                         {activeSection === "courseIntern" && (
                         isEditing ? (
                             <div className="space-y-4 [&_input]:w-full [&_input]:rounded-2xl [&_input]:border [&_input]:border-slate-200 [&_input]:bg-white/90 [&_input]:px-4 [&_input]:py-3 [&_input]:text-sm [&_input]:text-slate-800 [&_input]:shadow-sm [&_input]:transition [&_input]:placeholder:text-slate-400 [&_input]:focus:border-emerald-400 [&_input]:focus:ring-4 [&_input]:focus:ring-emerald-100 [&_select]:w-full [&_select]:rounded-2xl [&_select]:border [&_select]:border-slate-200 [&_select]:bg-white/90 [&_select]:px-4 [&_select]:py-3 [&_select]:text-sm [&_select]:text-slate-800 [&_select]:shadow-sm [&_select]:transition [&_select]:focus:border-emerald-400 [&_select]:focus:ring-4 [&_select]:focus:ring-emerald-100">
+                            <div className="rounded-3xl border border-emerald-100 bg-emerald-50/60 p-4">
+                              <p className="text-sm font-semibold text-slate-900">Your expertise</p>
+                              <p className="mt-1 text-xs text-slate-600">Add comma-separated skills, for example: React, Node.js, MongoDB.</p>
+                              <textarea className="mt-3 w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" rows="3" placeholder="Skills" value={form.skills} onChange={(e) => setForm((p) => ({ ...p, skills: e.target.value }))} />
+                            </div>
                             {(form.coursesOrInternships || []).map((item, idx) => (
                                 <div key={`course-intern-${idx}`} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                                 <div className="mb-4 flex items-center justify-between">
@@ -1015,6 +1120,10 @@ const PremiumProfileForm = ({ embedded = false }) => {
                                           coursesOrInternships: p.coursesOrInternships.map((ci, i) => i === idx ? { ...ci, certificateFile: file } : ci)
                                         }));
                                       }}
+                                      onClear={() => setForm(p => ({
+                                        ...p,
+                                        coursesOrInternships: p.coursesOrInternships.map((ci, i) => i === idx ? { ...ci, certificateFile: null, certificate: "" } : ci)
+                                      }))}
                                     />
                                 </div>
                                 </div>
@@ -1086,6 +1195,38 @@ const PremiumProfileForm = ({ embedded = false }) => {
                         </button>
                         </div>
                     )}
+                    {!sectionLoading ? (
+                      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
+                        <button
+                          type="button"
+                          onClick={() => goToStep(activeStep - 1)}
+                          disabled={activeStep === 0}
+                          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Back
+                        </button>
+                        {isReviewStep ? (
+                          <button
+                            type="button"
+                            onClick={onSubmitForPayment}
+                            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5"
+                          >
+                            Submit for review
+                            <Check className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={saveAndNext}
+                            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5"
+                          >
+                            Save & Continue
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ) : null}
                           </>
                         ) : null}
                     </div>
