@@ -616,7 +616,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
 
       {!embedded ? (
         <>
-          <div className="rounded-3xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-cyan-50 p-5 text-sm text-emerald-900 shadow-sm">
+          <div className="rounded-3xl border-0 bg-gradient-to-r from-emerald-50 via-white to-cyan-50 p-4 text-sm text-emerald-900 shadow-sm md:border md:p-5">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-emerald-100">
                 <Sparkles className="h-5 w-5 text-emerald-600" />
@@ -631,25 +631,25 @@ const PremiumProfileForm = ({ embedded = false }) => {
         </>
       ) : null}
 
-      <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_24px_80px_-48px_rgba(15,23,42,0.45)]">
-        <div className="border-b border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_35%),linear-gradient(135deg,#f8fffc_0%,#ffffff_45%,#f0fdfa_100%)] p-6 md:p-8">
+      <div className="overflow-hidden rounded-none border-0 bg-white shadow-none md:rounded-[32px] md:border md:border-slate-200 md:shadow-[0_24px_80px_-48px_rgba(15,23,42,0.45)]">
+        <div className="border-b-0 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_35%),linear-gradient(135deg,#f8fffc_0%,#ffffff_45%,#f0fdfa_100%)] p-4 md:border-b md:border-slate-200 md:p-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full border-0 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 md:border md:border-emerald-200">
                   <Sparkles className="h-3.5 w-3.5" />
                   Premium Expert Profile
                 </p>
                 <h2 className="text-3xl font-bold tracking-tight text-slate-900">Expert Profile</h2>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-600 shadow-sm">
+              <div className="rounded-2xl border-0 bg-white/80 px-3 py-2 text-sm text-slate-600 shadow-sm md:border md:border-slate-200 md:px-4 md:py-3">
                 <p className="font-semibold text-slate-900">Step {activeStep + 1} of {STEPS.length}</p>
                 <p className="mt-0.5 text-xs text-slate-500">{STEPS[activeStep].label}</p>
               </div>
             </div>
         </div>
 
-        <div className="bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
-            <div className="border-b border-slate-200 bg-slate-50/70 p-4 md:p-6">
+        <div className="bg-white md:bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
+            <div className="border-b-0 bg-slate-50/70 p-2 md:border-b md:border-slate-200 md:p-6">
                 <div className="flex items-start justify-between gap-2 overflow-x-auto pb-1">
                     {STEPS.map((item, index) => (
                         <button
@@ -661,8 +661,8 @@ const PremiumProfileForm = ({ embedded = false }) => {
                           activeStep === index
                             ? "bg-gradient-to-r from-emerald-600 to-cyan-600 text-white shadow-lg shadow-emerald-200"
                             : index < activeStep
-                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100"
-                              : "bg-white text-slate-400 ring-1 ring-slate-200"
+                              ? "bg-emerald-50 text-emerald-700 md:ring-1 md:ring-emerald-200 hover:bg-emerald-100"
+                              : "bg-white text-slate-400 md:ring-1 md:ring-slate-200"
                         }`}
                         >
                         <span className={`flex h-9 w-9 items-center justify-center rounded-full ${
@@ -678,8 +678,8 @@ const PremiumProfileForm = ({ embedded = false }) => {
             </div>
 
             <div className="w-full">
-                <div className="p-5 md:p-8">
-                    <div className="mb-6 rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+                <div className="p-3 md:p-8">
+                    <div className="mb-5 rounded-3xl border-0 bg-white/90 p-3 shadow-none md:mb-6 md:border md:border-slate-200 md:p-5 md:shadow-sm">
                       <div className="flex items-center justify-between gap-3 flex-wrap">
                         <div>
                           <h3 className="mt-2 text-xl font-semibold text-slate-900">{STEPS[activeStep].label}</h3>
