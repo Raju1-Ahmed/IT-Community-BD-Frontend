@@ -527,44 +527,44 @@ const PremiumProfileForm = ({ embedded = false }) => {
   return (
     <section className="space-y-6">
       {embedded ? (
-        <div className="rounded-none border-0 bg-white p-0 shadow-none md:rounded-[32px] md:border md:border-slate-200 md:p-6 md:shadow-sm">
-          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="rounded-none border-0 bg-white p-0 shadow-none md:rounded-[32px] md:border md:border-slate-200 md:p-5 md:shadow-sm">
+          <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Profile Insights</p>
-              <h2 className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Employer activity on your expert profile</h2>
-              <p className="mt-1 text-sm text-slate-500">Last viewed: {formatInsightDate(insights.lastViewedAt)}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">Profile Insights</p>
+              <h2 className="mt-1 text-lg font-bold leading-tight tracking-tight text-slate-900 sm:text-xl">Employer activity on your expert profile</h2>
+              <p className="mt-0.5 text-xs text-slate-500">Last viewed: {formatInsightDate(insights.lastViewedAt)}</p>
             </div>
             <button
               type="button"
               onClick={() => loadProfile()}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:w-auto"
+              className="w-full rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:w-auto"
             >
               Refresh
             </button>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
-            <div className="rounded-2xl bg-slate-50 p-3 sm:p-4">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
+            <div className="rounded-2xl bg-slate-50 p-2.5 sm:p-3">
               <p className="text-xs text-slate-500">Total Views</p>
-              <p className="mt-1 text-2xl font-bold text-slate-900">{insights.totalViews}</p>
+              <p className="mt-0.5 text-xl font-bold text-slate-900">{insights.totalViews}</p>
             </div>
-            <div className="rounded-2xl bg-emerald-50 p-3 sm:p-4">
+            <div className="rounded-2xl bg-emerald-50 p-2.5 sm:p-3">
               <p className="text-xs text-emerald-700">Unique Employers</p>
-              <p className="mt-1 text-2xl font-bold text-emerald-900">{insights.uniqueEmployers}</p>
+              <p className="mt-0.5 text-xl font-bold text-emerald-900">{insights.uniqueEmployers}</p>
             </div>
-            <div className="rounded-2xl bg-cyan-50 p-3 sm:p-4">
+            <div className="rounded-2xl bg-cyan-50 p-2.5 sm:p-3">
               <p className="text-xs text-cyan-700">Views This Week</p>
-              <p className="mt-1 text-2xl font-bold text-cyan-900">{insights.viewsThisWeek}</p>
+              <p className="mt-0.5 text-xl font-bold text-cyan-900">{insights.viewsThisWeek}</p>
             </div>
-            <div className="rounded-2xl bg-amber-50 p-3 sm:p-4">
+            <div className="rounded-2xl bg-amber-50 p-2.5 sm:p-3">
               <p className="text-xs text-amber-700">Repeat Views</p>
-              <p className="mt-1 text-2xl font-bold text-amber-900">{repeatViews}</p>
+              <p className="mt-0.5 text-xl font-bold text-amber-900">{repeatViews}</p>
             </div>
           </div>
 
-          <div className="mt-5 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="mt-3 grid gap-3 lg:grid-cols-[0.95fr_1.05fr]">
             <div className="rounded-2xl bg-slate-50/70 md:border md:border-slate-200">
-              <div className="border-b-0 px-3 py-3 sm:px-4 md:border-b md:border-slate-200">
+              <div className="border-b-0 px-3 py-2 sm:px-4 md:border-b md:border-slate-200">
                 <p className="text-sm font-semibold text-slate-900">Top Employers</p>
               </div>
 
@@ -574,7 +574,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
                 ) : null}
 
                 {topEmployers.map((item) => (
-                  <div key={`${item.employerName}-${item.lastViewedAt}`} className="flex items-center justify-between gap-3 px-3 py-3 text-sm sm:px-4">
+                  <div key={`${item.employerName}-${item.lastViewedAt}`} className="flex items-center justify-between gap-3 px-3 py-2 text-sm sm:px-4">
                     <div>
                       <p className="font-semibold text-slate-900">{item.employerName}</p>
                       <p className="text-xs text-slate-500">Last viewed {formatInsightDate(item.lastViewedAt)}</p>
@@ -588,7 +588,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
             </div>
 
             <div className="rounded-2xl bg-slate-50/70 md:border md:border-slate-200">
-              <div className="border-b-0 px-3 py-3 sm:px-4 md:border-b md:border-slate-200">
+              <div className="border-b-0 px-3 py-2 sm:px-4 md:border-b md:border-slate-200">
                 <p className="text-sm font-semibold text-slate-900">Latest 5 View Events</p>
               </div>
 
@@ -598,7 +598,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
                 ) : null}
 
                 {recentEventPreview.map((item) => (
-                  <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-3 text-sm sm:px-4">
+                  <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm sm:px-4">
                     <div>
                       <p className="font-semibold text-slate-900">{item.employerName || "Employer"}</p>
                       <p className="text-xs text-slate-500">Viewed from Appoint Expertise</p>
