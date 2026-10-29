@@ -149,7 +149,7 @@ const SeekerResume = () => {
   };
 
   return (
-    <section className="mx-auto max-w-5xl">
+    <section className="mx-[-1rem] min-w-0 bg-slate-50 px-4 py-2 sm:mx-auto sm:bg-transparent sm:px-0 sm:py-0 max-w-5xl">
       <style>
         {`
           @media print {
@@ -222,11 +222,11 @@ const SeekerResume = () => {
         `}
       </style>
 
-      <div className="no-print mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="no-print mb-3 rounded-2xl border-0 bg-white p-3 shadow-none sm:mb-4 sm:rounded-2xl sm:border sm:p-4 sm:shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Resume Insights</p>
-            <h2 className="mt-1 text-xl font-bold text-slate-900">Employer view activity on your resume</h2>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">Resume Insights</p>
+            <h2 className="mt-1 text-lg font-bold leading-tight text-slate-900 sm:text-xl">Employer view activity on your resume</h2>
             <p className="mt-1 text-sm text-slate-500">
               {insightsLoading ? "Loading insights..." : `Last viewed: ${formatInsightDate(insights.lastViewedAt)}`}
             </p>
@@ -234,26 +234,26 @@ const SeekerResume = () => {
           <button
             type="button"
             onClick={() => loadResumeInsights()}
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="self-start rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200 sm:self-auto"
           >
             Refresh
           </button>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-4">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
+          <div className="rounded-2xl bg-slate-50 p-3 sm:border sm:border-slate-200">
             <p className="text-xs text-slate-500">Total Views</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{insightsLoading ? "..." : insights.totalViews}</p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="rounded-2xl bg-slate-50 p-3 sm:border sm:border-slate-200">
             <p className="text-xs text-slate-500">Unique Employers</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{insightsLoading ? "..." : insights.uniqueEmployers}</p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="rounded-2xl bg-slate-50 p-3 sm:border sm:border-slate-200">
             <p className="text-xs text-slate-500">Views This Week</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{insightsLoading ? "..." : insights.viewsThisWeek}</p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="rounded-2xl bg-slate-50 p-3 sm:border sm:border-slate-200">
             <p className="text-xs text-slate-500">Repeat Views</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">
               {insightsLoading ? "..." : repeatViews}
@@ -262,12 +262,12 @@ const SeekerResume = () => {
         </div>
 
         <div className="mt-4 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-xl border border-slate-200">
-            <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+          <div className="rounded-2xl bg-slate-50 sm:border sm:border-slate-200">
+            <div className="border-b-0 px-3 py-3 sm:border-b sm:border-slate-200 sm:bg-slate-50 sm:px-4">
               <p className="text-sm font-semibold text-slate-900">Top Employers</p>
             </div>
 
-            <div className="divide-y divide-slate-200">
+            <div className="divide-y divide-slate-200/70">
               {insightsLoading ? (
                 <div className="px-4 py-4 text-sm text-slate-500">Loading employer summary...</div>
               ) : null}
@@ -292,8 +292,8 @@ const SeekerResume = () => {
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200">
-            <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+          <div className="rounded-2xl bg-slate-50 sm:border sm:border-slate-200">
+            <div className="border-b-0 px-3 py-3 sm:border-b sm:border-slate-200 sm:bg-slate-50 sm:px-4">
               <p className="text-sm font-semibold text-slate-900">Latest 5 View Events</p>
             </div>
 
@@ -326,23 +326,23 @@ const SeekerResume = () => {
         </div>
       </div>
 
-      <div className="no-print mb-4 flex items-center justify-end gap-2">
-        <Link to="/seeker-profile" className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+      <div className="no-print mb-3 flex gap-2 sm:mb-4 sm:justify-end">
+        <Link to="/seeker-profile" className="flex-1 rounded-full bg-white px-3 py-2 text-center text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 sm:flex-none">
           Edit Resume
         </Link>
         <button
           type="button"
           onClick={handlePrint}
-          className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+          className="flex-1 rounded-full bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:flex-none"
         >
           Print Resume
         </button>
       </div>
 
-      <div className="resume-print-root rounded-2xl border border-slate-200 bg-white shadow-lg">
+      <div className="resume-print-root overflow-hidden rounded-2xl border-0 bg-white shadow-md sm:border sm:border-slate-200 sm:shadow-lg">
         <div className="flex flex-wrap">
-        <aside className="w-full rounded-t-2xl bg-gray-800 p-8 text-white md:w-1/3 md:rounded-l-2xl md:rounded-tr-none">
-          <div className="mb-6 flex items-center gap-3">
+        <aside className="w-full rounded-t-2xl bg-gray-800 p-5 text-white md:w-1/3 md:rounded-l-2xl md:rounded-tr-none md:p-8">
+          <div className="mb-5 flex items-center gap-3 sm:mb-6">
             <div className="h-16 w-16 overflow-hidden rounded-full bg-gray-700 ring-2 ring-gray-600">
               {imageUrl ? (
                 <img src={imageUrl} alt="Profile" className="h-full w-full object-cover" />
@@ -438,9 +438,9 @@ const SeekerResume = () => {
           ) : null}
         </aside>
 
-        <main className="w-full p-8 md:w-2/3">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-slate-800">Resume</h2>
+        <main className="w-full p-5 md:w-2/3 md:p-8">
+          <div className="mb-5 md:mb-6">
+            <h2 className="text-xl font-bold text-slate-800 sm:text-2xl">Resume</h2>
           </div>
 
           {hasText(resumeData.summary) ? (

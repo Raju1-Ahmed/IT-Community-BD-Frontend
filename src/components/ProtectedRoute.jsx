@@ -7,23 +7,39 @@ const ProtectedRoute = ({ children, roles, loadingVariant = "default" }) => {
   const location = useLocation();
 
   if (loading) {
-    if (loadingVariant === "profile") {
+    if (loadingVariant === "profile" || loadingVariant === "resume") {
       return (
         <div className="mx-[-1rem] min-h-[60vh] bg-white px-4 py-4 sm:mx-0 sm:rounded-3xl sm:border sm:border-slate-200 sm:px-6 sm:py-6 sm:shadow-sm">
           <div className="animate-pulse space-y-5">
-            <div className="h-7 w-44 rounded-full bg-slate-200" />
-            <div className="flex items-center gap-4">
-              <div className="h-20 w-20 shrink-0 rounded-3xl bg-slate-200" />
-              <div className="min-w-0 flex-1 space-y-3">
-                <div className="h-4 w-3/5 rounded-full bg-slate-200" />
-                <div className="h-3 w-2/5 rounded-full bg-slate-100" />
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="h-12 rounded-2xl bg-slate-100" />
-              <div className="h-12 rounded-2xl bg-slate-100" />
-              <div className="h-24 rounded-2xl bg-slate-100" />
-            </div>
+            {loadingVariant === "profile" ? (
+              <>
+                <div className="h-7 w-44 rounded-full bg-slate-200" />
+                <div className="flex items-center gap-4">
+                  <div className="h-20 w-20 shrink-0 rounded-3xl bg-slate-200" />
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="h-4 w-3/5 rounded-full bg-slate-200" />
+                    <div className="h-3 w-2/5 rounded-full bg-slate-100" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-12 rounded-2xl bg-slate-100" />
+                  <div className="h-12 rounded-2xl bg-slate-100" />
+                  <div className="h-24 rounded-2xl bg-slate-100" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="h-7 w-40 rounded-full bg-slate-200" />
+                  <div className="h-9 w-24 rounded-full bg-slate-100" />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {[1, 2, 3, 4].map((item) => <div key={item} className="h-20 rounded-2xl bg-slate-100" />)}
+                </div>
+                <div className="h-10 w-48 rounded-full bg-slate-200" />
+                <div className="h-64 rounded-3xl bg-slate-100" />
+              </>
+            )}
           </div>
         </div>
       );

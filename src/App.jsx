@@ -165,7 +165,7 @@ const App = () => {
         <Route
           path="/seeker-resume"
           element={
-            <ProtectedRoute roles={["seeker", "admin"]}>
+            <ProtectedRoute roles={["seeker", "admin"]} loadingVariant="resume">
               <SeekerResume />
             </ProtectedRoute>
           }
