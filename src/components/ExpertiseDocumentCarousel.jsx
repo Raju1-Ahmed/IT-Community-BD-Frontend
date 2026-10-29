@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const isLikelyImage = (url) => /\.(jpg|jpeg|png|webp|gif|bmp|svg)(\?|$)/i.test(String(url || ""));
+const isLikelyImage = (url) => {
+  const value = String(url || "");
+  return value.startsWith("data:image/") || /\.(jpg|jpeg|png|webp|gif|bmp|svg)(\?|$)/i.test(value);
+};
 
 const ExpertiseDocumentCarousel = ({ documents, heightClass = "h-56" }) => {
   const slides = useMemo(
