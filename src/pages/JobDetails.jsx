@@ -9,12 +9,14 @@ import {
   BookmarkCheck,
   BriefcaseBusiness,
   CalendarClock,
+  CheckCircle2,
   CircleDashed,
   FilePenLine,
   MapPinned,
   Printer,
   Share2,
-  Send
+  Send,
+  X
 } from "lucide-react";
 
 const tabs = [
@@ -134,6 +136,7 @@ const JobDetails = () => {
   const [message, setMessage] = useState("");
   const [activeTab, setActiveTab] = useState("All");
   const [isSaved, setIsSaved] = useState(false);
+  const [showApplySuccess, setShowApplySuccess] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -151,7 +154,8 @@ const JobDetails = () => {
   const apply = async () => {
     try {
       await api.post(`/applications/job/${id}`, { coverLetter });
-      setMessage("Applied successfully.");
+      setMessage("");
+      setShowApplySuccess(true);
     } catch (err) {
       setMessage(err?.response?.data?.message || "Apply failed.");
     }
@@ -439,6 +443,39 @@ const JobDetails = () => {
           </div>
         </div>
       )}
+      {showApplySuccess ? (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="apply-success-title"
+            className="relative w-full max-w-sm rounded-3xl bg-white p-7 text-center shadow-2xl"
+          >
+            <button
+              type="button"
+              onClick={() => setShowApplySuccess(false)}
+              className="absolute right-4 top-4 rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+              aria-label="Close success message"
+            >
+              <X size={18} />
+            </button>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <CheckCircle2 size={34} />
+            </div>
+            <h3 id="apply-success-title" className="mt-5 text-xl font-bold text-slate-900">Applied Successfully</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Your application has been submitted successfully.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowApplySuccess(false)}
+              className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 };
