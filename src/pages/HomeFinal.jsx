@@ -17,6 +17,14 @@ import {
 import api from "../api/client";
 import { SkeletonCard } from "../components/loaders/Skeleton";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
+
+const toAbsoluteUrl = (value) => {
+  if (!value) return "";
+  return value.startsWith("http") || value.startsWith("data:") ? value : `${BACKEND_ORIGIN}${value}`;
+};
+
 const stats = [
   { label: "Active hiring flow", value: "Fast", hint: "Search, apply, and manage jobs smoothly" },
   { label: "Focus", value: "IT", hint: "Platform built around Bangladesh tech careers" },
@@ -61,6 +69,8 @@ const HomeFinal = () => {
   const [search, setSearch] = useState("");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expertise, setExpertise] = useState([]);
+  const [expertiseLoading, setExpertiseLoading] = useState(true);
 
   useEffect(() => {
     const loadRecentJobs = async () => {
@@ -72,6 +82,18 @@ const HomeFinal = () => {
       }
     };
     loadRecentJobs();
+  }, []);
+
+  useEffect(() => {
+    const loadRecentExpertise = async () => {
+      try {
+        const { data } = await api.get("/premium/expertise");
+        setExpertise((data.profiles || []).slice(0, 4));
+      } finally {
+        setExpertiseLoading(false);
+      }
+    };
+    loadRecentExpertise();
   }, []);
 
   const onSearch = () => {
@@ -225,6 +247,7 @@ const HomeFinal = () => {
         </div>
       </div>
 
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)]">
       <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -289,6 +312,55 @@ const HomeFinal = () => {
         {!loading && jobs.length === 0 ? (
           <p className="mt-6 text-sm text-slate-600">No jobs posted yet.</p>
         ) : null}
+      </div>
+
+      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Recent expertise</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Featured professionals</h2>
+          </div>
+          <Link to="/appoint-expertise" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 hover:text-emerald-700">
+            View all <ArrowRight size={15} />
+          </Link>
+        </div>
+
+        {expertiseLoading ? (
+          <div className="mt-5 space-y-3">
+            {Array.from({ length: 3 }).map((_, index) => <SkeletonCard key={`expertise-skeleton-${index}`} />)}
+          </div>
+        ) : null}
+
+        {!expertiseLoading && expertise.length > 0 ? (
+          <div className="mt-5 space-y-3">
+            {expertise.map((profile) => {
+              const seeker = profile?.seeker || {};
+              const name = seeker.name || "Expert professional";
+              const role = seeker.jobRole || seeker.jobCategory || profile.preferredRole || "IT Professional";
+              const image = toAbsoluteUrl(seeker.profileImage);
+              return (
+                <Link
+                  key={profile._id}
+                  to={`/appoint-expertise/${profile._id}`}
+                  className="group flex items-center gap-3 rounded-2xl border border-slate-200 p-3 transition hover:border-emerald-300 hover:bg-emerald-50/40"
+                >
+                  <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-emerald-50 text-center text-lg font-bold leading-[3rem] text-emerald-700">
+                    {image ? <img src={image} alt={name} className="h-full w-full object-cover" /> : name.slice(0, 1).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-900 group-hover:text-emerald-700">{name}</p>
+                    <p className="mt-1 truncate text-xs text-emerald-700">{role}</p>
+                    <p className="mt-1 truncate text-xs text-slate-500">{profile.location || seeker.location || "Bangladesh"}</p>
+                  </div>
+                  <ArrowRight size={16} className="shrink-0 text-slate-400 group-hover:text-emerald-600" />
+                </Link>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {!expertiseLoading && expertise.length === 0 ? <p className="mt-5 text-sm text-slate-600">No expert profiles available yet.</p> : null}
+      </div>
       </div>
     </section>
   );
