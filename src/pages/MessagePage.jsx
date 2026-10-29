@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, CalendarDays, CheckCheck, Clock3, DollarSign, Loader2, Paperclip, Search, Send, UserPlus } from "lucide-react";
+import { ArrowLeft, CalendarDays, CheckCheck, Clock3, DollarSign, Loader2, Paperclip, Search, Send, UserPlus, X } from "lucide-react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -706,10 +706,16 @@ const MessagePage = () => {
       ) : null}
 
       <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(300px,0.34fr)_minmax(0,0.66fr)] lg:gap-4">
-        <aside className={`min-w-0 rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen ? "hidden lg:block" : "block"}`}>
-          <div className="border-b border-slate-200 p-4">
-            <div>
-              <p className="text-sm font-semibold text-slate-900">People</p>
+        <aside className={`flex h-[calc(100dvh-180px)] min-w-0 flex-col rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen ? "hidden lg:flex" : "flex"} lg:h-auto`}>
+          <div className="shrink-0 border-b border-slate-200 p-3 sm:p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-base font-semibold text-slate-900">People</p>
+                <p className="mt-1 text-xs text-slate-500">Your recent conversations</p>
+              </div>
+              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                {conversations.length}
+              </span>
             </div>
             <div className="relative mt-4">
               <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -717,12 +723,22 @@ const MessagePage = () => {
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 placeholder="Search people"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-9 text-sm outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
               />
+              {searchText ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchText("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                  aria-label="Clear people search"
+                >
+                  <X size={14} />
+                </button>
+              ) : null}
             </div>
           </div>
 
-          <div className="max-h-[calc(100dvh-230px)] space-y-2 overflow-y-auto p-2 sm:p-3 lg:max-h-[620px]">
+          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain p-2 sm:p-3 lg:max-h-[620px]">
             {loadingConversations ? (
               <>
                 {[...Array(5)].map((_, index) => (
@@ -806,7 +822,7 @@ const MessagePage = () => {
           </div>
         </aside>
 
-        <section className={`flex min-w-0 min-h-[calc(100dvh-180px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen || !activeConversation ? "block" : "hidden lg:flex"}`}>
+        <section className={`flex h-[calc(100dvh-180px)] min-w-0 min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen || !activeConversation ? "block" : "hidden lg:flex"} lg:h-auto`}>
           <div className="shrink-0 border-b border-slate-200 bg-slate-50 px-3 py-3 sm:px-4 sm:py-4">
             {activeConversation ? (
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
