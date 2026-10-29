@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
+import { Mail, Phone, MapPin, Globe, Linkedin, Github, Activity, Building2, CalendarDays, Eye, RefreshCw, Repeat2 } from "lucide-react";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { getCategoryResumeSections } from "../data/categoryProfileConfig";
@@ -224,37 +224,44 @@ const SeekerResume = () => {
 
       <div className="no-print mb-3 rounded-2xl border-0 bg-white p-3 shadow-none sm:mb-4 sm:rounded-2xl sm:border sm:p-4 sm:shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">Resume Insights</p>
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <Activity size={19} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">Resume Insights</p>
             <h2 className="mt-1 text-lg font-bold leading-tight text-slate-900 sm:text-xl">Employer view activity on your resume</h2>
             <p className="mt-1 text-sm text-slate-500">
               {insightsLoading ? "Loading insights..." : `Last viewed: ${formatInsightDate(insights.lastViewedAt)}`}
             </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={() => loadResumeInsights()}
-            className="self-start rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200 sm:self-auto"
+            disabled={insightsLoading}
+            className="inline-flex items-center justify-center gap-2 self-start rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 disabled:cursor-wait disabled:opacity-70 sm:self-auto"
           >
+            <RefreshCw size={15} className={insightsLoading ? "animate-spin" : ""} />
             Refresh
           </button>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
-          <div className="rounded-2xl bg-slate-50 p-3 sm:border sm:border-slate-200">
-            <p className="text-xs text-slate-500">Total Views</p>
+          <div className="rounded-2xl bg-blue-50/70 p-3 sm:border sm:border-blue-100">
+            <div className="flex items-center justify-between gap-2"><p className="text-xs text-slate-500">Total Views</p><Eye size={15} className="text-blue-500" /></div>
             <p className="mt-1 text-2xl font-bold text-slate-900">{insightsLoading ? "..." : insights.totalViews}</p>
           </div>
-          <div className="rounded-2xl bg-slate-50 p-3 sm:border sm:border-slate-200">
-            <p className="text-xs text-slate-500">Unique Employers</p>
+          <div className="rounded-2xl bg-violet-50/70 p-3 sm:border sm:border-violet-100">
+            <div className="flex items-center justify-between gap-2"><p className="text-xs text-slate-500">Unique Employers</p><Building2 size={15} className="text-violet-500" /></div>
             <p className="mt-1 text-2xl font-bold text-slate-900">{insightsLoading ? "..." : insights.uniqueEmployers}</p>
           </div>
-          <div className="rounded-2xl bg-slate-50 p-3 sm:border sm:border-slate-200">
-            <p className="text-xs text-slate-500">Views This Week</p>
+          <div className="rounded-2xl bg-emerald-50/70 p-3 sm:border sm:border-emerald-100">
+            <div className="flex items-center justify-between gap-2"><p className="text-xs text-slate-500">Views This Week</p><CalendarDays size={15} className="text-emerald-500" /></div>
             <p className="mt-1 text-2xl font-bold text-slate-900">{insightsLoading ? "..." : insights.viewsThisWeek}</p>
           </div>
-          <div className="rounded-2xl bg-slate-50 p-3 sm:border sm:border-slate-200">
-            <p className="text-xs text-slate-500">Repeat Views</p>
+          <div className="rounded-2xl bg-amber-50/70 p-3 sm:border sm:border-amber-100">
+            <div className="flex items-center justify-between gap-2"><p className="text-xs text-slate-500">Repeat Views</p><Repeat2 size={15} className="text-amber-500" /></div>
             <p className="mt-1 text-2xl font-bold text-slate-900">
               {insightsLoading ? "..." : repeatViews}
             </p>
@@ -263,13 +270,13 @@ const SeekerResume = () => {
 
         <div className="mt-4 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="rounded-2xl bg-slate-50 sm:border sm:border-slate-200">
-            <div className="border-b-0 px-3 py-3 sm:border-b sm:border-slate-200 sm:bg-slate-50 sm:px-4">
-              <p className="text-sm font-semibold text-slate-900">Top Employers</p>
+            <div className="flex items-center gap-2 border-b-0 px-3 py-3 sm:border-b sm:border-slate-200 sm:bg-slate-50 sm:px-4">
+              <Building2 size={16} className="text-violet-500" /><p className="text-sm font-semibold text-slate-900">Top Employers</p>
             </div>
 
             <div className="divide-y divide-slate-200/70">
               {insightsLoading ? (
-                <div className="px-4 py-4 text-sm text-slate-500">Loading employer summary...</div>
+                <div className="space-y-2 px-3 py-4"><div className="h-3 w-2/3 animate-pulse rounded-full bg-slate-200" /><div className="h-3 w-1/2 animate-pulse rounded-full bg-slate-100" /></div>
               ) : null}
 
               {!insightsLoading && topEmployers.length === 0 ? (
@@ -278,12 +285,12 @@ const SeekerResume = () => {
 
               {!insightsLoading
                 ? topEmployers.map((item) => (
-                    <div key={`${item.employerName}-${item.lastViewedAt}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                    <div key={`${item.employerName}-${item.lastViewedAt}`} className="flex items-center justify-between gap-3 px-3 py-3 text-sm sm:px-4">
                       <div>
                         <p className="font-semibold text-slate-900">{item.employerName}</p>
                         <p className="text-xs text-slate-500">Last viewed {formatInsightDate(item.lastViewedAt)}</p>
                       </div>
-                      <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+                      <div className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200">
                         {item.total} view{item.total > 1 ? "s" : ""}
                       </div>
                     </div>
@@ -293,13 +300,13 @@ const SeekerResume = () => {
           </div>
 
           <div className="rounded-2xl bg-slate-50 sm:border sm:border-slate-200">
-            <div className="border-b-0 px-3 py-3 sm:border-b sm:border-slate-200 sm:bg-slate-50 sm:px-4">
-              <p className="text-sm font-semibold text-slate-900">Latest 5 View Events</p>
+            <div className="flex items-center gap-2 border-b-0 px-3 py-3 sm:border-b sm:border-slate-200 sm:bg-slate-50 sm:px-4">
+              <Eye size={16} className="text-blue-500" /><p className="text-sm font-semibold text-slate-900">Latest 5 View Events</p>
             </div>
 
             <div className="divide-y divide-slate-200">
               {insightsLoading ? (
-                <div className="px-4 py-4 text-sm text-slate-500">Loading recent views...</div>
+                <div className="space-y-2 px-3 py-4"><div className="h-3 w-3/4 animate-pulse rounded-full bg-slate-200" /><div className="h-3 w-1/2 animate-pulse rounded-full bg-slate-100" /></div>
               ) : null}
 
               {!insightsLoading && recentEventPreview.length === 0 ? (
@@ -308,7 +315,7 @@ const SeekerResume = () => {
 
               {!insightsLoading
                 ? recentEventPreview.map((item) => (
-                    <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+                    <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-3 text-sm sm:px-4">
                       <div>
                         <p className="font-semibold text-slate-900">{item.employerName || "Employer"}</p>
                         <p className="text-xs text-slate-500">
