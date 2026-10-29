@@ -128,6 +128,7 @@ const normalizeMessage = (message, userId) => ({
 });
 
 const isPendingConversationId = (value) => String(value || "").startsWith("pending-");
+const isMobileViewport = () => typeof window !== "undefined" && window.innerWidth < 1024;
 
 const upsertConversation = (items, conversation) => {
   const next = normalizeConversation(conversation);
@@ -264,7 +265,7 @@ const MessagePage = () => {
 
         setConversations(nextConversations);
 
-        if (!pendingParticipantId && nextConversations.length > 0) {
+        if (!pendingParticipantId && nextConversations.length > 0 && !isMobileViewport()) {
           setActiveConversationId((current) => current || nextConversations[0].id);
         }
       } catch (error) {
@@ -519,6 +520,13 @@ const MessagePage = () => {
     composerRef.current.style.height = `${Math.min(composerRef.current.scrollHeight, 180)}px`;
   }, [chatText]);
 
+  useEffect(() => {
+    if (!pendingParticipantId && isMobileViewport()) {
+      setActiveConversationId("");
+      setMobileThreadOpen(false);
+    }
+  }, [location.pathname, pendingParticipantId]);
+
   const filteredPeople = conversations.filter((conversation) =>
     `${conversation.participant.name} ${conversation.participant.role} ${buildPreview(conversation)}`
       .toLowerCase()
@@ -528,7 +536,7 @@ const MessagePage = () => {
   const activeConversation =
     filteredPeople.find((item) => item.id === activeConversationId) ||
     conversations.find((item) => item.id === activeConversationId) ||
-    conversations[0] ||
+    (isMobileViewport() ? null : conversations[0]) ||
     candidateSeedConversation;
   const activeMessages = activeConversation ? messagesByConversation[activeConversation.id] || [] : [];
   const threadMessages = activeMessages.map((message, index) => {
