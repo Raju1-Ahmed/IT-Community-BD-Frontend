@@ -251,62 +251,65 @@ const AppointExpertiseEnhanced = () => {
                   navigate(`/appoint-expertise/${profile._id}`);
                 }
               }}
-              className="group cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md"
+              className="group cursor-pointer overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-100"
             >
-              <div className="border-b border-slate-100 bg-slate-50/70 p-2.5">
-                <ExpertiseDocumentCarousel documents={documentSlides} heightClass="h-32" />
+              <div className="border-b border-slate-100 bg-gradient-to-br from-slate-50 to-emerald-50/40 p-2">
+                <ExpertiseDocumentCarousel documents={documentSlides} heightClass="h-24" />
               </div>
 
-              <div className="space-y-3 p-4">
+              <div className="space-y-4 p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-11 w-11 overflow-hidden rounded-full bg-slate-100 ring-2 ring-slate-200">
+                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-emerald-50 ring-4 ring-emerald-50">
                       {seekerImage ? (
                         <img src={seekerImage} alt={seeker?.name || "Candidate"} className="h-full w-full object-cover" />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-sm font-bold text-slate-600">
+                        <div className="flex h-full w-full items-center justify-center text-lg font-bold text-emerald-700">
                           {(seeker?.name || "C").slice(0, 1).toUpperCase()}
                         </div>
                       )}
                     </div>
 
-                    <div>
-                      <h3 className="text-[15px] font-semibold leading-tight text-slate-900 transition group-hover:text-emerald-700">
+                    <div className="min-w-0">
+                      <h3 className="truncate text-base font-bold leading-tight text-slate-900 transition group-hover:text-emerald-700">
                         {seeker?.name || "N/A"}
                       </h3>
-                      <p className="mt-0.5 line-clamp-1 text-xs font-medium text-emerald-700">{jobCategoryName}</p>
+                      <p className="mt-1 line-clamp-1 text-xs font-semibold text-emerald-700">{jobCategoryName}</p>
                       <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
                         <MapPin size={12} /> {address}
                       </p>
                     </div>
                   </div>
 
-                  <div className="rounded-full bg-slate-50 p-2 text-slate-500 ring-1 ring-slate-200 transition group-hover:text-emerald-700">
+                  <div className="rounded-xl bg-emerald-50 p-2 text-emerald-700 transition group-hover:bg-emerald-600 group-hover:text-white">
                     <ArrowRight size={15} />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-xs text-slate-700">
-                  <div className="rounded-xl bg-slate-50 px-3 py-2.5">
-                    <p className="text-[11px] text-slate-500">Companies</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-900">{totalCompanies}</p>
+                <div className="flex items-center divide-x divide-slate-200 rounded-2xl bg-slate-50/80 py-3 text-center">
+                  <div className="min-w-0 flex-1 px-2">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Companies</p>
+                    <p className="mt-1 text-sm font-bold text-slate-900">{totalCompanies}</p>
                   </div>
-                  <div className="rounded-xl bg-slate-50 px-3 py-2.5">
-                    <p className="text-[11px] text-slate-500">Experience</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-900">{totalExperienceYears} yrs</p>
+                  <div className="min-w-0 flex-1 px-2">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Experience</p>
+                    <p className="mt-1 text-sm font-bold text-slate-900">{totalExperienceYears} yrs</p>
                   </div>
-                  <div className="rounded-xl bg-slate-50 px-3 py-2.5">
-                    <p className="text-[11px] text-slate-500">Salary</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-900">{expectedSalary} BDT</p>
+                  <div className="min-w-0 flex-1 px-2">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Expected</p>
+                    <p className="mt-1 truncate text-sm font-bold text-slate-900">{expectedSalary ? `${expectedSalary} BDT` : "Negotiable"}</p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                     <BriefcaseBusiness size={14} />
                     Skills
+                    </div>
+                    <span className="text-[11px] text-slate-400">{documentSlides.length} document{documentSlides.length === 1 ? "" : "s"}</span>
                   </div>
-                  <div className="flex min-h-[32px] flex-wrap gap-1.5">
+                  <div className="flex min-h-[28px] flex-wrap gap-1.5">
                     {combinedSkills.length > 0 ? (
                       combinedSkills.map((skill) => (
                         <span
@@ -322,13 +325,11 @@ const AppointExpertiseEnhanced = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-slate-100 pt-2">
-                  <span className="text-[11px] text-slate-500">
-                    {documentSlides.length} document{documentSlides.length === 1 ? "" : "s"}
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
-                    View details
-                    <ArrowRight size={14} />
+                <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+                  <span className="text-xs text-slate-500">Ready to review this expert?</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition group-hover:bg-emerald-700">
+                    View profile
+                    <ArrowRight size={13} />
                   </span>
                 </div>
               </div>
