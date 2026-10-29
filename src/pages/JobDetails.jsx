@@ -136,6 +136,7 @@ const JobDetails = () => {
   const [message, setMessage] = useState("");
   const [activeTab, setActiveTab] = useState("All");
   const [isSaved, setIsSaved] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
   const [showApplySuccess, setShowApplySuccess] = useState(false);
 
   useEffect(() => {
@@ -144,8 +145,16 @@ const JobDetails = () => {
       setJob(data.job);
 
       if (user?.role === "seeker") {
-        const savedState = await api.get(`/saved-jobs/check/${id}`);
+        const [savedState, applicationsState] = await Promise.all([
+          api.get(`/saved-jobs/check/${id}`),
+          api.get("/applications/mine")
+        ]);
         setIsSaved(Boolean(savedState?.data?.saved));
+        setHasApplied(
+          (applicationsState?.data?.applications || []).some(
+            (application) => String(application?.job?._id || application?.job || "") === String(id)
+          )
+        );
       }
     };
     load();
@@ -155,6 +164,7 @@ const JobDetails = () => {
     try {
       await api.post(`/applications/job/${id}`, { coverLetter });
       setMessage("");
+      setHasApplied(true);
       setShowApplySuccess(true);
     } catch (err) {
       setMessage(err?.response?.data?.message || "Apply failed.");
@@ -316,9 +326,15 @@ const JobDetails = () => {
 
         <div className="mt-4 flex flex-wrap items-center gap-4">
           {isSeeker ? (
-            <button onClick={apply} className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
+            <button
+              onClick={apply}
+              disabled={hasApplied}
+              className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-80 ${
+                hasApplied ? "bg-slate-500" : "bg-emerald-600 hover:bg-emerald-700"
+              }`}
+            >
               <Send size={15} />
-              Apply Now
+              {hasApplied ? "Applied" : "Apply Now"}
             </button>
           ) : (
             <div className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
