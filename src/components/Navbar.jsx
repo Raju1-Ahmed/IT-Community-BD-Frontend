@@ -55,6 +55,7 @@ const Navbar = () => {
       const imageUrl = user.profileImage.startsWith("http") || user.profileImage.startsWith("data:")
       ? user.profileImage
       : `${BACKEND_ORIGIN}${user.profileImage}`;
+    if (imageUrl.startsWith("data:")) return imageUrl;
     const version = user.updatedAt ? new Date(user.updatedAt).getTime() : Date.now();
     return `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}v=${version}`;
   }, [user]);
@@ -145,9 +146,18 @@ const Navbar = () => {
 
                 {menuOpen ? (
                   <div className="absolute right-0 z-[70] mt-3 w-64 overflow-hidden rounded-3xl border border-slate-200 bg-white p-2 shadow-[0_20px_60px_-24px_rgba(15,23,42,0.35)]">
-                    <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                      <p className="text-sm font-semibold text-slate-900">{user.name}</p>
-                      <p className="mt-1 text-xs text-slate-500">{user.role}</p>
+                    <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-3 py-3">
+                      {profileImageUrl ? (
+                        <img src={profileImageUrl} alt={user.name || "Profile"} className="h-11 w-11 shrink-0 rounded-full object-cover" />
+                      ) : (
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">
+                          {(user.name || "U").slice(0, 1).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900">{user.name}</p>
+                        <p className="mt-1 text-xs capitalize text-slate-500">{user.role}</p>
+                      </div>
                     </div>
 
                     <div className="mt-2 space-y-1">
