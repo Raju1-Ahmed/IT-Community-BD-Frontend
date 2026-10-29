@@ -2,11 +2,33 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Skeleton, SkeletonText } from "./loaders/Skeleton";
 
-const ProtectedRoute = ({ children, roles }) => {
+const ProtectedRoute = ({ children, roles, loadingVariant = "default" }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
+    if (loadingVariant === "profile") {
+      return (
+        <div className="mx-[-1rem] min-h-[60vh] bg-white px-4 py-4 sm:mx-0 sm:rounded-3xl sm:border sm:border-slate-200 sm:px-6 sm:py-6 sm:shadow-sm">
+          <div className="animate-pulse space-y-5">
+            <div className="h-7 w-44 rounded-full bg-slate-200" />
+            <div className="flex items-center gap-4">
+              <div className="h-20 w-20 shrink-0 rounded-3xl bg-slate-200" />
+              <div className="min-w-0 flex-1 space-y-3">
+                <div className="h-4 w-3/5 rounded-full bg-slate-200" />
+                <div className="h-3 w-2/5 rounded-full bg-slate-100" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="h-12 rounded-2xl bg-slate-100" />
+              <div className="h-12 rounded-2xl bg-slate-100" />
+              <div className="h-24 rounded-2xl bg-slate-100" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="mx-auto max-w-5xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="space-y-6">
