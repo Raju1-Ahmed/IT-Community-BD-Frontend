@@ -701,7 +701,7 @@ const MessagePage = () => {
   };
 
   return (
-    <section className="min-w-0 space-y-4 rounded-3xl border border-slate-200 bg-white p-2 shadow-sm sm:p-4 md:p-6 lg:p-8">
+    <section className="-mx-4 min-w-0 space-y-4 px-0 sm:mx-0 sm:px-0">
       {backProfileId ? (
         <div className="flex justify-end">
           <Link
@@ -713,9 +713,9 @@ const MessagePage = () => {
         </div>
       ) : null}
 
-      <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(300px,0.34fr)_minmax(0,0.66fr)] lg:gap-4">
-        <aside className={`flex h-[calc(100dvh-180px)] min-w-0 flex-col rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen ? "hidden lg:flex" : "flex"} lg:h-auto`}>
-          <div className="shrink-0 border-b border-slate-200 p-3 sm:p-4">
+      <div className="grid min-w-0 gap-0 lg:grid-cols-[minmax(340px,0.4fr)_minmax(0,0.6fr)]">
+        <aside className={`flex h-[calc(100dvh-180px)] min-w-0 flex-col ${mobileThreadOpen ? "hidden lg:flex" : "flex"} lg:h-auto`}>
+          <div className="shrink-0 border-b border-slate-200 px-3 py-3 sm:px-4 sm:py-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-base font-semibold text-slate-900">People</p>
@@ -780,10 +780,10 @@ const MessagePage = () => {
                     setMobileThreadOpen(true);
                   }
                 }}
-                className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                className={`w-full rounded-2xl px-4 py-3 text-left transition ${
                   activeConversationId === conversation.id
-                    ? "border-emerald-300 bg-emerald-50 text-slate-900"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    ? "bg-emerald-50 text-slate-900"
+                    : "text-slate-700 hover:bg-slate-100/80"
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -830,8 +830,8 @@ const MessagePage = () => {
           </div>
         </aside>
 
-        <section className={`flex h-[calc(100dvh-180px)] min-w-0 min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen || !activeConversation ? "block" : "hidden lg:flex"} lg:h-auto`}>
-          <div className="shrink-0 border-b border-slate-200 bg-slate-50 px-3 py-3 sm:px-4 sm:py-4">
+        <section className={`flex h-[calc(100dvh-180px)] min-w-0 min-h-0 flex-col overflow-hidden ${mobileThreadOpen || !activeConversation ? "block" : "hidden lg:flex"} lg:h-auto`}>
+          <div className="shrink-0 border-b border-slate-200 px-3 py-3 sm:px-4 sm:py-4">
             {activeConversation ? (
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-3">
@@ -883,7 +883,7 @@ const MessagePage = () => {
             )}
           </div>
 
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-2 py-3 sm:max-h-[460px] sm:px-4 sm:py-4 lg:max-h-[460px]">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-2 py-3 sm:max-h-[460px] sm:px-4 sm:py-4 lg:max-h-[460px]">
             {loadingMessages ? (
               <div className="space-y-3 animate-pulse">
                 <div className="mx-auto h-8 w-32 rounded-full bg-slate-100" />
@@ -1015,7 +1015,7 @@ const MessagePage = () => {
             <div ref={messageEndRef} />
           </div>
 
-          <div className="shrink-0 border-t border-slate-200 bg-slate-50 p-2.5 sm:p-4">
+          <div className="shrink-0 border-t border-slate-200 p-2.5 sm:p-4">
             {attachments.length ? (
               <div className="mb-3 flex flex-wrap items-center justify-end gap-3">
                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
