@@ -81,7 +81,7 @@ const HomeFinal = () => {
 
   return (
     <section className="space-y-8 pb-4">
-      <div className="home-hero relative overflow-hidden rounded-[2rem] border border-emerald-100/80 bg-slate-950 px-6 py-8 text-white shadow-[0_30px_80px_rgba(15,23,42,0.18)] sm:px-8 md:px-10 md:py-10">
+      <div className="hidden home-hero relative overflow-hidden rounded-[2rem] border border-emerald-100/80 bg-slate-950 px-6 py-8 text-white shadow-[0_30px_80px_rgba(15,23,42,0.18)] sm:px-8 md:px-10 md:py-10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.30),_transparent_28%),radial-gradient(circle_at_80%_20%,_rgba(251,191,36,0.22),_transparent_18%),radial-gradient(circle_at_bottom_right,_rgba(14,165,233,0.24),_transparent_24%)]" />
         <div className="pointer-events-none absolute right-4 top-4 h-28 w-28 rounded-full border border-white/10 bg-white/5 blur-2xl" />
         <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)] lg:items-center">
@@ -203,7 +203,7 @@ const HomeFinal = () => {
         </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="hidden">
         <div className="rounded-[1.75rem] border border-amber-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffffff_100%)] p-6 shadow-sm shadow-amber-100/70">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700">How it works</p>
           <h2 className="mt-2 text-3xl font-semibold text-slate-900">Simple flow, better outcomes</h2>
