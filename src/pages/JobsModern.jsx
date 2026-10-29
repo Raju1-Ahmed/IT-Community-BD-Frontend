@@ -55,22 +55,28 @@ const formatDate = (value) => {
   });
 };
 
+const formatDateTime = (value) => {
+  if (!value) return "N/A";
+  return new Date(value).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+};
+
+const BACKEND_ORIGIN = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "");
+
+const resolveProfileImage = (image) => {
+  if (!image) return "";
+  return image.startsWith("http") ? image : `${BACKEND_ORIGIN}${image}`;
+};
+
 const formatSalary = (job) => {
   if (!job.salaryMin && !job.salaryMax) return "Negotiable";
   return `BDT ${job.salaryMin || 0} - ${job.salaryMax || 0}`;
 };
-
-const StatCard = ({ label, value, icon, className }) => (
-  <div className={`rounded-2xl border p-4 shadow-sm ${className}`}>
-    <div className="flex items-start justify-between gap-3">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</p>
-        <p className="mt-2 text-2xl font-bold text-slate-900">{value}</p>
-      </div>
-      <div className="rounded-xl bg-white/80 p-2 text-slate-800 shadow-sm">{icon}</div>
-    </div>
-  </div>
-);
 
 const MetaPill = ({ icon, text }) => (
   <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700">
@@ -426,10 +432,25 @@ const JobsModern = () => {
             </div>
 
             <div className="mt-4">
-              <h3 className="text-xl font-semibold text-slate-900 transition group-hover:text-emerald-700">
-                {job.title}
-              </h3>
-              <p className="mt-1 text-sm text-slate-600">{job.companyName}</p>
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-emerald-50 text-sm font-bold text-emerald-700">
+                  {resolveProfileImage(job.postedBy?.profileImage) ? (
+                    <img
+                      src={resolveProfileImage(job.postedBy.profileImage)}
+                      alt={`${job.companyName || "Company"} profile`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    (job.companyName || job.postedBy?.name || "C").slice(0, 1).toUpperCase()
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-slate-900 transition group-hover:text-emerald-700">
+                    {job.title}
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-600">{job.companyName}</p>
+                </div>
+              </div>
               {job.taxonomy.category ? (
                 <div className="mt-2 flex flex-wrap gap-2">
                   <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-700">
@@ -451,12 +472,16 @@ const JobsModern = () => {
                 icon={<CalendarClock size={14} className="text-emerald-700" />}
                 text={`Deadline: ${formatDate(job.applicationDeadline)}`}
               />
+              <MetaPill
+                icon={<CalendarClock size={14} className="text-emerald-700" />}
+                text={`Published: ${formatDateTime(job.createdAt)}`}
+              />
             </div>
 
             {normalizeResponsibilities(job.responsibilities).length > 0 ? (
-              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-900">Responsibilities</p>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
+              <div className="mt-5 text-sm text-slate-600">
+                <p className="font-semibold text-slate-900">Responsibilities</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
                   {normalizeResponsibilities(job.responsibilities).map((responsibility, index) => (
                     <li key={`${job._id}-responsibility-${index}`}>{responsibility}</li>
                   ))}
