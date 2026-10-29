@@ -40,6 +40,16 @@ const workplaceOptions = [
   { value: "hybrid", label: "Hybrid" }
 ];
 
+const SAVED_FILTERS_KEY = "itbd-saved-job-filters";
+
+const getSavedFilters = () => {
+  try {
+    return JSON.parse(localStorage.getItem(SAVED_FILTERS_KEY) || "{}") || {};
+  } catch (_error) {
+    return {};
+  }
+};
+
 const genderOptions = [
   { value: "", label: "All gender" },
   { value: "male", label: "Male" },
@@ -144,7 +154,7 @@ const classifyJobTaxonomy = (job) => {
 const JobsModern = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [jobs, setJobs] = useState([]);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState(() => ({
     q: "",
     location: "",
     category: "",
@@ -152,9 +162,12 @@ const JobsModern = () => {
     jobType: "",
     experienceLevel: "",
     genderPreference: "",
-    workplace: ""
-  });
+    workplace: "",
+    ...getSavedFilters()
+  }));
   const [loading, setLoading] = useState(true);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filtersSaved, setFiltersSaved] = useState(false);
 
   const loadJobs = async ({
     q = "",
@@ -180,6 +193,8 @@ const JobsModern = () => {
   };
 
   useEffect(() => {
+    const savedFilters = getSavedFilters();
+    const hasUrlFilters = Array.from(searchParams.keys()).length > 0;
     const nextFilters = {
       q: searchParams.get("q") || "",
       location: searchParams.get("location") || "",
@@ -188,7 +203,8 @@ const JobsModern = () => {
       jobType: searchParams.get("jobType") || "",
       experienceLevel: searchParams.get("experienceLevel") || "",
       genderPreference: searchParams.get("genderPreference") || "",
-      workplace: searchParams.get("workplace") || ""
+      workplace: searchParams.get("workplace") || "",
+      ...(hasUrlFilters ? {} : savedFilters)
     };
 
     setFilters(nextFilters);
@@ -259,10 +275,27 @@ const JobsModern = () => {
     };
     setFilters(nextFilters);
     setSearchParams({});
+    setFiltersSaved(false);
+  };
+
+  const saveFilters = () => {
+    localStorage.setItem(SAVED_FILTERS_KEY, JSON.stringify(filters));
+    setFiltersSaved(true);
+    window.setTimeout(() => setFiltersSaved(false), 1800);
   };
 
   return (
     <section className="space-y-6">
+      <button
+        type="button"
+        onClick={() => setFilterOpen(true)}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm sm:hidden"
+      >
+        <SlidersHorizontal size={17} />
+        Open Filters
+      </button>
+
+      <div className={`${filterOpen ? "fixed inset-0 z-[80] overflow-y-auto bg-slate-900/40 p-4" : "hidden"} sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0`}>
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -278,6 +311,20 @@ const JobsModern = () => {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setFilterOpen(false)}
+                className="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 sm:hidden"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={saveFilters}
+                className="inline-flex items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+              >
+                {filtersSaved ? "Filters Saved" : "Save Filters"}
+              </button>
               <button
                 type="button"
                 onClick={resetFilters}
@@ -393,6 +440,7 @@ const JobsModern = () => {
             </select>
           </div>
         </div>
+      </div>
       </div>
 
       {loading ? (
