@@ -521,11 +521,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
   const topEmployers = buildTopEmployers(insights.recentViews || []);
 
   if (profileLoading) {
-    return (
-      <section className="rounded-[32px] border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <p className="text-sm font-medium text-slate-600">Loading your expert profile…</p>
-      </section>
-    );
+    return <SectionTransitionLoader title="Loading expert profile..." />;
   }
 
   return (
