@@ -6,20 +6,15 @@ import {
   BriefcaseBusiness,
   Building2,
   Clock3,
-  Code2,
   Compass,
   Gem,
-  Globe2,
-  Layers3,
   MapPin,
   PlusCircle,
   Search,
   ShieldCheck,
-  Sparkles,
-  TrendingUp
+  Sparkles
 } from "lucide-react";
 import api from "../api/client";
-import { IT_JOBS } from "../data/itJobs";
 import { SkeletonCard } from "../components/loaders/Skeleton";
 
 const stats = [
@@ -46,13 +41,6 @@ const highlights = [
   }
 ];
 
-const categoryIcons = {
-  "Software & Web Development": Code2,
-  "Digital Marketing & Growth": TrendingUp,
-  "Cybersecurity & Infrastructure": Globe2,
-  "UI/UX & Creative Design": Layers3
-};
-
 const processSteps = [
   {
     title: "Search what matches",
@@ -73,12 +61,6 @@ const HomeFinal = () => {
   const [search, setSearch] = useState("");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const homeCategories = IT_JOBS.slice(0, 4).map((item) => ({
-    name: item.category,
-    icon: categoryIcons[item.category] || Layers3,
-    detail: item.roles.slice(0, 2).map((roleItem) => roleItem.role).join(", ")
-  }));
 
   useEffect(() => {
     const loadRecentJobs = async () => {
@@ -104,11 +86,6 @@ const HomeFinal = () => {
         <div className="pointer-events-none absolute right-4 top-4 h-28 w-28 rounded-full border border-white/10 bg-white/5 blur-2xl" />
         <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)] lg:items-center">
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-100">
-              <Sparkles size={14} />
-              Bangladesh IT Jobs Platform
-            </div>
-
             <div className="space-y-4">
               <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-white sm:text-5xl md:text-6xl">
                 Home for better tech hiring, sharper profiles, and real career momentum.
@@ -226,44 +203,7 @@ const HomeFinal = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
-        <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Popular focus areas</p>
-              <h2 className="mt-2 text-3xl font-semibold text-slate-900">Built around real job categories</h2>
-            </div>
-            <Link
-              to="/jobs"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
-            >
-              Explore jobs
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {homeCategories.map(({ icon: Icon, name, detail }) => (
-              <Link
-                to={`/jobs?q=${encodeURIComponent(name)}`}
-                key={name}
-                className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-5 transition hover:-translate-y-1 hover:border-emerald-300 hover:bg-white"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-slate-900 p-3 text-white">
-                    <Icon size={20} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900">{name}</h3>
-                    <p className="mt-1 text-sm text-slate-600">{detail}</p>
-                    <p className="mt-2 text-xs font-medium text-emerald-700">Click to browse related jobs</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
+      <div className="grid gap-6">
         <div className="rounded-[1.75rem] border border-amber-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffffff_100%)] p-6 shadow-sm shadow-amber-100/70">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700">How it works</p>
           <h2 className="mt-2 text-3xl font-semibold text-slate-900">Simple flow, better outcomes</h2>
