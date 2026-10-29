@@ -6,7 +6,7 @@ import { Skeleton } from "../components/loaders/Skeleton";
 const SavedJobsSkeleton = () => (
   <div className="mt-4 space-y-3">
     {Array.from({ length: 4 }).map((_, index) => (
-      <div key={`saved-job-skeleton-${index}`} className="rounded-lg border border-slate-200 p-4">
+      <div key={`saved-job-skeleton-${index}`} className="rounded-2xl bg-slate-50/80 p-4">
         <div className="space-y-3 animate-pulse">
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-4 w-56" />
@@ -54,7 +54,7 @@ const SavedJobs = () => {
   };
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6">
+    <section className="-mx-4 min-w-0 bg-white px-4 py-2 sm:mx-0 sm:px-0 sm:py-0">
       <h2 className="text-2xl font-bold text-slate-900">Saved Jobs</h2>
       <p className="mt-1 text-sm text-slate-600">Jobs you saved for later review.</p>
 
@@ -62,7 +62,7 @@ const SavedJobs = () => {
 
       {!loading ? <div className="mt-4 grid gap-3">
         {savedJobs.map((item) => (
-          <article key={item._id} className="rounded-lg border border-slate-200 p-4">
+          <article key={item._id} className="rounded-2xl bg-slate-50/80 p-4 transition hover:bg-emerald-50/50 sm:p-5">
             <h3 className="font-semibold text-slate-900">{item.job?.title || "Job"}</h3>
             <p className="mt-1 text-sm text-slate-600">
               {item.job?.companyName || "N/A"} • {item.job?.location || "N/A"}
@@ -75,7 +75,7 @@ const SavedJobs = () => {
               {item.job?._id ? (
                 <Link
                   to={`/jobs/${item.job._id}`}
-                  className="rounded-md border border-emerald-600 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+                    className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
                 >
                   View Details
                 </Link>
@@ -84,7 +84,7 @@ const SavedJobs = () => {
                 <button
                   type="button"
                   onClick={() => removeSaved(item.job._id)}
-                  className="rounded-md bg-slate-800 px-3 py-2 text-sm text-white hover:bg-slate-900"
+                  className="rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-900"
                 >
                   Remove
                 </button>
