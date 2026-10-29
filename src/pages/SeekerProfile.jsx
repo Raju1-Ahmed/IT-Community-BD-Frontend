@@ -215,11 +215,21 @@ const SeekerProfile = () => {
     try {
       const payload = new FormData();
       payload.append("profileImage", file);
-      await api.patch("/auth/profile", payload, { headers: { "Content-Type": "multipart/form-data" } });
+      const { data } = await api.patch("/auth/profile", payload, { headers: { "Content-Type": "multipart/form-data" } });
+      const savedImage = data?.user?.profileImage;
+      if (savedImage) {
+        setProfileImagePreview(
+          savedImage.startsWith("http") || savedImage.startsWith("data:")
+            ? savedImage
+            : `${BACKEND_ORIGIN}${savedImage}`
+        );
+      }
       await refreshUser();
+      URL.revokeObjectURL(nextPreview);
       setMessage("Profile photo updated.");
       setProfileImageFile(null);
     } catch (error) {
+      URL.revokeObjectURL(nextPreview);
       setProfileImagePreview(previousPreview);
       setMessage(error?.response?.data?.message || "Profile photo upload failed.");
     } finally {
@@ -280,8 +290,8 @@ const SeekerProfile = () => {
 
       <form onSubmit={onSubmit} className="mt-4 space-y-6">
         <div className="rounded-2xl border-0 bg-slate-50/80 p-3 md:border md:border-slate-200 md:p-4">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="h-24 w-24 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="h-28 w-28 shrink-0 overflow-hidden rounded-3xl bg-slate-100 ring-1 ring-slate-200">
               {profileImagePreview ? (
                 <img src={profileImagePreview} alt="Profile preview" className="h-full w-full object-cover" />
               ) : (
@@ -293,8 +303,8 @@ const SeekerProfile = () => {
 
             <div className="flex-1">
               <label className="mb-2 block text-sm font-semibold text-slate-800">Profile Picture</label>
-              <label className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border-0 bg-white px-3 py-3 transition hover:bg-blue-50/40 md:border md:border-dashed md:border-blue-300 md:px-4 md:py-4">
-                <div className="flex items-center gap-3">
+              <label className="flex cursor-pointer flex-col items-stretch justify-between gap-3 rounded-2xl border-0 bg-white px-3 py-3 transition hover:bg-blue-50/40 sm:flex-row sm:items-center md:border md:border-dashed md:border-blue-300 md:px-4 md:py-4">
+                <div className="flex min-w-0 items-center gap-3">
                   <div className="rounded-xl bg-blue-100 p-3 text-blue-600">
                     <UploadCloud size={20} />
                   </div>
@@ -302,10 +312,10 @@ const SeekerProfile = () => {
                     <p className="text-sm font-semibold text-slate-800">
                       {imageUploading ? "Uploading profile photo..." : selectedImageName || "Upload profile photo"}
                     </p>
-                    <p className="text-xs text-slate-500">PNG, JPG, JPEG supported. Use a clean square image for best results.</p>
+                    <p className="text-xs leading-5 text-slate-500">PNG, JPG, JPEG supported. Use a clean square image for best results.</p>
                   </div>
                 </div>
-                <span className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white">
+                <span className="inline-flex justify-center rounded-full bg-slate-900 px-3 py-2 text-xs font-semibold text-white sm:shrink-0">
                   {imageUploading ? "Uploading..." : selectedImageName ? "Change File" : "Choose File"}
                 </span>
                 <input
