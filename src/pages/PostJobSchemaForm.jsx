@@ -130,7 +130,7 @@ const PostJobSchemaForm = () => {
         maxAge: Number(form.maxAge) || 60,
         skills: parseSkills(form.skills)
       });
-      navigate(`/my-jobs/${data?.job?._id}`);
+      navigate("/my-jobs");
     } catch (err) {
       setMessage(err?.response?.data?.message || "Post failed.");
     } finally {
