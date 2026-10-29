@@ -96,7 +96,7 @@ const destructiveButtonClass =
 const FileInput = ({ label, id, value, onChange, onClear }) => {
   const fileName =
     typeof value === "string"
-      ? value.split("/").pop()
+      ? value.startsWith("data:") ? "File already uploaded" : value.split("/").pop()
       : value?.name;
 
   return (
@@ -224,10 +224,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
   const [editingSection, setEditingSection] = useState("personal");
   const [form, setForm] = useState(defaultForm);
   const [docs, setDocs] = useState({
-    cv: null,
-    experienceLetter: null,
-    companyIdCard: null,
-    additionalDoc: null
+    experienceDocuments: {}
   });
   const [divisions, setDivisions] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -378,16 +375,33 @@ const PremiumProfileForm = ({ embedded = false }) => {
     loadUnions();
   }, [form.upazilaId]);
 
+  const updateExperienceDocument = (experienceIndex, documentType, file) => {
+    setDocs((previous) => ({
+      ...previous,
+      experienceDocuments: {
+        ...previous.experienceDocuments,
+        [experienceIndex]: {
+          ...(previous.experienceDocuments?.[experienceIndex] || {}),
+          [documentType]: file || null
+        }
+      }
+    }));
+  };
+
   const saveDraft = async (nextForm = form) => {
     try {
       await api.post("/premium/me", toPayload(nextForm));
       
       const fd = new FormData();
       let hasFiles = false;
-      if (docs.cv) { fd.append("cv", docs.cv); hasFiles = true; }
-      if (docs.experienceLetter) { fd.append("experienceLetter", docs.experienceLetter); hasFiles = true; }
-      if (docs.companyIdCard) { fd.append("companyIdCard", docs.companyIdCard); hasFiles = true; }
-      if (docs.additionalDoc) { fd.append("additionalDoc", docs.additionalDoc); hasFiles = true; }
+
+      Object.entries(docs.experienceDocuments || {}).forEach(([experienceIndex, documents]) => {
+        Object.entries(documents || {}).forEach(([documentType, file]) => {
+          if (!file || typeof file === "string") return;
+          fd.append(`experience_${experienceIndex}_${documentType}`, file, file.name);
+          hasFiles = true;
+        });
+      });
 
       (nextForm.coursesOrInternships || []).forEach((item, idx) => {
         if (item.certificateFile && typeof item.certificateFile !== 'string') {
@@ -403,6 +417,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
       }
 
       await loadProfile();
+      setDocs({ experienceDocuments: {} });
       setMessage("Section updated successfully.");
     } catch (error) {
       setMessage(error?.response?.data?.message || "Failed to save section.");
@@ -1006,9 +1021,27 @@ const PremiumProfileForm = ({ embedded = false }) => {
                                     <input type="text" autoComplete="off" className="rounded-md border p-2" placeholder="Employment Period (e.g. 2021–2024)" value={item.employmentPeriod || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, employmentPeriod: e.target.value } : x)) }))} />
                                     <input type="text" autoComplete="off" className="rounded-md border p-2" placeholder="Area of Expertise" value={item.areaOfExpertise || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, areaOfExpertise: e.target.value } : x)) }))} />
                                     <input type="text" autoComplete="street-address" className="rounded-md border p-2" placeholder="Company Location" value={item.companyLocation || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, companyLocation: e.target.value } : x)) }))} />
-                                    <FileInput label="Company Clearance" id="cv-upload" value={docs.cv} onChange={(e) => setDocs((p) => ({ ...p, cv: e.target.files?.[0] || null }))} onClear={() => setDocs((p) => ({ ...p, cv: null }))} />
-                                    <FileInput label="Company Id Card" id="experience-letter-upload" value={docs.experienceLetter} onChange={(e) => setDocs((p) => ({ ...p, experienceLetter: e.target.files?.[0] || null }))} onClear={() => setDocs((p) => ({ ...p, experienceLetter: null }))} />
-                                    <FileInput label="Appointment Letter" id="company-id-card-upload" value={docs.companyIdCard} onChange={(e) => setDocs((p) => ({ ...p, companyIdCard: e.target.files?.[0] || null }))} onClear={() => setDocs((p) => ({ ...p, companyIdCard: null }))} />
+                                    <FileInput
+                                      label="Company Clearance"
+                                      id={`experience-${idx}-company-clearance-upload`}
+                                      value={docs.experienceDocuments?.[idx]?.companyClearance || item.companyClearanceUrl || null}
+                                      onChange={(e) => updateExperienceDocument(idx, "companyClearance", e.target.files?.[0] || null)}
+                                      onClear={() => updateExperienceDocument(idx, "companyClearance", null)}
+                                    />
+                                    <FileInput
+                                      label="Company Id Card"
+                                      id={`experience-${idx}-company-id-card-upload`}
+                                      value={docs.experienceDocuments?.[idx]?.companyIdCard || item.companyIdCardUrl || null}
+                                      onChange={(e) => updateExperienceDocument(idx, "companyIdCard", e.target.files?.[0] || null)}
+                                      onClear={() => updateExperienceDocument(idx, "companyIdCard", null)}
+                                    />
+                                    <FileInput
+                                      label="Appointment Letter"
+                                      id={`experience-${idx}-appointment-letter-upload`}
+                                      value={docs.experienceDocuments?.[idx]?.appointmentLetter || item.appointmentLetterUrl || null}
+                                      onChange={(e) => updateExperienceDocument(idx, "appointmentLetter", e.target.files?.[0] || null)}
+                                      onClear={() => updateExperienceDocument(idx, "appointmentLetter", null)}
+                                    />
                                     <textarea className="md:col-span-2 rounded-md border p-2" rows="3" placeholder="Responsibilities" value={item.responsibilities || ""} onChange={(e) => setForm((p) => ({ ...p, experienceHistory: p.experienceHistory.map((x, i) => (i === idx ? { ...x, responsibilities: e.target.value } : x)) }))} />
                                 </div>
                                 </div>
