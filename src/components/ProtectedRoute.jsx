@@ -13,19 +13,41 @@ const ProtectedRoute = ({ children, roles, loadingVariant = "default" }) => {
           <div className="animate-pulse space-y-5">
             {loadingVariant === "profile" ? (
               <>
-                <div className="h-7 w-44 rounded-full bg-slate-200" />
-                <div className="flex items-center gap-4">
-                  <div className="h-20 w-20 shrink-0 rounded-3xl bg-slate-200" />
-                  <div className="min-w-0 flex-1 space-y-3">
-                    <div className="h-4 w-3/5 rounded-full bg-slate-200" />
-                    <div className="h-3 w-2/5 rounded-full bg-slate-100" />
+                <div className="flex items-center justify-between gap-3">
+                  <div className="h-7 w-44 rounded-full bg-slate-200" />
+                  <div className="h-8 w-24 rounded-full bg-slate-100" />
+                </div>
+                <div className="rounded-3xl bg-slate-50 p-4 sm:border sm:border-slate-200">
+                  <div className="flex items-center gap-4">
+                    <div className="h-24 w-24 shrink-0 rounded-3xl bg-slate-200" />
+                    <div className="min-w-0 flex-1 space-y-3">
+                      <div className="h-4 w-3/5 rounded-full bg-slate-200" />
+                      <div className="h-3 w-2/5 rounded-full bg-slate-100" />
+                      <div className="h-9 w-36 rounded-full bg-slate-200" />
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="h-12 rounded-2xl bg-slate-100" />
-                  <div className="h-12 rounded-2xl bg-slate-100" />
-                  <div className="h-24 rounded-2xl bg-slate-100" />
+                <div className="rounded-3xl bg-slate-50 p-4 sm:border sm:border-slate-200">
+                  <div className="mb-4 h-5 w-40 rounded-full bg-slate-200" />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {[1, 2, 3, 4, 5, 6].map((item) => <div key={item} className="h-11 rounded-2xl bg-white" />)}
+                  </div>
                 </div>
+                {["Experience", "Projects", "Education", "Languages", "Certifications"].map((section) => (
+                  <div key={section} className="rounded-3xl bg-slate-50 p-4 sm:border sm:border-slate-200">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div className="h-5 w-32 rounded-full bg-slate-200" />
+                      <div className="h-8 w-16 rounded-full bg-slate-100" />
+                    </div>
+                    <div className="space-y-3">
+                      <div className="h-11 rounded-2xl bg-white" />
+                      <div className="h-11 rounded-2xl bg-white" />
+                      <div className="h-20 rounded-2xl bg-white" />
+                    </div>
+                  </div>
+                ))}
+                <div className="h-12 rounded-2xl bg-slate-200" />
+                <div className="h-12 rounded-2xl bg-slate-100" />
               </>
             ) : (
               <>
