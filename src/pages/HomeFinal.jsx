@@ -248,7 +248,7 @@ const HomeFinal = () => {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)]">
-      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70">
+      <div className="order-2 rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70 lg:order-1">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Latest openings</p>
@@ -314,7 +314,7 @@ const HomeFinal = () => {
         ) : null}
       </div>
 
-      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70">
+      <div className="order-1 rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/70 sm:p-6 lg:order-2">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Recent expertise</p>
@@ -326,7 +326,7 @@ const HomeFinal = () => {
         </div>
 
         {expertiseLoading ? (
-          <div className="mt-5 space-y-3">
+          <div className="mt-5 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 lg:block lg:space-y-3 lg:overflow-visible lg:pb-0">
             {Array.from({ length: 3 }).map((_, index) => <SkeletonCard key={`expertise-skeleton-${index}`} />)}
           </div>
         ) : null}
@@ -342,7 +342,7 @@ const HomeFinal = () => {
                 <Link
                   key={profile._id}
                   to={`/appoint-expertise/${profile._id}`}
-                  className="group flex items-center gap-3 rounded-2xl border border-slate-200 p-3 transition hover:border-emerald-300 hover:bg-emerald-50/40"
+                  className="group flex min-w-[84%] snap-start items-center gap-3 rounded-2xl border border-slate-200 p-3 transition hover:border-emerald-300 hover:bg-emerald-50/40 lg:min-w-0"
                 >
                   <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-emerald-50 text-center text-lg font-bold leading-[3rem] text-emerald-700">
                     {image ? <img src={image} alt={name} className="h-full w-full object-cover" /> : name.slice(0, 1).toUpperCase()}
