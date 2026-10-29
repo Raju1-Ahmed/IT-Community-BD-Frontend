@@ -81,6 +81,14 @@ const MetaPill = ({ icon, text }) => (
 
 const normalizeText = (value) => String(value || "").trim().toLowerCase();
 
+const normalizeResponsibilities = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean).map((item) => String(item).trim()).filter(Boolean);
+  return String(value || "")
+    .split(/[;\n]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
 const classifyJobTaxonomy = (job) => {
   const haystack = [
     job?.title,
@@ -179,16 +187,6 @@ const JobsModern = () => {
     loadJobs(nextFilters);
   }, [searchParams]);
 
-  const stats = useMemo(() => {
-    const active = jobs.filter((job) => job.status === "active").length;
-    const remoteFriendly = jobs.filter((job) => job.workplace === "remote" || job.workplace === "hybrid").length;
-    return {
-      total: jobs.length,
-      active,
-      remoteFriendly
-    };
-  }, [jobs]);
-
   const jobsWithTaxonomy = useMemo(() => {
     return jobs.map((job) => ({
       ...job,
@@ -257,35 +255,6 @@ const JobsModern = () => {
 
   return (
     <section className="space-y-6">
-      <div className="rounded-[28px] bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-800 p-8 text-white shadow-lg">
-        <p className="text-sm font-medium text-emerald-200">Career opportunities</p>
-        <h2 className="mt-2 text-3xl font-bold">Find Your Next Job</h2>
-        <p className="mt-3 max-w-2xl text-sm text-slate-200">
-          Search current openings, compare roles quickly, and narrow results with a cleaner filter flow.
-        </p>
-
-        <div className="mt-6 grid gap-3 md:grid-cols-3">
-          <StatCard
-            label="Available Jobs"
-            value={stats.total}
-            icon={<BriefcaseBusiness size={18} />}
-            className="border-white/10 bg-white/10 backdrop-blur-sm"
-          />
-          <StatCard
-            label="Active Posts"
-            value={stats.active}
-            icon={<CalendarClock size={18} />}
-            className="border-emerald-300/30 bg-emerald-100/90"
-          />
-          <StatCard
-            label="Remote Friendly"
-            value={stats.remoteFriendly}
-            icon={<SlidersHorizontal size={18} />}
-            className="border-slate-300/40 bg-slate-100/95"
-          />
-        </div>
-      </div>
-
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -420,7 +389,7 @@ const JobsModern = () => {
 
       {loading ? (
         <div className="space-y-4">
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="space-y-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <SkeletonCard key={`job-skeleton-${index}`} />
             ))}
@@ -428,7 +397,7 @@ const JobsModern = () => {
         </div>
       ) : null}
 
-      {!loading ? <div className="grid gap-4 xl:grid-cols-2">
+      {!loading ? <div className="space-y-4">
         {filteredJobs.map((job) => (
           <article
             key={job._id}
@@ -483,6 +452,17 @@ const JobsModern = () => {
                 text={`Deadline: ${formatDate(job.applicationDeadline)}`}
               />
             </div>
+
+            {normalizeResponsibilities(job.responsibilities).length > 0 ? (
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-semibold text-slate-900">Responsibilities</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
+                  {normalizeResponsibilities(job.responsibilities).map((responsibility, index) => (
+                    <li key={`${job._id}-responsibility-${index}`}>{responsibility}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
             <div className="mt-5 flex items-center justify-between gap-3">
               <p className="text-sm text-slate-500">
