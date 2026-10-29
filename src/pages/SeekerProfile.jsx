@@ -68,7 +68,7 @@ const splitSkills = (raw = "") =>
     .filter(Boolean);
 
 const ArraySection = ({ title, icon: Icon, fields, items, onAdd, onRemove, onChange }) => (
-  <div className="rounded-xl bg-white p-6 shadow-sm">
+  <div className="rounded-2xl bg-white p-3 shadow-none md:rounded-xl md:p-6 md:shadow-sm">
     <div className="mb-4 flex items-center justify-between">
       <h3 className="flex items-center gap-2 font-semibold text-slate-700">
         {Icon ? <Icon size={18} /> : null}
@@ -80,7 +80,7 @@ const ArraySection = ({ title, icon: Icon, fields, items, onAdd, onRemove, onCha
     </div>
 
     {items.map((row, rowIndex) => (
-      <div key={`${title}-${rowIndex}`} className="relative mb-4 rounded border p-4">
+      <div key={`${title}-${rowIndex}`} className="relative mb-4 rounded-2xl border-0 bg-white/70 p-3 md:rounded md:border md:bg-transparent md:p-4">
         {items.length > 1 ? (
           <button
             type="button"
@@ -271,15 +271,15 @@ const SeekerProfile = () => {
   };
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6">
+    <section className="-mx-4 min-w-0 bg-white px-4 py-2 sm:mx-0 sm:px-0 sm:py-0">
       <h2 className="text-2xl font-bold text-slate-900">Seeker Profile</h2>
       <p className="mt-1 text-sm text-slate-600">Build your resume details and keep your profile updated.</p>
-      <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+      <div className="mt-3 rounded-2xl border-0 bg-blue-50 p-3 text-sm text-blue-900 md:rounded-lg md:border md:border-blue-200">
         Form mode: <span className="font-semibold">{softwareMode ? SOFTWARE_CATEGORY : currentCategory || "General Profile"}</span>
       </div>
 
       <form onSubmit={onSubmit} className="mt-4 space-y-6">
-        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+        <div className="rounded-2xl border-0 bg-slate-50/80 p-3 md:border md:border-slate-200 md:p-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             <div className="h-24 w-24 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
               {profileImagePreview ? (
@@ -293,7 +293,7 @@ const SeekerProfile = () => {
 
             <div className="flex-1">
               <label className="mb-2 block text-sm font-semibold text-slate-800">Profile Picture</label>
-              <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-dashed border-blue-300 bg-white px-4 py-4 transition hover:border-blue-400 hover:bg-blue-50/40">
+              <label className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border-0 bg-white px-3 py-3 transition hover:bg-blue-50/40 md:border md:border-dashed md:border-blue-300 md:px-4 md:py-4">
                 <div className="flex items-center gap-3">
                   <div className="rounded-xl bg-blue-100 p-3 text-blue-600">
                     <UploadCloud size={20} />
@@ -324,7 +324,7 @@ const SeekerProfile = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 rounded-xl bg-slate-50 p-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 rounded-2xl bg-slate-50 p-3 md:grid-cols-2 md:gap-4 md:rounded-xl md:p-6">
           <div className="col-span-2 flex items-center gap-2 text-blue-600">
             <User size={18} />
             <span className="font-semibold">Personal Information</span>
@@ -365,7 +365,7 @@ const SeekerProfile = () => {
           />
         </div>
 
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="rounded-2xl bg-white p-3 shadow-none md:rounded-xl md:p-6 md:shadow-sm">
           <h3 className="mb-2 font-semibold text-slate-700">Professional Summary</h3>
           <textarea
             name="summary"
@@ -393,7 +393,7 @@ const SeekerProfile = () => {
 
         {softwareMode ? (
           <>
-            <div className="rounded-xl bg-white p-6 shadow-sm">
+            <div className="rounded-2xl bg-white p-3 shadow-none md:rounded-xl md:p-6 md:shadow-sm">
               <h3 className="mb-3 flex items-center gap-2 font-semibold text-slate-700">
                 <Code size={18} /> Skills & Technologies
               </h3>
@@ -419,7 +419,7 @@ const SeekerProfile = () => {
           </>
         ) : (
           <>
-            <div className="rounded-xl bg-white p-6 shadow-sm">
+            <div className="rounded-2xl bg-white p-3 shadow-none md:rounded-xl md:p-6 md:shadow-sm">
               <h3 className="mb-2 flex items-center gap-2 font-semibold text-slate-700">
                 <Code size={18} /> Core Skills
               </h3>
