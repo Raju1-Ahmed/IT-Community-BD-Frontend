@@ -527,59 +527,59 @@ const PremiumProfileForm = ({ embedded = false }) => {
   return (
     <section className="space-y-6">
       {embedded ? (
-        <div className="rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="rounded-none border-0 bg-white p-0 shadow-none md:rounded-[32px] md:border md:border-slate-200 md:p-6 md:shadow-sm">
+          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Profile Insights</p>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">Employer activity on your expert profile</h2>
+              <h2 className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Employer activity on your expert profile</h2>
               <p className="mt-1 text-sm text-slate-500">Last viewed: {formatInsightDate(insights.lastViewedAt)}</p>
             </div>
             <button
               type="button"
               onClick={() => loadProfile()}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:w-auto"
             >
               Refresh
             </button>
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-4">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
+            <div className="rounded-2xl bg-slate-50 p-3 sm:p-4">
               <p className="text-xs text-slate-500">Total Views</p>
               <p className="mt-1 text-2xl font-bold text-slate-900">{insights.totalViews}</p>
             </div>
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="rounded-2xl bg-emerald-50 p-3 sm:p-4">
               <p className="text-xs text-emerald-700">Unique Employers</p>
               <p className="mt-1 text-2xl font-bold text-emerald-900">{insights.uniqueEmployers}</p>
             </div>
-            <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4">
+            <div className="rounded-2xl bg-cyan-50 p-3 sm:p-4">
               <p className="text-xs text-cyan-700">Views This Week</p>
               <p className="mt-1 text-2xl font-bold text-cyan-900">{insights.viewsThisWeek}</p>
             </div>
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <div className="rounded-2xl bg-amber-50 p-3 sm:p-4">
               <p className="text-xs text-amber-700">Repeat Views</p>
               <p className="mt-1 text-2xl font-bold text-amber-900">{repeatViews}</p>
             </div>
           </div>
 
           <div className="mt-5 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="rounded-2xl border border-slate-200">
-              <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="rounded-2xl bg-slate-50/70 md:border md:border-slate-200">
+              <div className="border-b-0 px-3 py-3 sm:px-4 md:border-b md:border-slate-200">
                 <p className="text-sm font-semibold text-slate-900">Top Employers</p>
               </div>
 
-              <div className="divide-y divide-slate-200">
+              <div className="divide-y divide-slate-200/70">
                 {topEmployers.length === 0 ? (
                   <div className="px-4 py-4 text-sm text-slate-500">No employer summary available yet.</div>
                 ) : null}
 
                 {topEmployers.map((item) => (
-                  <div key={`${item.employerName}-${item.lastViewedAt}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                  <div key={`${item.employerName}-${item.lastViewedAt}`} className="flex items-center justify-between gap-3 px-3 py-3 text-sm sm:px-4">
                     <div>
                       <p className="font-semibold text-slate-900">{item.employerName}</p>
                       <p className="text-xs text-slate-500">Last viewed {formatInsightDate(item.lastViewedAt)}</p>
                     </div>
-                    <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+                    <div className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700">
                       {item.total} view{item.total > 1 ? "s" : ""}
                     </div>
                   </div>
@@ -587,23 +587,23 @@ const PremiumProfileForm = ({ embedded = false }) => {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200">
-              <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="rounded-2xl bg-slate-50/70 md:border md:border-slate-200">
+              <div className="border-b-0 px-3 py-3 sm:px-4 md:border-b md:border-slate-200">
                 <p className="text-sm font-semibold text-slate-900">Latest 5 View Events</p>
               </div>
 
-              <div className="divide-y divide-slate-200">
+              <div className="divide-y divide-slate-200/70">
                 {recentEventPreview.length === 0 ? (
                   <div className="px-4 py-4 text-sm text-slate-500">No employer has viewed your expert profile yet.</div>
                 ) : null}
 
                 {recentEventPreview.map((item) => (
-                  <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+                  <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-3 text-sm sm:px-4">
                     <div>
                       <p className="font-semibold text-slate-900">{item.employerName || "Employer"}</p>
                       <p className="text-xs text-slate-500">Viewed from Appoint Expertise</p>
                     </div>
-                    <div className="text-right">
+                    <div className="w-full text-left sm:w-auto sm:text-right">
                       <p className="font-medium text-slate-700">{formatInsightDate(item.viewedAt)}</p>
                     </div>
                   </div>
