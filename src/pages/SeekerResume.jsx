@@ -141,6 +141,10 @@ const SeekerResume = () => {
   const categorySections = getCategoryResumeSections(resumeData.jobCategory, resumeData.categoryProfile);
 
   const handlePrint = () => {
+    document.body.classList.add("resume-print-mode");
+    window.addEventListener("afterprint", () => {
+      document.body.classList.remove("resume-print-mode");
+    }, { once: true });
     window.print();
   };
 
@@ -156,6 +160,22 @@ const SeekerResume = () => {
             body {
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
+              background: #fff !important;
+            }
+            body.resume-print-mode #root > div > :not(main) {
+              display: none !important;
+            }
+            body.resume-print-mode #root > div > main {
+              display: block !important;
+              width: 100% !important;
+              max-width: none !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #fff !important;
+            }
+            body.resume-print-mode,
+            body.resume-print-mode #root {
+              min-height: 0 !important;
               background: #fff !important;
             }
             .no-print {
