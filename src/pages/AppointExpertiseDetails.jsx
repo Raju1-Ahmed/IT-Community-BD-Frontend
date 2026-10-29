@@ -20,7 +20,7 @@ const listOrFallback = (arr) => (Array.isArray(arr) ? arr : []);
 const toAbsoluteUrl = (url) => {
   const value = String(url || "").trim();
   if (!value) return "";
-  if (value.startsWith("http")) return value;
+  if (value.startsWith("http") || value.startsWith("data:")) return value;
   return `${BACKEND_ORIGIN}${value}`;
 };
 

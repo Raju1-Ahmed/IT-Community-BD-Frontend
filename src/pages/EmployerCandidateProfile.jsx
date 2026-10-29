@@ -105,7 +105,7 @@ const EmployerCandidateProfile = () => {
   };
 
   const imageUrl = candidate.profileImage
-    ? candidate.profileImage.startsWith("http")
+    ? candidate.profileImage.startsWith("http") || candidate.profileImage.startsWith("data:")
       ? candidate.profileImage
       : `${BACKEND_ORIGIN}${candidate.profileImage}`
     : "";

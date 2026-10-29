@@ -52,7 +52,7 @@ const Navbar = () => {
 
   const profileImageUrl = useMemo(() => {
     if (!user?.profileImage) return "";
-    const imageUrl = user.profileImage.startsWith("http")
+      const imageUrl = user.profileImage.startsWith("http") || user.profileImage.startsWith("data:")
       ? user.profileImage
       : `${BACKEND_ORIGIN}${user.profileImage}`;
     const version = user.updatedAt ? new Date(user.updatedAt).getTime() : Date.now();

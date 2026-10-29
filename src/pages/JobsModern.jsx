@@ -70,7 +70,7 @@ const BACKEND_ORIGIN = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5
 
 const resolveProfileImage = (image) => {
   if (!image) return "";
-  return image.startsWith("http") ? image : `${BACKEND_ORIGIN}${image}`;
+  return image.startsWith("http") || image.startsWith("data:") ? image : `${BACKEND_ORIGIN}${image}`;
 };
 
 const formatSalary = (job) => {

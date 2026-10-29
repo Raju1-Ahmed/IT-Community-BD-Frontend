@@ -167,7 +167,11 @@ const SeekerProfile = () => {
     });
     setCategoryProfile(buildCategoryProfileState(currentCategory, user.categoryProfile || {}));
     setProfileImagePreview(
-      user.profileImage ? (user.profileImage.startsWith("http") ? user.profileImage : `${BACKEND_ORIGIN}${user.profileImage}`) : ""
+      user.profileImage
+        ? (user.profileImage.startsWith("http") || user.profileImage.startsWith("data:")
+          ? user.profileImage
+          : `${BACKEND_ORIGIN}${user.profileImage}`)
+        : ""
     );
   }, [user, currentCategory, softwareMode]);
 

@@ -57,7 +57,7 @@ const EmployerProfile = () => {
     if (!user) return;
 
     const resolvedProfileImage = user.profileImage
-      ? user.profileImage.startsWith("http")
+      ? user.profileImage.startsWith("http") || user.profileImage.startsWith("data:")
         ? user.profileImage
         : `${BACKEND_ORIGIN}${user.profileImage}`
       : "";
