@@ -693,7 +693,7 @@ const MessagePage = () => {
   };
 
   return (
-    <section className="space-y-4 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4 md:p-6 lg:p-8">
+    <section className="min-w-0 space-y-4 rounded-3xl border border-slate-200 bg-white p-2 shadow-sm sm:p-4 md:p-6 lg:p-8">
       {backProfileId ? (
         <div className="flex justify-end">
           <Link
@@ -705,8 +705,8 @@ const MessagePage = () => {
         </div>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(300px,0.34fr)_minmax(0,0.66fr)]">
-        <aside className={`rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen ? "hidden lg:block" : "block"}`}>
+      <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(300px,0.34fr)_minmax(0,0.66fr)] lg:gap-4">
+        <aside className={`min-w-0 rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen ? "hidden lg:block" : "block"}`}>
           <div className="border-b border-slate-200 p-4">
             <div>
               <p className="text-sm font-semibold text-slate-900">People</p>
@@ -722,7 +722,7 @@ const MessagePage = () => {
             </div>
           </div>
 
-          <div className="max-h-[620px] space-y-2 overflow-y-auto p-3">
+          <div className="max-h-[calc(100dvh-230px)] space-y-2 overflow-y-auto p-2 sm:p-3 lg:max-h-[620px]">
             {loadingConversations ? (
               <>
                 {[...Array(5)].map((_, index) => (
@@ -806,8 +806,8 @@ const MessagePage = () => {
           </div>
         </aside>
 
-        <section className={`overflow-hidden rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen || !activeConversation ? "block" : "hidden lg:block"}`}>
-          <div className="border-b border-slate-200 bg-slate-50 px-4 py-4">
+        <section className={`flex min-w-0 min-h-[calc(100dvh-180px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white ${mobileThreadOpen || !activeConversation ? "block" : "hidden lg:flex"}`}>
+          <div className="shrink-0 border-b border-slate-200 bg-slate-50 px-3 py-3 sm:px-4 sm:py-4">
             {activeConversation ? (
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-3">
@@ -859,7 +859,7 @@ const MessagePage = () => {
             )}
           </div>
 
-          <div className="max-h-[420px] space-y-3 overflow-y-auto bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-3 py-4 sm:max-h-[460px] sm:px-4">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-2 py-3 sm:max-h-[460px] sm:px-4 sm:py-4 lg:max-h-[460px]">
             {loadingMessages ? (
               <div className="space-y-3 animate-pulse">
                 <div className="mx-auto h-8 w-32 rounded-full bg-slate-100" />
@@ -991,7 +991,7 @@ const MessagePage = () => {
             <div ref={messageEndRef} />
           </div>
 
-          <div className="border-t border-slate-200 bg-slate-50 p-3 sm:p-4">
+          <div className="shrink-0 border-t border-slate-200 bg-slate-50 p-2.5 sm:p-4">
             {attachments.length ? (
               <div className="mb-3 flex flex-wrap items-center justify-end gap-3">
                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -1006,7 +1006,7 @@ const MessagePage = () => {
               onKeyDown={handleComposerKeyDown}
               placeholder="Write your message here..."
               disabled={!activeConversation || sendingMessage}
-              className="min-h-[88px] w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none"
+              className="min-h-[64px] w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 sm:min-h-[88px]"
             />
 
             <div className="mt-3 flex flex-wrap gap-2">
@@ -1043,8 +1043,8 @@ const MessagePage = () => {
               ))}
             </div>
 
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <label className={`inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 ${activeConversation ? "cursor-pointer hover:bg-slate-50" : "cursor-not-allowed opacity-60"}`}>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <label className={`inline-flex justify-center items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 ${activeConversation ? "cursor-pointer hover:bg-slate-50" : "cursor-not-allowed opacity-60"}`}>
                 <Paperclip size={15} /> Share Files
                 <input type="file" multiple className="hidden" onChange={handleFiles} disabled={!activeConversation || sendingMessage} />
               </label>
