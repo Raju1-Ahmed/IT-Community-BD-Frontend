@@ -186,6 +186,13 @@ const SeekerResume = () => {
               border: 0 !important;
               box-shadow: none !important;
               border-radius: 0 !important;
+              background: #fff !important;
+              color: #0f172a !important;
+            }
+            .resume-print-root,
+            .resume-print-root * {
+              background: #fff !important;
+              color: #0f172a !important;
             }
             .resume-print-root * {
               font-size: 11px !important;
