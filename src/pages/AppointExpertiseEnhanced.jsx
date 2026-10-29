@@ -61,8 +61,8 @@ const getTotalCompanies = (profile) => {
 };
 
 const ExpertiseListSkeleton = () => (
-  <div className="space-y-5">
-    <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+  <div className="space-y-4">
+    <div className="rounded-3xl border-0 bg-white p-3 shadow-none sm:rounded-[1.75rem] sm:border sm:border-slate-200 sm:p-5 sm:shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-2">
           <Skeleton className="h-8 w-56" />
@@ -81,10 +81,10 @@ const ExpertiseListSkeleton = () => (
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={`expertise-skeleton-${index}`}
-          className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+          className="overflow-hidden rounded-3xl border-0 bg-white shadow-sm ring-1 ring-slate-100 sm:rounded-2xl sm:border sm:ring-0"
         >
           <Skeleton className="h-32 w-full rounded-none" />
-          <div className="space-y-3 p-4">
+          <div className="space-y-3 p-3 sm:p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-12 w-12 rounded-full" />
@@ -178,8 +178,8 @@ const AppointExpertiseEnhanced = () => {
   }, [profiles, query]);
 
   return (
-    <section className="space-y-5 pb-4">
-      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <section className="mx-[-1rem] min-w-0 space-y-4 bg-slate-50 px-4 py-2 pb-4 sm:mx-auto sm:space-y-5 sm:bg-transparent sm:px-0 sm:py-0">
+      <div className="rounded-3xl border-0 bg-white p-3 shadow-none sm:rounded-[1.75rem] sm:border sm:border-slate-200 sm:p-5 sm:shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">Appoint Expertise</h1>
@@ -188,7 +188,7 @@ const AppointExpertiseEnhanced = () => {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <div className="rounded-full bg-emerald-50 px-3 py-2 text-center text-xs text-emerald-800 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm">
             <span className="font-semibold text-slate-900">{filteredProfiles.length}</span>{" "}
             {query.trim() ? `matching profile${filteredProfiles.length === 1 ? "" : "s"}` : "profiles available"}
           </div>
@@ -202,10 +202,10 @@ const AppointExpertiseEnhanced = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name, category, role, skill, location"
-              className="w-full rounded-2xl border border-slate-300 bg-white px-11 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              className="w-full rounded-2xl border-0 bg-slate-50 px-11 py-3 text-sm text-slate-900 outline-none ring-1 ring-slate-200 transition focus:bg-white focus:ring-4 focus:ring-emerald-100 sm:border sm:bg-white"
             />
           </div>
-          <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <div className="inline-flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600 ring-1 ring-slate-100 sm:border sm:border-slate-200 sm:ring-0">
             <SlidersHorizontal size={16} className="text-slate-400" />
             Employer filtering view
           </div>
@@ -213,7 +213,7 @@ const AppointExpertiseEnhanced = () => {
       </div>
 
       {message ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{message}</div>
+        <div className="rounded-2xl border-0 bg-red-50 px-4 py-3 text-sm text-red-700 sm:border sm:border-red-200">{message}</div>
       ) : null}
 
       {loading ? <ExpertiseListSkeleton /> : null}
@@ -251,13 +251,13 @@ const AppointExpertiseEnhanced = () => {
                   navigate(`/appoint-expertise/${profile._id}`);
                 }
               }}
-              className="group cursor-pointer overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-100"
+              className="group cursor-pointer overflow-hidden rounded-3xl border-0 bg-white shadow-sm ring-1 ring-slate-100 transition duration-200 hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-100 sm:rounded-[1.5rem] sm:border sm:ring-0"
             >
-              <div className="border-b border-slate-100 bg-gradient-to-br from-slate-50 to-emerald-50/40 p-2">
+              <div className="border-b-0 bg-gradient-to-br from-slate-50 to-emerald-50/40 p-2 sm:border-b sm:border-slate-100">
                 <ExpertiseDocumentCarousel documents={documentSlides} heightClass="h-24" />
               </div>
 
-              <div className="space-y-4 p-5">
+              <div className="space-y-3 p-4 sm:space-y-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-emerald-50 ring-4 ring-emerald-50">
@@ -286,16 +286,16 @@ const AppointExpertiseEnhanced = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center divide-x divide-slate-200 rounded-2xl bg-slate-50/80 py-3 text-center">
-                  <div className="min-w-0 flex-1 px-2">
+                <div className="grid grid-cols-3 gap-1 rounded-2xl bg-slate-50/80 p-1 text-center">
+                  <div className="min-w-0 rounded-xl bg-white/80 px-1 py-2">
                     <p className="text-[10px] uppercase tracking-wide text-slate-500">Companies</p>
                     <p className="mt-1 text-sm font-bold text-slate-900">{totalCompanies}</p>
                   </div>
-                  <div className="min-w-0 flex-1 px-2">
+                  <div className="min-w-0 rounded-xl bg-white/80 px-1 py-2">
                     <p className="text-[10px] uppercase tracking-wide text-slate-500">Experience</p>
                     <p className="mt-1 text-sm font-bold text-slate-900">{totalExperienceYears} yrs</p>
                   </div>
-                  <div className="min-w-0 flex-1 px-2">
+                  <div className="min-w-0 rounded-xl bg-white/80 px-1 py-2">
                     <p className="text-[10px] uppercase tracking-wide text-slate-500">Expected</p>
                     <p className="mt-1 truncate text-sm font-bold text-slate-900">{expectedSalary ? `${expectedSalary} BDT` : "Negotiable"}</p>
                   </div>
@@ -314,7 +314,7 @@ const AppointExpertiseEnhanced = () => {
                       combinedSkills.map((skill) => (
                         <span
                           key={`${profile._id}-${skill}`}
-                          className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700"
+                          className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700"
                         >
                           {skill}
                         </span>
@@ -325,7 +325,7 @@ const AppointExpertiseEnhanced = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+                <div className="flex items-center justify-between border-t-0 pt-1 sm:border-t sm:border-slate-100 sm:pt-3">
                   <span className="text-xs text-slate-500">Ready to review this expert?</span>
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition group-hover:bg-emerald-700">
                     View profile
@@ -339,7 +339,7 @@ const AppointExpertiseEnhanced = () => {
       </div> : null}
 
       {!loading && filteredProfiles.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
+        <div className="rounded-3xl border-0 bg-white px-5 py-10 text-center shadow-sm sm:rounded-2xl sm:border sm:border-dashed sm:border-slate-300 sm:shadow-none">
           <p className="text-lg font-semibold text-slate-900">No matching expertise found.</p>
           <p className="mt-2 text-sm text-slate-600">Try a different role, skill, category, or location keyword.</p>
         </div>
