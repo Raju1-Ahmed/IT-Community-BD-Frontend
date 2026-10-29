@@ -138,7 +138,7 @@ const FileInput = ({ label, id, value, onChange, onClear }) => {
 };
 
 const SectionTransitionLoader = ({ title = "Loading section..." }) => (
-  <div className="space-y-5 rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
+  <div className="mx-[-1rem] min-h-[60vh] space-y-5 bg-white px-4 py-4 sm:mx-0 sm:rounded-[28px] sm:border sm:border-slate-200 sm:bg-white/90 sm:p-5 sm:shadow-sm">
     <div className="flex items-center justify-between gap-3">
       <div className="space-y-2">
         <Skeleton className="h-4 w-28 rounded-full" />
@@ -150,7 +150,7 @@ const SectionTransitionLoader = ({ title = "Loading section..." }) => (
       </div>
     </div>
 
-    <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50/60 via-white to-cyan-50/40 p-5">
+    <div className="rounded-3xl bg-slate-50 p-4 sm:border sm:border-emerald-100 sm:bg-gradient-to-br sm:from-emerald-50/60 sm:via-white sm:to-cyan-50/40 sm:p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">{title}</p>
       <SkeletonText lines={2} className="mt-4" />
       <div className="mt-5 grid gap-3 md:grid-cols-2">

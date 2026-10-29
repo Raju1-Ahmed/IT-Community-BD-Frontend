@@ -173,7 +173,7 @@ const App = () => {
         <Route
           path="/expert-profile"
           element={
-            <ProtectedRoute roles={["seeker"]}>
+            <ProtectedRoute roles={["seeker"]} loadingVariant="expert">
               <Expert />
             </ProtectedRoute>
           }
