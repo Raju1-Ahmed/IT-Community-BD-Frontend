@@ -67,7 +67,7 @@ const buildDocumentSlides = (profile) => {
 };
 
 const SectionCard = ({ icon: Icon, title, hint, children, className = "" }) => (
-  <div className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 ${className}`}>
+  <div className={`rounded-3xl border-0 bg-white p-3 shadow-none sm:rounded-2xl sm:border sm:border-slate-200 sm:p-5 sm:shadow-sm ${className}`}>
     <div className="mb-3 flex items-start gap-3">
       <div className="rounded-xl bg-emerald-50 p-2 text-emerald-700">
         <Icon size={18} />
@@ -82,14 +82,14 @@ const SectionCard = ({ icon: Icon, title, hint, children, className = "" }) => (
 );
 
 const StatCard = ({ label, value }) => (
-  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:p-4">
+  <div className="rounded-2xl bg-slate-50 p-3 sm:rounded-xl sm:border sm:border-slate-200 sm:p-4">
     <p className="text-xs text-slate-500">{label}</p>
     <p className="mt-1 text-lg font-semibold text-slate-900">{value}</p>
   </div>
 );
 
 const DetailItem = ({ label, value }) => (
-  <div className="rounded-lg border border-slate-200 bg-white/80 px-3 py-2">
+  <div className="rounded-xl bg-slate-50/80 px-3 py-2 sm:rounded-lg sm:border sm:border-slate-200 sm:bg-white/80">
     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
     <p className="mt-1 text-sm font-medium text-slate-800">{textOrNA(value)}</p>
   </div>
@@ -97,21 +97,21 @@ const DetailItem = ({ label, value }) => (
 
 const Badge = ({ children, tone = "slate" }) => {
   const tones = {
-    slate: "border-slate-200 bg-slate-50 text-slate-700",
-    emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    cyan: "border-cyan-200 bg-cyan-50 text-cyan-700",
-    amber: "border-amber-200 bg-amber-50 text-amber-700"
+    slate: "bg-slate-50 text-slate-700 md:border md:border-slate-200",
+    emerald: "bg-emerald-50 text-emerald-700 md:border md:border-emerald-200",
+    cyan: "bg-cyan-50 text-cyan-700 md:border md:border-cyan-200",
+    amber: "bg-amber-50 text-amber-700 md:border md:border-amber-200"
   };
 
   return (
-    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${tones[tone] || tones.slate}`}>
+    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium md:border ${tones[tone] || tones.slate}`}>
       {children}
     </span>
   );
 };
 
 const EmptyState = ({ title, text }) => (
-  <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center">
+  <div className="rounded-2xl bg-slate-50 px-4 py-6 text-center sm:border sm:border-dashed sm:border-slate-300">
     <p className="text-sm font-semibold text-slate-700">{title}</p>
     <p className="mt-1 text-xs text-slate-500">{text}</p>
   </div>
@@ -119,14 +119,14 @@ const EmptyState = ({ title, text }) => (
 
 const MiniStat = ({ label, value, tone = "slate" }) => {
   const tones = {
-    slate: "border-slate-200 bg-slate-50 text-slate-900",
-    emerald: "border-emerald-200 bg-emerald-50 text-emerald-900",
-    cyan: "border-cyan-200 bg-cyan-50 text-cyan-900",
-    amber: "border-amber-200 bg-amber-50 text-amber-900"
+    slate: "bg-slate-50 text-slate-900 md:border md:border-slate-200",
+    emerald: "bg-emerald-50 text-emerald-900 md:border md:border-emerald-200",
+    cyan: "bg-cyan-50 text-cyan-900 md:border md:border-cyan-200",
+    amber: "bg-amber-50 text-amber-900 md:border md:border-amber-200"
   };
 
   return (
-    <div className={`rounded-xl border px-3 py-2 sm:px-4 sm:py-3 ${tones[tone] || tones.slate}`}>
+    <div className={`rounded-2xl px-3 py-2 sm:rounded-xl sm:px-4 sm:py-3 md:border ${tones[tone] || tones.slate}`}>
       <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">{label}</p>
       <p className="mt-1 text-base font-semibold">{value}</p>
     </div>
@@ -134,7 +134,7 @@ const MiniStat = ({ label, value, tone = "slate" }) => {
 };
 
 const ExpertiseDetailsSkeleton = () => (
-  <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-6 lg:p-8">
+  <section className="mx-[-1rem] min-h-[60vh] space-y-4 bg-slate-50 px-4 py-2 sm:mx-0 sm:space-y-6 sm:rounded-3xl sm:border sm:border-slate-200 sm:bg-white sm:p-6 sm:shadow-sm lg:p-8">
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div className="space-y-2">
         <Skeleton className="h-7 w-36 rounded-full" />
@@ -146,7 +146,7 @@ const ExpertiseDetailsSkeleton = () => (
 
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
       <div className="space-y-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="rounded-3xl bg-slate-50 p-3 sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-white sm:p-4">
           <Skeleton className="h-72 w-full rounded-2xl" />
           <div className="mt-3 flex flex-wrap gap-2">
             <Skeleton className="h-8 w-28 rounded-full" />
@@ -155,14 +155,14 @@ const ExpertiseDetailsSkeleton = () => (
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="rounded-3xl bg-slate-50 p-3 shadow-none sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-white sm:p-4 sm:shadow-sm">
           <Skeleton className="h-6 w-40" />
           <SkeletonText lines={4} className="mt-4" />
         </div>
       </div>
 
       <div className="space-y-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="rounded-3xl bg-slate-50 p-3 shadow-none sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-white sm:p-4 sm:shadow-sm">
           <div className="flex items-center gap-3">
             <Skeleton className="h-16 w-16 rounded-2xl" />
             <div className="flex-1 space-y-2">
@@ -186,7 +186,7 @@ const ExpertiseDetailsSkeleton = () => (
       </div>
     </div>
 
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-3xl bg-slate-50 p-3 shadow-none sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-white sm:p-4 sm:shadow-sm">
       <Skeleton className="h-6 w-44" />
       <div className="mt-4 grid gap-2 md:grid-cols-2">
         {Array.from({ length: 8 }).map((_, index) => (
@@ -267,21 +267,21 @@ const AppointExpertiseDetails = () => {
 
   if (!profile) {
     return (
-      <section className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+      <section className="rounded-2xl bg-red-50 p-5 text-sm text-red-700 sm:border sm:border-red-200">
         {message || "Expertise profile not found."}
       </section>
     );
   }
 
   return (
-    <section className="relative isolate overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_24px_80px_-30px_rgba(15,23,42,0.35)]">
+    <section className="relative isolate mx-[-1rem] overflow-hidden bg-slate-50 sm:mx-0 sm:rounded-3xl sm:border sm:border-slate-200 sm:bg-white sm:shadow-[0_24px_80px_-30px_rgba(15,23,42,0.35)]">
       <div className="pointer-events-none absolute -left-24 top-0 h-60 w-60 rounded-full bg-emerald-100 blur-3xl" />
       <div className="pointer-events-none absolute -right-20 top-24 h-72 w-72 rounded-full bg-cyan-100 blur-3xl" />
 
-      <div className="relative space-y-6 p-4 md:p-6 lg:p-8">
+      <div className="relative space-y-4 p-4 sm:space-y-6 sm:p-6 lg:p-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <p className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:border sm:border-emerald-200">
               <Sparkles size={14} /> Employer Ready Profile
             </p>
             <h2 className="mt-2 text-xl font-bold text-slate-900 sm:text-2xl">Expertise Details</h2>
@@ -290,13 +290,13 @@ const AppointExpertiseDetails = () => {
 
           <Link
             to="/appoint-expertise"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-100 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-slate-100 sm:w-auto sm:rounded-md sm:border sm:ring-0"
           >
             <ArrowLeft size={16} /> Back to Appoint Expertise
           </Link>
         </div>
 
-        <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 p-4 shadow-sm md:p-6">
+        <section className="rounded-3xl border-0 bg-white p-3 shadow-none sm:border sm:border-slate-200 sm:bg-gradient-to-br sm:from-white sm:via-slate-50 sm:to-emerald-50/40 sm:p-4 sm:shadow-sm md:p-6">
           <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-5">
               <div className="flex flex-col items-start gap-4 sm:flex-row">
@@ -317,7 +317,7 @@ const AppointExpertiseDetails = () => {
                     {textOrNA(profile?.preferredRole || seeker?.jobRole || seeker?.currentPosition || seeker?.jobCategory)}
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-600">
-                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 shadow-sm ring-1 ring-slate-200 sm:border sm:shadow-none sm:ring-0">
                       <MapPin size={14} /> {textOrNA(profile?.location || seeker?.location)}
                     </span>
                     <Badge tone="emerald">{textOrNA(seeker?.jobCategory)}</Badge>
@@ -333,7 +333,7 @@ const AppointExpertiseDetails = () => {
                 <StatCard label="Companies" value={totalCompanies} />
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="rounded-3xl bg-slate-50 p-3 sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-white sm:p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-slate-900">Professional Summary</p>
@@ -371,7 +371,7 @@ const AppointExpertiseDetails = () => {
             </div>
 
             <aside className="space-y-4">
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="rounded-3xl bg-slate-50 p-3 sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-white sm:p-4">
                 <p className="text-sm font-semibold text-slate-900">Documents & Proof</p>
                 <p className="mt-1 text-xs text-slate-500">Resume and supporting materials for verification.</p>
                 <div className="mt-4">
@@ -385,7 +385,7 @@ const AppointExpertiseDetails = () => {
                       href={doc.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 sm:border sm:shadow-none sm:ring-0"
                     >
                       {doc.label}
                     </a>
@@ -403,7 +403,7 @@ const AppointExpertiseDetails = () => {
                       candidateEmail: seeker?.email || profile?.primaryEmail || "",
                       expertiseProfileId: id
                     }}
-                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-emerald-300 hover:bg-emerald-50/60 sm:flex-row sm:items-start sm:justify-between"
+                    className="flex flex-col gap-3 rounded-2xl bg-white px-3 py-3 shadow-sm ring-1 ring-slate-100 transition hover:bg-emerald-50/60 sm:flex-row sm:items-start sm:justify-between sm:border sm:border-slate-200 sm:bg-slate-50 sm:shadow-none sm:ring-0"
                   >
                     <div>
                       <p className="text-sm font-semibold text-slate-900">Message</p>
@@ -415,7 +415,7 @@ const AppointExpertiseDetails = () => {
                   <Link
                     to={`/hire-invite/${id}`}
                     state={{ candidateName: seeker?.name || "", candidateRole: profile?.preferredRole || seeker?.jobRole || seeker?.currentPosition || "", candidateEmail: seeker?.email || profile?.primaryEmail || "" }}
-                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-cyan-300 hover:bg-cyan-50/60 sm:flex-row sm:items-start sm:justify-between"
+                    className="flex flex-col gap-3 rounded-2xl bg-white px-3 py-3 shadow-sm ring-1 ring-slate-100 transition hover:bg-cyan-50/60 sm:flex-row sm:items-start sm:justify-between sm:border sm:border-slate-200 sm:bg-slate-50 sm:shadow-none sm:ring-0"
                   >
                     <div>
                       <p className="text-sm font-semibold text-slate-900">Invite for Hire</p>
@@ -428,10 +428,10 @@ const AppointExpertiseDetails = () => {
                     href={directMailUrl || undefined}
                     target="_blank"
                     rel="noreferrer"
-                    className={`flex flex-col gap-3 rounded-2xl border px-4 py-3 transition sm:flex-row sm:items-start sm:justify-between ${
+                    className={`flex flex-col gap-3 rounded-2xl px-3 py-3 shadow-sm ring-1 ring-slate-100 transition sm:flex-row sm:items-start sm:justify-between sm:border sm:px-4 sm:shadow-none sm:ring-0 ${
                       directMailUrl
-                        ? "border-slate-200 bg-slate-50 hover:border-amber-300 hover:bg-amber-50/60"
-                        : "pointer-events-none border-slate-200 bg-slate-100 opacity-60"
+                        ? "bg-white hover:bg-amber-50/60 sm:border-slate-200 sm:bg-slate-50"
+                        : "pointer-events-none bg-slate-100 opacity-60 sm:border-slate-200"
                     }`}
                   >
                     <div>
@@ -477,7 +477,7 @@ const AppointExpertiseDetails = () => {
               {academics.map((item, idx) => (
                 <div
                   key={`edu-${idx}`}
-                  className="border-b border-slate-200 pb-4 last:border-b-0 last:pb-0"
+                  className="border-b-0 pb-4 last:pb-0 sm:border-b sm:border-slate-200 sm:last:border-b-0"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -534,7 +534,7 @@ const AppointExpertiseDetails = () => {
               {experiences.map((item, idx) => (
                 <div
                   key={`exp-${idx}`}
-                  className="border-b border-slate-200 pb-4 last:border-b-0 last:pb-0"
+                  className="border-b-0 pb-4 last:pb-0 sm:border-b sm:border-slate-200 sm:last:border-b-0"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -605,7 +605,7 @@ const AppointExpertiseDetails = () => {
                 ) : null}
 
                 {courses.length > 0 ? (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4">
+                  <div className="rounded-2xl bg-emerald-50/60 p-3 sm:border sm:border-emerald-200 sm:bg-emerald-50/40 sm:p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Courses</p>
@@ -616,7 +616,7 @@ const AppointExpertiseDetails = () => {
 
                     <div className="space-y-3">
                       {courses.map((item, idx) => (
-                        <div key={`course-${idx}`} className="rounded-xl border border-emerald-100 bg-white p-3">
+                        <div key={`course-${idx}`} className="rounded-xl bg-white p-3 shadow-sm sm:border sm:border-emerald-100 sm:shadow-none">
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <p className="font-semibold text-slate-900">{textOrNA(item?.name || `Course ${idx + 1}`)}</p>
@@ -635,7 +635,7 @@ const AppointExpertiseDetails = () => {
                 ) : null}
 
                 {internships.length > 0 ? (
-                  <div className="rounded-2xl border border-cyan-200 bg-cyan-50/40 p-4">
+                  <div className="rounded-2xl bg-cyan-50/60 p-3 sm:border sm:border-cyan-200 sm:bg-cyan-50/40 sm:p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Internships</p>
@@ -646,7 +646,7 @@ const AppointExpertiseDetails = () => {
 
                     <div className="space-y-3">
                       {internships.map((item, idx) => (
-                        <div key={`intern-${idx}`} className="rounded-xl border border-cyan-100 bg-white p-3">
+                        <div key={`intern-${idx}`} className="rounded-xl bg-white p-3 shadow-sm sm:border sm:border-cyan-100 sm:shadow-none">
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <p className="font-semibold text-slate-900">{textOrNA(item?.name || `Internship ${idx + 1}`)}</p>
@@ -665,7 +665,7 @@ const AppointExpertiseDetails = () => {
                 ) : null}
 
                 {otherLearningItems.length > 0 ? (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="rounded-2xl bg-slate-100 p-3 sm:border sm:border-slate-200 sm:bg-slate-50 sm:p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">Other Learning</p>
@@ -676,7 +676,7 @@ const AppointExpertiseDetails = () => {
 
                     <div className="space-y-3">
                       {otherLearningItems.map((item, idx) => (
-                        <div key={`other-learning-${idx}`} className="rounded-xl border border-slate-200 bg-white p-3">
+                        <div key={`other-learning-${idx}`} className="rounded-xl bg-white p-3 shadow-sm sm:border sm:border-slate-200 sm:shadow-none">
                           <p className="font-semibold text-slate-900">{textOrNA(item?.type)}: {textOrNA(item?.name)}</p>
                           <p className="mt-1 text-xs text-slate-500">Duration: {textOrNA(item?.duration)}</p>
                         </div>
@@ -706,7 +706,7 @@ const AppointExpertiseDetails = () => {
 
                 <div className="space-y-4">
                   {projects.map((project, idx) => (
-                    <div key={`project-${idx}`} className="border-b border-slate-200 pb-4 last:border-b-0 last:pb-0 text-sm text-slate-700">
+                    <div key={`project-${idx}`} className="border-b-0 pb-4 text-sm text-slate-700 last:pb-0 sm:border-b sm:border-slate-200 sm:last:border-b-0">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Project {idx + 1}</p>
