@@ -65,12 +65,12 @@ const IconButton = ({ title, icon, label, onClick, active }) => (
     title={title}
   >
     {icon}
-    <span>{label}</span>
+    <span className="hidden sm:inline">{label}</span>
   </button>
 );
 
 const SummaryCard = ({ icon, label, value }) => (
-  <div className="min-w-[170px] flex-1 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm">
+  <div className="min-w-0 flex-1 rounded-2xl bg-slate-50/80 p-3 sm:p-4">
     <div className="flex items-start gap-3">
       <div className="rounded-xl bg-slate-900 p-2 text-white shadow-sm">
         {icon}
@@ -256,7 +256,7 @@ const JobDetails = () => {
 
   return (
     <section className="space-y-4">
-      <div className="rounded-xl border border-slate-200 bg-white p-6">
+      <div className="rounded-2xl bg-white p-3 sm:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <button
             type="button"
@@ -295,7 +295,7 @@ const JobDetails = () => {
         <p className="text-sm text-slate-500">{job.companyName}</p>
         <h2 className="mt-1 text-3xl font-bold text-slate-900">{job.title}</h2>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-3 xl:grid-cols-4">
           {topSummaryCards.map((item) => (
             <SummaryCard
               key={item.label}
@@ -338,14 +338,14 @@ const JobDetails = () => {
         ) : message ? <p className="mt-4 text-sm text-slate-700">{message}</p> : null}
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <div className="flex flex-wrap gap-2">
+      <div className="overflow-hidden bg-white px-1 py-2 sm:px-2">
+        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
           {tabs.map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`rounded-md px-3 py-2 text-sm ${
+              className={`shrink-0 rounded-full px-3 py-2 text-xs font-medium sm:text-sm ${
                 activeTab === tab ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-700"
               }`}
             >
@@ -356,7 +356,7 @@ const JobDetails = () => {
       </div>
 
       {showSection("All") && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <div className="rounded-xl bg-white px-1 py-3 sm:px-2 sm:py-4">
           <h3 className="text-lg font-semibold text-slate-900">Summary</h3>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             {summaryRows.map((row) => (
@@ -370,7 +370,7 @@ const JobDetails = () => {
       )}
 
       {showSection("Requirements") && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <div className="rounded-xl bg-white px-1 py-3 sm:px-2 sm:py-4">
           <h3 className="text-lg font-semibold text-slate-900">Requirements</h3>
           <div className="mt-3 space-y-3 text-sm text-slate-700">
             <p><span className="font-medium">Education:</span> {job.educationRequirements || "N/A"}</p>
@@ -381,7 +381,7 @@ const JobDetails = () => {
       )}
 
       {showSection("Responsibilities") && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <div className="rounded-xl bg-white px-1 py-3 sm:px-2 sm:py-4">
           <h3 className="text-lg font-semibold text-slate-900">Responsibilities & Context</h3>
           {responsibilityLines.length > 0 ? (
             <ul className="mt-3 space-y-2 text-sm text-slate-700">
@@ -399,7 +399,7 @@ const JobDetails = () => {
       )}
 
       {showSection("Skills & Expertise") && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <div className="rounded-xl bg-white px-1 py-3 sm:px-2 sm:py-4">
           <h3 className="text-lg font-semibold text-slate-900">Skills & Expertise</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {(job.skills || []).length > 0 ? (
@@ -416,7 +416,7 @@ const JobDetails = () => {
       )}
 
       {showSection("Salary & Benefits") && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <div className="rounded-xl bg-white px-1 py-3 sm:px-2 sm:py-4">
           <h3 className="text-lg font-semibold text-slate-900">Compensation & Other Benefits</h3>
           <p className="mt-3 whitespace-pre-line text-sm text-slate-700">{job.benefits || "N/A"}</p>
           <p className="mt-2 text-sm text-slate-700">
