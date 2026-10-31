@@ -229,6 +229,12 @@ const AppointExpertiseEnhanced = () => {
             profile?.preferredRole ||
             seeker?.currentPosition ||
             "N/A";
+          const professionalHeadline =
+            profile?.headline ||
+            seeker?.headline ||
+            seeker?.currentPosition ||
+            profile?.preferredRole ||
+            jobCategoryName;
           const address = profile?.location || seeker?.location || "N/A";
           const totalCompanies = getTotalCompanies(profile);
           const totalExperienceYears = Number(profile?.totalExperienceYears) || Number(seeker?.experienceYears) || 0;
@@ -251,6 +257,7 @@ const AppointExpertiseEnhanced = () => {
                   navigate(`/appoint-expertise/${profile._id}`);
                 }
               }}
+              aria-label={`View profile of ${seeker?.name || "expert"}`}
               className="group cursor-pointer overflow-hidden rounded-3xl border-0 bg-white shadow-sm ring-1 ring-slate-100 transition duration-200 hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-100 sm:rounded-[1.5rem] sm:border sm:ring-0"
             >
               <div className="border-b-0 bg-gradient-to-br from-slate-50 to-emerald-50/40 p-2 sm:border-b sm:border-slate-100">
@@ -274,7 +281,7 @@ const AppointExpertiseEnhanced = () => {
                       <h3 className="truncate text-base font-bold leading-tight text-slate-900 transition group-hover:text-emerald-700">
                         {seeker?.name || "N/A"}
                       </h3>
-                      <p className="mt-1 line-clamp-1 text-xs font-semibold text-emerald-700">{jobCategoryName}</p>
+                      <p className="mt-1 line-clamp-1 text-xs font-semibold text-emerald-700">{professionalHeadline}</p>
                       <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
                         <MapPin size={12} /> {address}
                       </p>
@@ -296,7 +303,7 @@ const AppointExpertiseEnhanced = () => {
                     <p className="mt-1 text-sm font-bold text-slate-900">{totalExperienceYears} yrs</p>
                   </div>
                   <div className="min-w-0 rounded-xl bg-white/80 px-1 py-2">
-                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Expected</p>
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Expected rate</p>
                     <p className="mt-1 truncate text-sm font-bold text-slate-900">{expectedSalary ? `${expectedSalary} BDT` : "Negotiable"}</p>
                   </div>
                 </div>
@@ -327,7 +334,7 @@ const AppointExpertiseEnhanced = () => {
 
                 <div className="flex items-center justify-between border-t-0 pt-1 sm:border-t sm:border-slate-100 sm:pt-3">
                   <span className="text-xs text-slate-500">Ready to review this expert?</span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition group-hover:bg-emerald-700">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-white shadow-sm transition group-hover:bg-emerald-700">
                     View profile
                     <ArrowRight size={13} />
                   </span>
