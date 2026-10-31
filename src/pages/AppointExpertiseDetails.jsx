@@ -61,7 +61,24 @@ const DocumentGrid = ({ documents, onPreview }) => documents.length ? (
   ))}</div>
 ) : <div className="rounded-2xl bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">No verification documents uploaded yet.</div>;
 
-const DetailsSkeleton = () => <section className="mx-[-1rem] min-h-[70vh] space-y-5 bg-slate-50 px-4 py-4 sm:mx-0 sm:rounded-3xl sm:border sm:border-slate-200 sm:bg-white sm:p-6"><div className="flex items-center justify-between gap-3"><Skeleton className="h-8 w-48 rounded-full" /><Skeleton className="h-10 w-28 rounded-full" /></div><div className="rounded-3xl bg-white p-4 shadow-sm sm:border sm:border-slate-200 sm:p-6"><div className="flex items-center gap-4"><Skeleton className="h-20 w-20 rounded-3xl" /><div className="flex-1 space-y-3"><Skeleton className="h-7 w-48" /><Skeleton className="h-4 w-64 max-w-full" /><Skeleton className="h-3 w-40" /></div></div><div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">{[1, 2, 3, 4].map((item) => <Skeleton key={item} className="h-20 rounded-2xl" />)}</div><SkeletonText lines={4} className="mt-5" /></div><div className="grid gap-5 lg:grid-cols-2"><Skeleton className="h-60 rounded-3xl" /><Skeleton className="h-60 rounded-3xl" /></div></section>;
+const SkeletonSection = ({ rows = 3, tall = false }) => (
+  <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:p-6 sm:ring-0 md:border md:border-slate-200">
+    <div className="mb-5 flex items-center gap-3"><Skeleton className="h-10 w-10 rounded-2xl" /><div className="space-y-2"><Skeleton className="h-3 w-24" /><Skeleton className="h-6 w-44" /></div></div>
+    {tall ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{Array.from({ length: rows }).map((_, index) => <Skeleton key={index} className="h-28 rounded-2xl" />)}</div> : <div className="space-y-3">{Array.from({ length: rows }).map((_, index) => <Skeleton key={index} className={index === rows - 1 ? "h-20 rounded-2xl" : "h-12 rounded-2xl"} />)}</div>}
+  </div>
+);
+
+const DetailsSkeleton = () => (
+  <section className="mx-[-1rem] min-h-[70vh] space-y-5 bg-slate-50 px-4 py-4 sm:mx-0 sm:rounded-3xl sm:border sm:border-slate-200 sm:bg-white sm:p-6">
+    <div className="flex items-center justify-between gap-3"><div className="space-y-2"><Skeleton className="h-3 w-28" /><Skeleton className="h-8 w-48 rounded-full" /></div><Skeleton className="h-10 w-32 rounded-full" /></div>
+    <div className="rounded-3xl bg-white p-4 shadow-sm sm:border sm:border-slate-200 sm:p-6"><div className="flex items-center gap-4"><Skeleton className="h-24 w-24 rounded-3xl" /><div className="flex-1 space-y-3"><Skeleton className="h-8 w-52" /><Skeleton className="h-4 w-64 max-w-full" /><Skeleton className="h-3 w-40" /></div></div><div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">{[1, 2, 3, 4].map((item) => <Skeleton key={item} className="h-20 rounded-2xl" />)}</div><SkeletonText lines={3} className="mt-5" /></div>
+    <SkeletonSection rows={4} />
+    <SkeletonSection rows={2} />
+    <SkeletonSection rows={4} tall />
+    <SkeletonSection rows={3} />
+    <Skeleton className="h-14 w-full rounded-2xl" />
+  </section>
+);
 
 const DocumentModal = ({ document, onClose }) => document ? <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4" role="dialog" aria-modal="true" aria-label={document.label}><div className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"><div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3"><div><p className="text-sm font-bold text-slate-900">{document.label}</p><p className="text-xs text-slate-500">{document.type}</p></div><button type="button" onClick={onClose} className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200" aria-label="Close preview"><X size={18} /></button></div><div className="min-h-0 flex-1 overflow-auto bg-slate-100 p-3 sm:p-5">{isImageDocument(document.url) ? <img src={document.url} alt={document.label} className="mx-auto max-h-[70vh] max-w-full rounded-xl object-contain" /> : <iframe title={document.label} src={document.url} className="h-[70vh] min-h-[420px] w-full rounded-xl bg-white" />}</div><div className="flex justify-end gap-2 border-t border-slate-200 px-4 py-3"><a href={document.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700"><ExternalLink size={14} />Open</a><a href={document.url} download className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white"><Download size={14} />Download</a></div></div></div> : null;
 
