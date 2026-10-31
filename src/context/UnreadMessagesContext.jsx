@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import api from "../api/client";
 import { useAuth } from "./AuthContext";
 import { getSocket } from "../lib/socket";
@@ -11,6 +11,8 @@ const getMessagePreview = (message) =>
 export const UnreadMessagesProvider = ({ children }) => {
   const { user } = useAuth();
   const [unreadByConversation, setUnreadByConversation] = useState({});
+  const processedMessageIdsRef = useRef(new Set());
+  const currentUserId = String(user?.id || user?._id || "");
 
   const loadUnreadCounts = useCallback(async () => {
     if (!user) {
@@ -51,16 +53,30 @@ export const UnreadMessagesProvider = ({ children }) => {
     const socket = getSocket();
     if (!socket) return undefined;
 
-    const handleNotification = ({ conversationId, message }) => {
-      if (String(message?.senderId || "") === String(user.id || "")) return;
+    const incrementUnread = (conversationId, message) => {
+      const messageId = String(message?.id || "");
+      if (messageId && processedMessageIdsRef.current.has(messageId)) return;
+      if (messageId) processedMessageIdsRef.current.add(messageId);
       setUnreadByConversation((current) => ({
         ...current,
         [conversationId]: (current[conversationId] || 0) + 1
       }));
     };
 
+    const handleNotification = ({ conversationId, message }) => {
+      if (String(message?.senderId || "") === currentUserId) return;
+      incrementUnread(conversationId, message);
+    };
+
+    // Fallback for deployments that emit conversation:update before the
+    // dedicated notification event is available.
+    const handleConversationUpdate = ({ conversationId, message }) => {
+      if (String(message?.senderId || "") === currentUserId) return;
+      incrementUnread(conversationId, message);
+    };
+
     const handleSeen = ({ conversationId, userId }) => {
-      if (String(userId) !== String(user.id || "")) return;
+      if (String(userId) !== currentUserId) return;
       setUnreadByConversation((current) => {
         if (!current[conversationId]) return current;
         const next = { ...current };
@@ -70,12 +86,14 @@ export const UnreadMessagesProvider = ({ children }) => {
     };
 
     socket.on("message:notification", handleNotification);
+    socket.on("conversation:update", handleConversationUpdate);
     socket.on("message:seen", handleSeen);
     return () => {
       socket.off("message:notification", handleNotification);
+      socket.off("conversation:update", handleConversationUpdate);
       socket.off("message:seen", handleSeen);
     };
-  }, [user]);
+  }, [currentUserId, user]);
 
   const unreadTotal = Object.values(unreadByConversation).reduce((total, count) => total + count, 0);
   const unreadConversationCount = Object.keys(unreadByConversation).length;
