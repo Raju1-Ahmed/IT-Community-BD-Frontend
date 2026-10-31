@@ -269,13 +269,13 @@ const JobDetails = () => {
   ];
 
   return (
-    <section className="space-y-4">
-      <div className="rounded-2xl bg-white p-3 sm:p-6">
+    <section className="mx-[-1rem] min-w-0 space-y-4 bg-slate-50 px-4 py-2 pb-5 sm:mx-0 sm:bg-transparent sm:px-0 sm:py-0">
+      <div className="rounded-3xl border-0 bg-white p-4 shadow-sm sm:rounded-2xl sm:border sm:border-slate-200 sm:p-6 sm:shadow-sm">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <button
             type="button"
             onClick={() => navigate("/jobs")}
-            className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+            className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200 sm:rounded-md sm:border sm:border-slate-300 sm:bg-white"
           >
             <ArrowLeft size={16} />
             Back to Jobs
@@ -286,7 +286,7 @@ const JobDetails = () => {
               <button
                 type="button"
                 onClick={() => navigate(`/my-jobs/${job._id}`)}
-                className="inline-flex items-center gap-1 rounded-md border border-cyan-300 bg-cyan-50 px-3 py-2 text-sm text-cyan-800 hover:bg-cyan-100"
+                className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-800 hover:bg-cyan-100 sm:rounded-md sm:border sm:border-cyan-300"
               >
                 <FilePenLine size={16} />
                 Manage Job
@@ -307,7 +307,7 @@ const JobDetails = () => {
         </div>
 
         <p className="text-sm text-slate-500">{job.companyName}</p>
-        <h2 className="mt-1 text-3xl font-bold text-slate-900">{job.title}</h2>
+        <h2 className="mt-1 text-2xl font-bold leading-tight text-slate-900 sm:text-3xl">{job.title}</h2>
 
         <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-3 xl:grid-cols-4">
           {topSummaryCards.map((item) => (
@@ -324,47 +324,44 @@ const JobDetails = () => {
           ))}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-4">
-          {isSeeker ? (
-            <button
-              onClick={apply}
-              disabled={hasApplied}
-              className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-80 ${
-                hasApplied ? "bg-slate-500" : "bg-emerald-600 hover:bg-emerald-700"
-              }`}
-            >
-              <Send size={15} />
-              {hasApplied ? "Applied" : "Apply Now"}
-            </button>
-          ) : (
-            <div className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
-              <BriefcaseBusiness size={15} />
-              {isOwnerEmployer ? "You posted this job" : "Viewing as employer"}
-            </div>
-          )}
-        </div>
-
         {isSeeker ? (
-          <div className="mt-4 space-y-2">
+          <div className="mt-5 rounded-3xl bg-slate-50 p-3 sm:border sm:border-slate-200 sm:p-4">
+            <p className="mb-2 text-sm font-bold text-slate-900">Application & cover letter</p>
             <textarea
-              className="w-full rounded-md border p-2"
+              className="w-full rounded-2xl border-0 bg-white p-3 text-sm ring-1 ring-slate-200 outline-none transition focus:ring-4 focus:ring-emerald-100 sm:border"
               rows="4"
-              placeholder="Cover letter"
+              placeholder="Write a short cover letter (optional)"
               value={coverLetter}
               onChange={(e) => setCoverLetter(e.target.value)}
             />
             {message ? <p className="text-sm text-slate-700">{message}</p> : null}
+            <button
+              onClick={apply}
+              disabled={hasApplied}
+              className={`mt-3 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-80 ${hasApplied ? "bg-slate-500" : "bg-emerald-600 hover:bg-emerald-700"}`}
+            >
+              <Send size={16} />
+              {hasApplied ? "Applied" : "Apply Now"}
+            </button>
           </div>
-        ) : message ? <p className="mt-4 text-sm text-slate-700">{message}</p> : null}
+        ) : (
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-slate-50 px-4 py-2 text-sm text-slate-700 sm:border sm:border-slate-200">
+            <BriefcaseBusiness size={15} />
+            {isOwnerEmployer ? "You posted this job" : "Viewing as employer"}
+          </div>
+        )}
+        {!isSeeker && message ? <p className="mt-4 text-sm text-slate-700">{message}</p> : null}
       </div>
 
-      <div className="overflow-hidden bg-white px-1 py-2 sm:px-2">
-        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
+      <div className="sticky top-2 z-20 overflow-hidden rounded-2xl bg-white/95 p-2 shadow-sm ring-1 ring-slate-200 backdrop-blur sm:top-4 sm:border sm:p-2 sm:shadow-sm sm:ring-0">
+        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Job details sections">
           {tabs.map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
+              role="tab"
+              aria-selected={activeTab === tab}
               className={`shrink-0 rounded-full px-3 py-2 text-xs font-medium sm:text-sm ${
                 activeTab === tab ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-700"
               }`}
@@ -375,8 +372,9 @@ const JobDetails = () => {
         </div>
       </div>
 
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.55fr)] lg:items-start">
       {showSection("All") && (
-        <div className="rounded-xl bg-white px-1 py-3 sm:px-2 sm:py-4">
+        <div className="rounded-3xl bg-white p-4 shadow-sm sm:rounded-2xl sm:border sm:border-slate-200 sm:p-6 sm:shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">Summary</h3>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             {summaryRows.map((row) => (
@@ -390,7 +388,7 @@ const JobDetails = () => {
       )}
 
       {showSection("Requirements") && (
-        <div className="rounded-xl bg-white px-1 py-3 sm:px-2 sm:py-4">
+        <div className="rounded-3xl bg-white p-4 shadow-sm sm:rounded-2xl sm:border sm:border-slate-200 sm:p-6 sm:shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">Requirements</h3>
           <div className="mt-3 space-y-3 text-sm text-slate-700">
             <p><span className="font-medium">Education:</span> {job.educationRequirements || "N/A"}</p>
@@ -401,7 +399,7 @@ const JobDetails = () => {
       )}
 
       {showSection("Responsibilities") && (
-        <div className="rounded-xl bg-white px-1 py-3 sm:px-2 sm:py-4">
+        <div className="rounded-3xl bg-white p-4 shadow-sm sm:rounded-2xl sm:border sm:border-slate-200 sm:p-6 sm:shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">Responsibilities & Context</h3>
           {responsibilityLines.length > 0 ? (
             <ul className="mt-3 space-y-2 text-sm text-slate-700">
@@ -419,7 +417,7 @@ const JobDetails = () => {
       )}
 
       {showSection("Skills & Expertise") && (
-        <div className="rounded-xl bg-white px-1 py-3 sm:px-2 sm:py-4">
+        <div className="rounded-3xl bg-white p-4 shadow-sm sm:rounded-2xl sm:border sm:border-slate-200 sm:p-6 sm:shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">Skills & Expertise</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {(job.skills || []).length > 0 ? (
@@ -436,7 +434,7 @@ const JobDetails = () => {
       )}
 
       {showSection("Salary & Benefits") && (
-        <div className="rounded-xl bg-white px-1 py-3 sm:px-2 sm:py-4">
+        <div className="rounded-3xl bg-white p-4 shadow-sm sm:rounded-2xl sm:border sm:border-slate-200 sm:p-6 sm:shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">Compensation & Other Benefits</h3>
           <p className="mt-3 whitespace-pre-line text-sm text-slate-700">{job.benefits || "N/A"}</p>
           <p className="mt-2 text-sm text-slate-700">
@@ -449,7 +447,7 @@ const JobDetails = () => {
       )}
 
       {showSection("Company Information") && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <div className="rounded-3xl bg-white p-4 shadow-sm sm:rounded-2xl sm:border sm:border-slate-200 sm:p-6 sm:shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">Company Information</h3>
           <div className="mt-3 space-y-2 text-sm text-slate-700">
             <p><span className="font-medium">Company:</span> {job.companyName}</p>
@@ -459,6 +457,7 @@ const JobDetails = () => {
           </div>
         </div>
       )}
+      </div>
       {showApplySuccess ? (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm">
           <div
