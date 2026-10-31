@@ -1,10 +1,11 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, CalendarDays, CheckCheck, Clock3, DollarSign, Loader2, Paperclip, Search, Send, UserPlus, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, CheckCheck, Clock3, DollarSign, Loader2, Mic, Paperclip, Phone, Search, Send, UserPlus, Video, X } from "lucide-react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useUnreadMessages } from "../context/UnreadMessagesContext";
 import { getSocket } from "../lib/socket";
+import CallOverlay from "../components/communication/CallOverlay";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
@@ -197,12 +198,22 @@ const MessagePage = () => {
   const [attachmentUploadProgress, setAttachmentUploadProgress] = useState({});
   const [mobileThreadOpen, setMobileThreadOpen] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [call, setCall] = useState(null);
+  const [callDuration, setCallDuration] = useState(0);
+  const [recordingVoice, setRecordingVoice] = useState(false);
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const activeConversationRef = useRef("");
   const requestedParticipantIdRef = useRef("");
   const messageEndRef = useRef(null);
   const composerRef = useRef(null);
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const localStreamRef = useRef(null);
+  const peerConnectionRef = useRef(null);
+  const callRef = useRef(null);
+  const voiceRecorderRef = useRef(null);
+  const voiceChunksRef = useRef([]);
   const pendingParticipantId = id || "";
   const backProfileId = location.state?.expertiseProfileId || "";
 
@@ -356,6 +367,84 @@ const MessagePage = () => {
     };
   }, [activeConversationId, messagesByConversation, user?.id]);
 
+  const closeCallMedia = () => {
+    localStreamRef.current?.getTracks().forEach((track) => track.stop());
+    localStreamRef.current = null;
+    peerConnectionRef.current?.close();
+    peerConnectionRef.current = null;
+    if (localVideoRef.current) localVideoRef.current.srcObject = null;
+    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+    setCall(null);
+    setCallDuration(0);
+  };
+
+  const createPeerConnection = (activeCall) => {
+    const peer = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    });
+    peer.onicecandidate = (event) => {
+      if (event.candidate) socketRef.current?.emit("call:ice", { conversationId: activeCall.conversationId, targetUserId: activeCall.remoteId, callId: activeCall.callId, candidate: event.candidate });
+    };
+    peer.ontrack = (event) => {
+      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = event.streams[0];
+    };
+    peer.onconnectionstatechange = () => {
+      if (["failed", "disconnected", "closed"].includes(peer.connectionState)) closeCallMedia();
+    };
+    peerConnectionRef.current = peer;
+    return peer;
+  };
+
+  const prepareLocalMedia = async (audioOnly) => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: !audioOnly });
+    localStreamRef.current = stream;
+    if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+    return stream;
+  };
+
+  const startCall = async (audioOnly) => {
+    if (!activeConversation?.id || isPendingConversationId(activeConversation.id) || !socketRef.current) return;
+    try {
+      const stream = await prepareLocalMedia(audioOnly);
+      const nextCall = { callId: crypto.randomUUID(), conversationId: activeConversation.id, remoteId: activeConversation.participant.id, remoteName: activeConversation.participant.name, audioOnly, status: "ringing", muted: false, videoOff: false };
+      callRef.current = nextCall;
+      setCall(nextCall);
+      const peer = createPeerConnection(nextCall);
+      stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+      socketRef.current.emit("call:invite", { conversationId: nextCall.conversationId, targetUserId: nextCall.remoteId, callId: nextCall.callId, audioOnly });
+    } catch (_error) {
+      setErrorMessage("Camera or microphone permission is required to start a call.");
+    }
+  };
+
+  const acceptCall = async () => {
+    const activeCall = callRef.current;
+    if (!activeCall) return;
+    try {
+      const stream = await prepareLocalMedia(activeCall.audioOnly);
+      const peer = createPeerConnection(activeCall);
+      stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+      const nextCall = { ...activeCall, status: "connecting" };
+      callRef.current = nextCall;
+      setCall(nextCall);
+      socketRef.current?.emit("call:accept", { conversationId: activeCall.conversationId, targetUserId: activeCall.remoteId, callId: activeCall.callId, audioOnly: activeCall.audioOnly });
+    } catch (_error) {
+      rejectCall();
+    }
+  };
+
+  const rejectCall = () => {
+    const activeCall = callRef.current;
+    if (activeCall) socketRef.current?.emit("call:reject", { conversationId: activeCall.conversationId, targetUserId: activeCall.remoteId, callId: activeCall.callId });
+    closeCallMedia();
+  };
+
+  const endCall = () => {
+    const activeCall = callRef.current;
+    if (activeCall) socketRef.current?.emit("call:end", { conversationId: activeCall.conversationId, targetUserId: activeCall.remoteId, callId: activeCall.callId });
+    closeCallMedia();
+  };
+
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return undefined;
@@ -496,6 +585,49 @@ const MessagePage = () => {
       );
     };
 
+    const handleIncomingCall = (payload) => {
+      if (callRef.current) return;
+      const nextCall = { ...payload, remoteId: payload.fromUserId, remoteName: payload.fromUserName, status: "incoming", muted: false, videoOff: false };
+      callRef.current = nextCall;
+      setCall(nextCall);
+    };
+
+    const handleCallAccepted = async (payload) => {
+      const activeCall = callRef.current;
+      if (!activeCall || activeCall.callId !== payload.callId) return;
+      const peer = peerConnectionRef.current || createPeerConnection(activeCall);
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
+      setCall((current) => current ? { ...current, status: "connecting" } : current);
+      socket.emit("call:offer", { ...payload, targetUserId: activeCall.remoteId, offer });
+    };
+
+    const handleCallOffer = async (payload) => {
+      const activeCall = callRef.current;
+      if (!activeCall || activeCall.callId !== payload.callId || !peerConnectionRef.current) return;
+      const peer = peerConnectionRef.current;
+      await peer.setRemoteDescription(new RTCSessionDescription(payload.offer));
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
+      socket.emit("call:answer", { ...payload, targetUserId: activeCall.remoteId, answer });
+      setCall((current) => current ? { ...current, status: "connected" } : current);
+    };
+
+    const handleCallAnswer = async (payload) => {
+      if (callRef.current?.callId !== payload.callId || !peerConnectionRef.current) return;
+      await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(payload.answer));
+      setCall((current) => current ? { ...current, status: "connected" } : current);
+    };
+
+    const handleCallIce = async (payload) => {
+      if (callRef.current?.callId !== payload.callId || !peerConnectionRef.current || !payload.candidate) return;
+      await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(payload.candidate));
+    };
+
+    const handleCallClosed = (payload) => {
+      if (callRef.current?.callId === payload.callId) closeCallMedia();
+    };
+
     socket.on("message:new", handleNewMessage);
     socket.on("message:seen", handleMessageSeen);
     socket.on("conversation:update", handleConversationUpdate);
@@ -503,6 +635,13 @@ const MessagePage = () => {
     socket.on("message:typing", handleTyping);
     socket.on("message:stopTyping", handleStopTyping);
     socket.on("presence:update", handlePresenceUpdate);
+    socket.on("call:incoming", handleIncomingCall);
+    socket.on("call:accepted", handleCallAccepted);
+    socket.on("call:offer", handleCallOffer);
+    socket.on("call:answer", handleCallAnswer);
+    socket.on("call:ice", handleCallIce);
+    socket.on("call:rejected", handleCallClosed);
+    socket.on("call:ended", handleCallClosed);
 
     return () => {
       socket.off("message:new", handleNewMessage);
@@ -512,6 +651,13 @@ const MessagePage = () => {
       socket.off("message:typing", handleTyping);
       socket.off("message:stopTyping", handleStopTyping);
       socket.off("presence:update", handlePresenceUpdate);
+      socket.off("call:incoming", handleIncomingCall);
+      socket.off("call:accepted", handleCallAccepted);
+      socket.off("call:offer", handleCallOffer);
+      socket.off("call:answer", handleCallAnswer);
+      socket.off("call:ice", handleCallIce);
+      socket.off("call:rejected", handleCallClosed);
+      socket.off("call:ended", handleCallClosed);
     };
   }, [user?.id]);
 
@@ -520,6 +666,15 @@ const MessagePage = () => {
     const timer = window.setTimeout(() => setNotification(null), 4500);
     return () => window.clearTimeout(timer);
   }, [notification]);
+
+  useEffect(() => {
+    if (!call || call.status !== "connected") return undefined;
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => setCallDuration(Math.floor((Date.now() - startedAt) / 1000)), 1000);
+    return () => window.clearInterval(timer);
+  }, [call?.callId, call?.status]);
+
+  useEffect(() => () => closeCallMedia(), []);
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -592,6 +747,31 @@ const MessagePage = () => {
     if (!files.length) return;
     setAttachments((prev) => [...prev, ...files]);
     event.target.value = "";
+  };
+
+  const toggleVoiceRecording = async () => {
+    if (recordingVoice) {
+      voiceRecorderRef.current?.stop();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      voiceChunksRef.current = [];
+      recorder.ondataavailable = (event) => { if (event.data.size) voiceChunksRef.current.push(event.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(voiceChunksRef.current, { type: recorder.mimeType || "audio/webm" });
+        setAttachments((current) => [...current, new File([blob], `voice-note-${Date.now()}.webm`, { type: blob.type })]);
+        stream.getTracks().forEach((track) => track.stop());
+        voiceRecorderRef.current = null;
+        setRecordingVoice(false);
+      };
+      recorder.start();
+      voiceRecorderRef.current = recorder;
+      setRecordingVoice(true);
+    } catch (_error) {
+      setErrorMessage("Microphone permission is required to record a voice note.");
+    }
   };
 
   const updateInviteStatus = async (messageId, status) => {
@@ -928,6 +1108,10 @@ const MessagePage = () => {
                     ) : null}
                   </div>
                 </div>
+                <div className="ml-auto flex shrink-0 items-center gap-1">
+                  <button type="button" onClick={() => startCall(true)} disabled={Boolean(call)} className="inline-flex h-9 w-9 items-center justify-center rounded-full text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Start audio call" title="Audio call"><Phone size={17} /></button>
+                  <button type="button" onClick={() => startCall(false)} disabled={Boolean(call)} className="inline-flex h-9 w-9 items-center justify-center rounded-full text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Start video call" title="Video call"><Video size={17} /></button>
+                </div>
               </div>
             ) : (
               <div>
@@ -1097,6 +1281,16 @@ const MessagePage = () => {
               </label>
               <button
                 type="button"
+                onClick={toggleVoiceRecording}
+                disabled={!activeConversation || sendingMessage}
+                className={`absolute right-12 top-2 inline-flex h-9 w-9 items-center justify-center rounded-xl transition ${recordingVoice ? "bg-rose-100 text-rose-600" : "text-slate-500 hover:bg-white hover:text-emerald-700"}`}
+                aria-label={recordingVoice ? "Stop voice recording" : "Record voice note"}
+                title={recordingVoice ? "Stop recording" : "Voice note"}
+              >
+                <Mic size={17} />
+              </button>
+              <button
+                type="button"
                 onClick={sendMessage}
                 disabled={!activeConversation || sendingMessage}
                 className="absolute bottom-2 right-2 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
@@ -1143,6 +1337,25 @@ const MessagePage = () => {
           </div>
         </section>
       </div>
+      <CallOverlay
+        call={call}
+        localVideoRef={localVideoRef}
+        remoteVideoRef={remoteVideoRef}
+        duration={callDuration}
+        onAccept={acceptCall}
+        onReject={rejectCall}
+        onEnd={endCall}
+        onToggleMute={() => {
+          const nextMuted = !call?.muted;
+          localStreamRef.current?.getAudioTracks().forEach((track) => { track.enabled = !nextMuted; });
+          setCall((current) => current ? { ...current, muted: nextMuted } : current);
+        }}
+        onToggleVideo={() => {
+          const nextVideoOff = !call?.videoOff;
+          localStreamRef.current?.getVideoTracks().forEach((track) => { track.enabled = !nextVideoOff; });
+          setCall((current) => current ? { ...current, videoOff: nextVideoOff } : current);
+        }}
+      />
     </section>
   );
 };
