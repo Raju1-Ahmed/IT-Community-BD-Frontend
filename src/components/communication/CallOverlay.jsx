@@ -1,8 +1,14 @@
+import { useEffect } from "react";
 import { Mic, MicOff, Phone, Video, VideoOff, X } from "lucide-react";
 
 const formatDuration = (seconds = 0) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
-const CallOverlay = ({ call, localVideoRef, remoteVideoRef, duration, onAccept, onReject, onEnd, onToggleMute, onToggleVideo }) => {
+const CallOverlay = ({ call, localStream, remoteStream, localVideoRef, remoteVideoRef, duration, onAccept, onReject, onEnd, onToggleMute, onToggleVideo }) => {
+  useEffect(() => {
+    if (localVideoRef.current && localStream) localVideoRef.current.srcObject = localStream;
+    if (remoteVideoRef.current && remoteStream) remoteVideoRef.current.srcObject = remoteStream;
+  }, [localStream, remoteStream, localVideoRef, remoteVideoRef]);
+
   if (!call) return null;
   const incoming = call.status === "incoming";
   const connecting = ["ringing", "connecting"].includes(call.status);
@@ -16,7 +22,7 @@ const CallOverlay = ({ call, localVideoRef, remoteVideoRef, duration, onAccept, 
         </div>
 
         <div className="relative min-h-0 flex-1 overflow-hidden bg-slate-900">
-          {!call.audioOnly ? <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full object-cover" /> : null}
+          {!call.audioOnly ? <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full object-cover" /> : <audio ref={remoteVideoRef} autoPlay />}
           <div className={`${call.audioOnly ? "flex h-full" : "absolute bottom-4 right-4 h-32 w-24 sm:h-40 sm:w-32"} items-center justify-center overflow-hidden rounded-2xl bg-slate-800 ring-1 ring-white/15`}>
             {!call.audioOnly ? <video ref={localVideoRef} autoPlay muted playsInline className="h-full w-full object-cover" /> : <div className="text-center text-sm text-slate-300"><Phone size={28} className="mx-auto mb-2" />Audio only</div>}
           </div>

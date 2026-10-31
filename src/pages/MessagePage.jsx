@@ -199,6 +199,8 @@ const MessagePage = () => {
   const [mobileThreadOpen, setMobileThreadOpen] = useState(false);
   const [notification, setNotification] = useState(null);
   const [call, setCall] = useState(null);
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
   const [callDuration, setCallDuration] = useState(0);
   const [recordingVoice, setRecordingVoice] = useState(false);
   const socketRef = useRef(null);
@@ -214,6 +216,9 @@ const MessagePage = () => {
   const callRef = useRef(null);
   const voiceRecorderRef = useRef(null);
   const voiceChunksRef = useRef([]);
+  const pendingIceCandidatesRef = useRef([]);
+  const ringtoneTimerRef = useRef(null);
+  const ringtoneContextRef = useRef(null);
   const pendingParticipantId = id || "";
   const backProfileId = location.state?.expertiseProfileId || "";
 
@@ -368,14 +373,46 @@ const MessagePage = () => {
   }, [activeConversationId, messagesByConversation, user?.id]);
 
   const closeCallMedia = () => {
+    clearInterval(ringtoneTimerRef.current);
+    ringtoneTimerRef.current = null;
+    ringtoneContextRef.current?.close?.();
+    ringtoneContextRef.current = null;
     localStreamRef.current?.getTracks().forEach((track) => track.stop());
     localStreamRef.current = null;
+    setLocalStream(null);
+    setRemoteStream(null);
     peerConnectionRef.current?.close();
     peerConnectionRef.current = null;
+    pendingIceCandidatesRef.current = [];
     if (localVideoRef.current) localVideoRef.current.srcObject = null;
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     setCall(null);
     setCallDuration(0);
+  };
+
+  const startIncomingRingtone = () => {
+    clearInterval(ringtoneTimerRef.current);
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      const context = new AudioContextClass();
+      ringtoneContextRef.current = context;
+      const beep = () => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.frequency.value = 720;
+        gain.gain.setValueAtTime(0.0001, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.28);
+        oscillator.connect(gain).connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.3);
+      };
+      beep();
+      ringtoneTimerRef.current = window.setInterval(beep, 1100);
+    } catch (_error) {
+      // Mobile browsers may block audio until a user gesture; the visual modal remains available.
+    }
   };
 
   const createPeerConnection = (activeCall) => {
@@ -386,6 +423,7 @@ const MessagePage = () => {
       if (event.candidate) socketRef.current?.emit("call:ice", { conversationId: activeCall.conversationId, targetUserId: activeCall.remoteId, callId: activeCall.callId, candidate: event.candidate });
     };
     peer.ontrack = (event) => {
+      setRemoteStream(event.streams[0]);
       if (remoteVideoRef.current) remoteVideoRef.current.srcObject = event.streams[0];
     };
     peer.onconnectionstatechange = () => {
@@ -396,8 +434,10 @@ const MessagePage = () => {
   };
 
   const prepareLocalMedia = async (audioOnly) => {
+    if (!navigator.mediaDevices?.getUserMedia) throw new Error("This browser does not support secure media calls.");
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: !audioOnly });
     localStreamRef.current = stream;
+    setLocalStream(stream);
     if (localVideoRef.current) localVideoRef.current.srcObject = stream;
     return stream;
   };
@@ -427,6 +467,7 @@ const MessagePage = () => {
       const nextCall = { ...activeCall, status: "connecting" };
       callRef.current = nextCall;
       setCall(nextCall);
+      startIncomingRingtone();
       socketRef.current?.emit("call:accept", { conversationId: activeCall.conversationId, targetUserId: activeCall.remoteId, callId: activeCall.callId, audioOnly: activeCall.audioOnly });
     } catch (_error) {
       rejectCall();
@@ -607,6 +648,7 @@ const MessagePage = () => {
       if (!activeCall || activeCall.callId !== payload.callId || !peerConnectionRef.current) return;
       const peer = peerConnectionRef.current;
       await peer.setRemoteDescription(new RTCSessionDescription(payload.offer));
+      for (const candidate of pendingIceCandidatesRef.current.splice(0)) await peer.addIceCandidate(new RTCIceCandidate(candidate));
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
       socket.emit("call:answer", { ...payload, targetUserId: activeCall.remoteId, answer });
@@ -616,11 +658,16 @@ const MessagePage = () => {
     const handleCallAnswer = async (payload) => {
       if (callRef.current?.callId !== payload.callId || !peerConnectionRef.current) return;
       await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(payload.answer));
+      for (const candidate of pendingIceCandidatesRef.current.splice(0)) await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
       setCall((current) => current ? { ...current, status: "connected" } : current);
     };
 
     const handleCallIce = async (payload) => {
-      if (callRef.current?.callId !== payload.callId || !peerConnectionRef.current || !payload.candidate) return;
+      if (callRef.current?.callId !== payload.callId || !payload.candidate) return;
+      if (!peerConnectionRef.current?.remoteDescription) {
+        pendingIceCandidatesRef.current.push(payload.candidate);
+        return;
+      }
       await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(payload.candidate));
     };
 
@@ -668,7 +715,7 @@ const MessagePage = () => {
   }, [notification]);
 
   useEffect(() => {
-    if (!call || call.status !== "connected") return undefined;
+      if (!call || call.status !== "connected") return undefined;
     const startedAt = Date.now();
     const timer = window.setInterval(() => setCallDuration(Math.floor((Date.now() - startedAt) / 1000)), 1000);
     return () => window.clearInterval(timer);
@@ -1339,6 +1386,8 @@ const MessagePage = () => {
       </div>
       <CallOverlay
         call={call}
+        localStream={localStream}
+        remoteStream={remoteStream}
         localVideoRef={localVideoRef}
         remoteVideoRef={remoteVideoRef}
         duration={callDuration}
