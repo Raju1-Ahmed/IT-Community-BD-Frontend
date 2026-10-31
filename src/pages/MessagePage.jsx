@@ -194,6 +194,7 @@ const MessagePage = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [attachmentUploadProgress, setAttachmentUploadProgress] = useState({});
   const [mobileThreadOpen, setMobileThreadOpen] = useState(false);
+  const [notification, setNotification] = useState(null);
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const activeConversationRef = useRef("");
@@ -401,9 +402,19 @@ const MessagePage = () => {
         });
       });
 
-      if (normalized.conversationId === activeConversationRef.current) {
+      if (normalized.conversationId === activeConversationRef.current && normalized.sender !== "me") {
         socket.emit("message:seen", { conversationId: normalized.conversationId });
       }
+    };
+
+    const handleMessageSeen = ({ conversationId, userId }) => {
+      if (String(userId) === String(user?.id || "")) return;
+      setMessagesByConversation((current) => ({
+        ...current,
+        [conversationId]: (current[conversationId] || []).map((item) =>
+          item.sender === "me" ? { ...item, seen: true } : item
+        )
+      }));
     };
 
     const handleConversationUpdate = ({ conversationId, message }) => {
@@ -442,6 +453,18 @@ const MessagePage = () => {
       });
     };
 
+    const handleMessageNotification = ({ conversationId, message }) => {
+      if (String(message?.senderId || "") === String(user?.id || "")) return;
+      if (conversationId === activeConversationRef.current) return;
+
+      setNotification({
+        id: `${conversationId}-${message?.id || Date.now()}`,
+        conversationId,
+        title: message?.senderName || "New message",
+        text: message?.text || (message?.attachments?.length ? "Shared an attachment" : "You have a new message")
+      });
+    };
+
     const handleTyping = ({ conversationId, userId, userName }) => {
       if (conversationId === activeConversationRef.current && String(userId) !== String(user?.id || "")) {
         setTypingUser(userName || "Typing...");
@@ -472,19 +495,29 @@ const MessagePage = () => {
     };
 
     socket.on("message:new", handleNewMessage);
+    socket.on("message:seen", handleMessageSeen);
     socket.on("conversation:update", handleConversationUpdate);
+    socket.on("message:notification", handleMessageNotification);
     socket.on("message:typing", handleTyping);
     socket.on("message:stopTyping", handleStopTyping);
     socket.on("presence:update", handlePresenceUpdate);
 
     return () => {
       socket.off("message:new", handleNewMessage);
+      socket.off("message:seen", handleMessageSeen);
       socket.off("conversation:update", handleConversationUpdate);
+      socket.off("message:notification", handleMessageNotification);
       socket.off("message:typing", handleTyping);
       socket.off("message:stopTyping", handleStopTyping);
       socket.off("presence:update", handlePresenceUpdate);
     };
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!notification) return undefined;
+    const timer = window.setTimeout(() => setNotification(null), 4500);
+    return () => window.clearTimeout(timer);
+  }, [notification]);
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -701,7 +734,22 @@ const MessagePage = () => {
   };
 
   return (
-    <section className="-mx-4 min-w-0 space-y-4 px-0 sm:mx-0 sm:px-0">
+    <section className="relative -mx-4 flex min-h-[calc(100dvh-120px)] min-w-0 flex-col space-y-3 bg-slate-50 px-0 sm:mx-0 sm:space-y-4 sm:bg-transparent sm:px-0">
+      {notification ? (
+        <button
+          type="button"
+          onClick={() => {
+            setNotification(null);
+            setActiveConversationId(notification.conversationId || activeConversationId);
+            setMobileThreadOpen(true);
+          }}
+          className="fixed right-4 top-4 z-50 w-[min(20rem,calc(100vw-2rem))] rounded-2xl bg-slate-900 px-4 py-3 text-left text-white shadow-2xl ring-1 ring-white/10"
+          aria-label="Open new message"
+        >
+          <p className="text-sm font-semibold">{notification.title}</p>
+          <p className="mt-1 truncate text-xs text-slate-300">{notification.text}</p>
+        </button>
+      ) : null}
       {backProfileId ? (
         <div className="flex justify-end">
           <Link
@@ -713,8 +761,8 @@ const MessagePage = () => {
         </div>
       ) : null}
 
-      <div className="grid min-w-0 gap-0 lg:grid-cols-[minmax(340px,0.4fr)_minmax(0,0.6fr)]">
-        <aside className={`flex h-[calc(100dvh-180px)] min-w-0 flex-col ${mobileThreadOpen ? "hidden lg:flex" : "flex"} lg:h-auto`}>
+      <div className="grid min-h-[calc(100dvh-150px)] min-w-0 flex-1 gap-0 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 lg:grid-cols-[minmax(340px,0.4fr)_minmax(0,0.6fr)]">
+        <aside className={`flex h-[calc(100dvh-150px)] min-w-0 flex-col ${mobileThreadOpen ? "hidden lg:flex" : "flex"} lg:h-[calc(100dvh-150px)]`}>
           <div className="shrink-0 border-b border-slate-200 px-3 py-3 sm:px-4 sm:py-4">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -830,19 +878,11 @@ const MessagePage = () => {
           </div>
         </aside>
 
-        <section className={`flex h-[calc(100dvh-180px)] min-w-0 min-h-0 flex-col overflow-hidden ${mobileThreadOpen || !activeConversation ? "block" : "hidden lg:flex"} lg:h-auto`}>
+        <section className={`flex h-[calc(100dvh-150px)] min-w-0 min-h-0 flex-col overflow-hidden ${mobileThreadOpen || !activeConversation ? "block" : "hidden lg:flex"} lg:h-[calc(100dvh-150px)]`}>
           <div className="shrink-0 border-b border-slate-200 px-3 py-3 sm:px-4 sm:py-4">
             {activeConversation ? (
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setMobileThreadOpen(false)}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm lg:hidden"
-                    aria-label="Back to people list"
-                  >
-                    <ArrowLeft size={18} />
-                  </button>
                   <div className="relative shrink-0">
                     {activeConversation.participant.profileImage ? (
                       <img
@@ -883,7 +923,7 @@ const MessagePage = () => {
             )}
           </div>
 
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-2 py-3 sm:max-h-[460px] sm:px-4 sm:py-4 lg:max-h-[460px]">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-2 py-3 sm:px-4 sm:py-4">
             {loadingMessages ? (
               <div className="space-y-3 animate-pulse">
                 <div className="mx-auto h-8 w-32 rounded-full bg-slate-100" />
@@ -1023,15 +1063,34 @@ const MessagePage = () => {
                 </span>
               </div>
             ) : null}
-            <textarea
-              ref={composerRef}
-              value={chatText}
-              onChange={handleTextChange}
-              onKeyDown={handleComposerKeyDown}
-              placeholder="Write your message here..."
-              disabled={!activeConversation || sendingMessage}
-              className="min-h-[64px] w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 sm:min-h-[88px]"
-            />
+            <div className="relative rounded-2xl bg-slate-50 p-2 ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-emerald-200">
+              <textarea
+                ref={composerRef}
+                value={chatText}
+                onChange={handleTextChange}
+                onKeyDown={handleComposerKeyDown}
+                placeholder="Write your message..."
+                disabled={!activeConversation || sendingMessage}
+                className="min-h-[72px] w-full resize-none rounded-xl border-0 bg-transparent px-2 py-2 pb-11 pr-12 text-sm outline-none focus:ring-0 sm:min-h-[88px]"
+              />
+              <label
+                className={`absolute right-2 top-2 inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-white hover:text-emerald-700 ${activeConversation ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+                title="Attach files"
+                aria-label="Attach files"
+              >
+                <Paperclip size={17} />
+                <input type="file" multiple className="hidden" onChange={handleFiles} disabled={!activeConversation || sendingMessage} />
+              </label>
+              <button
+                type="button"
+                onClick={sendMessage}
+                disabled={!activeConversation || sendingMessage}
+                className="absolute bottom-2 right-2 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {sendingMessage ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                <span className="hidden sm:inline">{sendingMessage ? "Sending..." : "Send"}</span>
+              </button>
+            </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
               {attachments.map((file) => (
@@ -1067,21 +1126,6 @@ const MessagePage = () => {
               ))}
             </div>
 
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-              <label className={`inline-flex justify-center items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 ${activeConversation ? "cursor-pointer hover:bg-slate-50" : "cursor-not-allowed opacity-60"}`}>
-                <Paperclip size={15} /> Share Files
-                <input type="file" multiple className="hidden" onChange={handleFiles} disabled={!activeConversation || sendingMessage} />
-              </label>
-
-              <button
-                type="button"
-                onClick={sendMessage}
-                disabled={!activeConversation || sendingMessage}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:py-2"
-              >
-                {sendingMessage ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} {sendingMessage ? "Sending..." : "Send"}
-              </button>
-            </div>
           </div>
         </section>
       </div>
