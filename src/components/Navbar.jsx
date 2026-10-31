@@ -1,6 +1,7 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useUnreadMessages } from "../context/UnreadMessagesContext";
 import brandLogo from "../asset/brand-logo.svg";
 import {
   Bookmark,
@@ -41,6 +42,7 @@ const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { unreadTotal } = useUnreadMessages();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -120,6 +122,11 @@ const Navbar = () => {
               <NavLink key={item.to} to={item.to} className={linkClass}>
                 <Icon size={15} />
                 {item.label}
+                {item.to === "/messages" && unreadTotal > 0 ? (
+                  <span className="min-w-5 rounded-full bg-rose-500 px-1.5 py-0.5 text-center text-[10px] font-bold leading-none text-white">
+                    {unreadTotal > 99 ? "99+" : unreadTotal}
+                  </span>
+                ) : null}
               </NavLink>
             );
           })}
@@ -219,6 +226,11 @@ const Navbar = () => {
                   <NavLink key={item.to} to={item.to} className={mobileLinkClass}>
                     <Icon size={18} />
                     {item.label}
+                    {item.to === "/messages" && unreadTotal > 0 ? (
+                      <span className="ml-auto min-w-6 rounded-full bg-rose-500 px-2 py-1 text-center text-[10px] font-bold leading-none text-white">
+                        {unreadTotal > 99 ? "99+" : unreadTotal}
+                      </span>
+                    ) : null}
                   </NavLink>
                 );
               })}

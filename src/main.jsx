@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 import { AuthProvider } from "./context/AuthContext";
+import { UnreadMessagesProvider } from "./context/UnreadMessagesContext";
 import { LoaderProvider } from "./context/LoaderContext";
 import brandIcon from "./asset/brand-icon.svg";
 
@@ -17,7 +18,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <LoaderProvider>
         <AuthProvider>
-          <App />
+          <UnreadMessagesProvider>
+            <App />
+          </UnreadMessagesProvider>
         </AuthProvider>
       </LoaderProvider>
     </BrowserRouter>

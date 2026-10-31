@@ -3,6 +3,7 @@ import { ArrowLeft, CalendarDays, CheckCheck, Clock3, DollarSign, Loader2, Paper
 import { Link, useLocation, useParams } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useUnreadMessages } from "../context/UnreadMessagesContext";
 import { getSocket } from "../lib/socket";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
@@ -180,6 +181,7 @@ const MessagePage = () => {
   const { id } = useParams();
   const location = useLocation();
   const { user } = useAuth();
+  const { markConversationRead } = useUnreadMessages();
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState("");
   const [messagesByConversation, setMessagesByConversation] = useState({});
@@ -525,6 +527,7 @@ const MessagePage = () => {
 
     socket.emit("conversation:join", { conversationId: activeConversationId });
     socket.emit("message:seen", { conversationId: activeConversationId });
+    markConversationRead(activeConversationId);
     setTypingUser("");
     setConversations((current) =>
       current.map((item) => (item.id === activeConversationId ? { ...item, unreadCount: 0 } : item))
@@ -533,7 +536,7 @@ const MessagePage = () => {
     return () => {
       socket.emit("conversation:leave", { conversationId: activeConversationId });
     };
-  }, [activeConversationId]);
+  }, [activeConversationId, markConversationRead]);
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -854,7 +857,10 @@ const MessagePage = () => {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold">{conversation.participant.name}</p>
+                        <div className="flex items-center gap-2">
+                          {conversation.unreadCount > 0 ? <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-label="Unread" /> : null}
+                          <p className={`truncate text-sm ${conversation.unreadCount > 0 ? "font-bold text-slate-900" : "font-semibold"}`}>{conversation.participant.name}</p>
+                        </div>
                         <p className="mt-1 truncate text-xs text-slate-500">{conversation.participant.role}</p>
                       </div>
                       {conversation.unreadCount ? (
@@ -863,7 +869,7 @@ const MessagePage = () => {
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-2 truncate text-xs text-slate-500">{buildPreview(conversation)}</p>
+                    <p className={`mt-2 truncate text-xs ${conversation.unreadCount > 0 ? "font-semibold text-slate-700" : "text-slate-500"}`}>{buildPreview(conversation)}</p>
                     <div className="mt-2 flex items-center justify-between gap-3">
                       <p className="truncate text-[11px] uppercase tracking-[0.18em] text-slate-400">
                         {conversation.participant.isOnline
