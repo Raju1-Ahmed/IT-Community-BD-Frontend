@@ -761,7 +761,7 @@ const MessagePage = () => {
         </div>
       ) : null}
 
-      <div className="grid min-h-[calc(100dvh-150px)] min-w-0 flex-1 gap-0 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 lg:grid-cols-[minmax(340px,0.4fr)_minmax(0,0.6fr)]">
+      <div className="grid h-[calc(100dvh-150px)] min-w-0 flex-1 gap-0 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 lg:grid-cols-[minmax(340px,0.4fr)_minmax(0,0.6fr)]">
         <aside className={`flex h-[calc(100dvh-150px)] min-w-0 flex-col ${mobileThreadOpen ? "hidden lg:flex" : "flex"} lg:h-[calc(100dvh-150px)]`}>
           <div className="shrink-0 border-b border-slate-200 px-3 py-3 sm:px-4 sm:py-4">
             <div className="flex items-center justify-between gap-3">
@@ -879,10 +879,18 @@ const MessagePage = () => {
         </aside>
 
         <section className={`flex h-[calc(100dvh-150px)] min-w-0 min-h-0 flex-col overflow-hidden ${mobileThreadOpen || !activeConversation ? "block" : "hidden lg:flex"} lg:h-[calc(100dvh-150px)]`}>
-          <div className="shrink-0 border-b border-slate-200 px-3 py-3 sm:px-4 sm:py-4">
+          <div className="sticky top-0 z-30 shrink-0 border-b border-slate-200 bg-white/95 px-3 py-2.5 backdrop-blur sm:px-4 sm:py-3">
             {activeConversation ? (
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2.5">
                 <div className="flex items-start gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setMobileThreadOpen(false)}
+                    className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 lg:hidden"
+                    aria-label="Back to people list"
+                  >
+                    <ArrowLeft size={15} />
+                  </button>
                   <div className="relative shrink-0">
                     {activeConversation.participant.profileImage ? (
                       <img
@@ -1055,7 +1063,7 @@ const MessagePage = () => {
             <div ref={messageEndRef} />
           </div>
 
-          <div className="shrink-0 border-t border-slate-200 p-2.5 sm:p-4">
+          <div className="sticky bottom-0 z-30 shrink-0 border-t border-slate-200 bg-white/95 p-2.5 backdrop-blur sm:p-3">
             {attachments.length ? (
               <div className="mb-3 flex flex-wrap items-center justify-end gap-3">
                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
