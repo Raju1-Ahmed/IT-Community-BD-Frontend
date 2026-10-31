@@ -40,6 +40,18 @@ const mobileLinkClass = ({ isActive }) =>
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
 
+const MessageBadge = ({ unreadTotal, mobile = false }) => {
+  if (!unreadTotal) return null;
+  return (
+    <span
+      className={`${mobile ? "ml-auto" : ""} inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold leading-none text-white shadow-sm`}
+      aria-label={`${unreadTotal} unread message${unreadTotal === 1 ? "" : "s"}`}
+    >
+      {unreadTotal > 99 ? "99+" : unreadTotal}
+    </span>
+  );
+};
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { unreadTotal } = useUnreadMessages();
@@ -122,11 +134,7 @@ const Navbar = () => {
               <NavLink key={item.to} to={item.to} className={linkClass}>
                 <Icon size={15} />
                 {item.label}
-                {item.to === "/messages" && unreadTotal > 0 ? (
-                  <span className="min-w-5 rounded-full bg-rose-500 px-1.5 py-0.5 text-center text-[10px] font-bold leading-none text-white">
-                    {unreadTotal > 99 ? "99+" : unreadTotal}
-                  </span>
-                ) : null}
+                {item.to === "/messages" ? <MessageBadge unreadTotal={unreadTotal} /> : null}
               </NavLink>
             );
           })}
@@ -179,6 +187,7 @@ const Navbar = () => {
                           >
                             <Icon size={16} />
                             {item.label}
+                            {item.to === "/messages" ? <MessageBadge unreadTotal={unreadTotal} /> : null}
                           </Link>
                         );
                       })}
@@ -226,11 +235,7 @@ const Navbar = () => {
                   <NavLink key={item.to} to={item.to} className={mobileLinkClass}>
                     <Icon size={18} />
                     {item.label}
-                    {item.to === "/messages" && unreadTotal > 0 ? (
-                      <span className="ml-auto min-w-6 rounded-full bg-rose-500 px-2 py-1 text-center text-[10px] font-bold leading-none text-white">
-                        {unreadTotal > 99 ? "99+" : unreadTotal}
-                      </span>
-                    ) : null}
+                    {item.to === "/messages" ? <MessageBadge unreadTotal={unreadTotal} mobile /> : null}
                   </NavLink>
                 );
               })}
