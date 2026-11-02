@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { IT_JOBS } from "../data/itJobs";
+import { Chrome, Github } from "lucide-react";
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, socialSignIn } = useAuth();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -18,6 +19,18 @@ const Register = () => {
     jobSpecialization: ""
   });
   const [error, setError] = useState("");
+
+  const onSocialSignIn = async (provider) => {
+    setError("");
+    try {
+      await socialSignIn(provider, form.role);
+      navigate("/jobs");
+    } catch (err) {
+      if (err?.code !== "auth/popup-closed-by-user") {
+        setError(err?.response?.data?.message || err?.message || "Social sign-in failed");
+      }
+    }
+  };
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -110,6 +123,11 @@ const Register = () => {
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button className="rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700" type="submit">Register</button>
       </form>
+      <div className="my-4 flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-slate-200" />OR<span className="h-px flex-1 bg-slate-200" /></div>
+      <div className="flex justify-center gap-3">
+        <button className="rounded-full border border-slate-300 p-3 text-slate-700 hover:bg-slate-50" type="button" onClick={() => onSocialSignIn("google")} aria-label="Continue with Google" title="Continue with Google"><Chrome size={19} /></button>
+        <button className="rounded-full border border-slate-300 p-3 text-slate-700 hover:bg-slate-50" type="button" onClick={() => onSocialSignIn("github")} aria-label="Continue with GitHub" title="Continue with GitHub"><Github size={19} /></button>
+      </div>
     </div>
   );
 };

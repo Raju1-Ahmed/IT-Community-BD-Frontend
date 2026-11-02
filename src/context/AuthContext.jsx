@@ -1,10 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import api from "../api/client";
+import { auth, signInWithGithubPopup, signInWithGooglePopup } from "../firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [firebaseUser, setFirebaseUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchMe = async () => {
@@ -28,6 +31,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
     init();
+    return onAuthStateChanged(auth, setFirebaseUser);
   }, []);
 
   const login = async (payload) => {
@@ -47,11 +51,22 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
+    void signOut(auth);
+  };
+
+  const socialSignIn = async (provider, role = "seeker") => {
+    const result = await (provider === "github" ? signInWithGithubPopup() : signInWithGooglePopup());
+    setFirebaseUser(result.user);
+    const idToken = await result.user.getIdToken(true);
+    const { data } = await api.post("/auth/firebase", { idToken, role });
+    localStorage.setItem("token", data.token);
+    setUser(data.user);
+    return data;
   };
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout, refreshUser: fetchMe }),
-    [user, loading]
+    () => ({ user, firebaseUser, loading, login, register, socialSignIn, logout, refreshUser: fetchMe }),
+    [user, firebaseUser, loading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
