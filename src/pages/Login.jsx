@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Chrome, Github } from "lucide-react";
 
@@ -50,6 +50,9 @@ const Login = () => {
         <button className="rounded-full border border-slate-300 p-3 text-slate-700 hover:bg-slate-50" type="button" onClick={() => onSocialSignIn("google")} aria-label="Continue with Google" title="Continue with Google"><Chrome size={19} /></button>
         <button className="rounded-full border border-slate-300 p-3 text-slate-700 hover:bg-slate-50" type="button" onClick={() => onSocialSignIn("github")} aria-label="Continue with GitHub" title="Continue with GitHub"><Github size={19} /></button>
       </div>
+      <p className="mt-5 text-center text-sm text-slate-600">
+        Don&apos;t have an account? <Link className="font-semibold text-emerald-600 hover:text-emerald-700" to="/register">Register</Link>
+      </p>
     </div>
   );
 };

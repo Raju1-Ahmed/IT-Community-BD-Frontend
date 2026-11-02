@@ -18,7 +18,6 @@ import {
   MessageSquare,
   PlusCircle,
   User,
-  UserPlus,
   UserSearch,
   X
 } from "lucide-react";
@@ -216,10 +215,6 @@ const Navbar = () => {
                 <LogIn size={15} />
                 Login
               </NavLink>
-              <NavLink to="/register" className={linkClass}>
-                <UserPlus size={15} />
-                Register
-              </NavLink>
             </div>
           )}
         </div>
@@ -290,10 +285,6 @@ const Navbar = () => {
                 <NavLink to="/login" className={mobileLinkClass}>
                   <LogIn size={18} />
                   Login
-                </NavLink>
-                <NavLink to="/register" className={mobileLinkClass}>
-                  <UserPlus size={18} />
-                  Register
                 </NavLink>
               </div>
             )}
