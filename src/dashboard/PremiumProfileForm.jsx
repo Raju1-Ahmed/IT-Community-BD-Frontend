@@ -390,7 +390,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
 
   const saveDraft = async (nextForm = form) => {
     try {
-      await api.post("/premium/me", toPayload(nextForm));
+      const { data: savedData } = await api.post("/premium/me", toPayload(nextForm));
       
       const fd = new FormData();
       let hasFiles = false;
@@ -416,12 +416,19 @@ const PremiumProfileForm = ({ embedded = false }) => {
         });
       }
 
-      await loadProfile();
+      let reloadFailed = false;
+      try {
+        await loadProfile();
+      } catch (_reloadError) {
+        reloadFailed = true;
+        if (savedData?.profile) setProfile(savedData.profile);
+      }
       setDocs({ experienceDocuments: {} });
-      setMessage("Section updated successfully.");
+      setMessage(reloadFailed ? "Section saved successfully. Please refresh to see the latest data." : "Section updated successfully.");
       return true;
     } catch (error) {
-      setMessage(error?.response?.data?.message || "Failed to save section.");
+      const status = error?.response?.status ? ` (${error.response.status})` : "";
+      setMessage(error?.response?.data?.message || `${error?.message || "Failed to save section"}${status}`);
       return false;
     }
   };
