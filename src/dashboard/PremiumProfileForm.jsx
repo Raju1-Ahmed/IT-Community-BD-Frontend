@@ -94,6 +94,7 @@ const destructiveButtonClass =
   "inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-100";
 
 const FileInput = ({ label, id, value, onChange, onClear }) => {
+  const [fileError, setFileError] = useState("");
   const fileName =
     typeof value === "string"
       ? value.startsWith("data:") ? "File already uploaded" : value.split("/").pop()
@@ -110,11 +111,29 @@ const FileInput = ({ label, id, value, onChange, onClear }) => {
           <div className="text-sm text-slate-600">
             <label htmlFor={id} className="relative cursor-pointer rounded-full bg-white px-4 py-2 font-semibold text-emerald-700 shadow-sm ring-1 ring-emerald-100 transition hover:bg-emerald-50 focus-within:outline-none focus-within:ring-2 focus-within:ring-emerald-500">
               <span>Choose file</span>
-              <input key={`${id}-${fileName || "empty"}`} id={id} name={id} type="file" className="sr-only" onChange={onChange} />
+              <input
+                key={`${id}-${fileName || "empty"}`}
+                id={id}
+                name={id}
+                type="file"
+                accept=".png,.jpg,.jpeg,.pdf,image/png,image/jpeg,application/pdf"
+                className="sr-only"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file && file.size > 1024 * 1024) {
+                    event.target.value = "";
+                    setFileError("File size must be 1MB or smaller. Please choose another file.");
+                    return;
+                  }
+                  setFileError("");
+                  onChange(event);
+                }}
+              />
             </label>
             <p className="mt-3">Drag and drop or browse from your device</p>
           </div>
-          <p className="text-xs text-slate-500">PNG, JPG, PDF up to 10MB</p>
+          <p className="text-xs text-slate-500">PNG, JPG, PDF up to 1MB</p>
+          {fileError ? <p className="text-xs font-semibold text-rose-600">{fileError}</p> : null}
           {fileName ? (
             <div className="mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-white px-3 py-2 text-left shadow-sm">
               <p className="min-w-0 truncate text-sm font-medium text-slate-700">{fileName}</p>
