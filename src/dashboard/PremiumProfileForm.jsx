@@ -232,6 +232,8 @@ const PremiumProfileForm = ({ embedded = false }) => {
   const [unions, setUnions] = useState([]);
   const [sectionLoading, setSectionLoading] = useState(false);
 
+  const keepRemoteFileUrl = (value) => typeof value === "string" && !value.startsWith("data:") ? value : undefined;
+
   const toPayload = (nextForm) => ({
     skillDetails: Array.isArray(nextForm.skillDetails) ? nextForm.skillDetails : [],
     ...nextForm,
@@ -243,9 +245,20 @@ const PremiumProfileForm = ({ embedded = false }) => {
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean),
-    experienceHistory: Array.isArray(nextForm.experienceHistory) ? nextForm.experienceHistory : [],
+    experienceHistory: Array.isArray(nextForm.experienceHistory)
+      ? nextForm.experienceHistory.map((item) => ({
+          ...item,
+          companyClearanceUrl: keepRemoteFileUrl(item.companyClearanceUrl),
+          companyIdCardUrl: keepRemoteFileUrl(item.companyIdCardUrl),
+          appointmentLetterUrl: keepRemoteFileUrl(item.appointmentLetterUrl)
+        }))
+      : [],
     academics: Array.isArray(nextForm.academics) ? nextForm.academics : [],
-    coursesOrInternships: (nextForm.coursesOrInternships || []).map(ci => ({...ci, certificateFile: undefined}))
+    coursesOrInternships: (nextForm.coursesOrInternships || []).map((item) => ({
+      ...item,
+      certificate: keepRemoteFileUrl(item.certificate),
+      certificateFile: undefined
+    }))
   });
 
   const loadProfile = useCallback(async () => {
