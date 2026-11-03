@@ -419,8 +419,10 @@ const PremiumProfileForm = ({ embedded = false }) => {
       await loadProfile();
       setDocs({ experienceDocuments: {} });
       setMessage("Section updated successfully.");
+      return true;
     } catch (error) {
       setMessage(error?.response?.data?.message || "Failed to save section.");
+      return false;
     }
   };
 
@@ -468,8 +470,8 @@ const PremiumProfileForm = ({ embedded = false }) => {
     }
 
     setForm(next);
-    await saveDraft(next);
-    setEditingSection("");
+    const saved = await saveDraft(next);
+    if (saved) setEditingSection("");
   };
 
   const onSubmitForPayment = async () => {
@@ -510,8 +512,8 @@ const PremiumProfileForm = ({ embedded = false }) => {
 
   const saveAndNext = async () => {
     if (activeStep === STEPS.length - 1) return;
-    await saveDraft();
-    goToStep(activeStep + 1);
+    const saved = await saveDraft();
+    if (saved) goToStep(activeStep + 1);
   };
 
   const isReviewStep = activeStep === STEPS.length - 1;
@@ -1216,7 +1218,7 @@ const PremiumProfileForm = ({ embedded = false }) => {
                         )}
                     {isEditing && (
                         <div className="mt-6 flex gap-3 rounded-3xl border border-slate-200 bg-slate-50/80 p-4">
-                        <button type="button" onClick={() => saveDraft().then(() => setEditingSection(""))} className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5">
+                        <button type="button" onClick={async () => { const saved = await saveDraft(); if (saved) setEditingSection(""); }} className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5">
                             Save
                         </button>
                         <button type="button" onClick={() => setEditingSection("")} className={secondaryButtonClass}>
