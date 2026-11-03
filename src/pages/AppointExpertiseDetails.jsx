@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, BriefcaseBusiness, Building2, CheckCircle2, ChevronLeft, ChevronRight, Download, ExternalLink, FileCheck2, FileText, GraduationCap, MapPin, MessageCircle, X } from "lucide-react";
+import { ArrowLeft, BriefcaseBusiness, Building2, CheckCircle2, ChevronLeft, ChevronRight, Download, ExternalLink, GraduationCap, MapPin, MessageCircle, X } from "lucide-react";
 import api from "../api/client";
 import { Skeleton, SkeletonText } from "../components/loaders/Skeleton";
 
@@ -12,19 +12,6 @@ const textOrNA = (value) => (hasText(value) ? String(value).trim() : "N/A");
 const toNumber = (value) => (Number.isFinite(Number(value)) ? Number(value) : 0);
 const toAbsoluteUrl = (url) => { const value = String(url || "").trim(); if (!value) return ""; return value.startsWith("http") || value.startsWith("data:") ? value : `${BACKEND_ORIGIN}${value}`; };
 const isImageDocument = (url = "") => /^data:image\//i.test(url) || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(url);
-
-const buildDocumentItems = (profile) => {
-  const documents = [];
-  const add = (label, url, type) => { if (url) documents.push({ label, url: toAbsoluteUrl(url), type }); };
-  add("CV / Resume", profile?.cvUrl, "Resume");
-  add("Company Clearance", profile?.companyClearanceUrl || profile?.clearanceUrl, "Employment proof");
-  add("Experience Letter", profile?.experienceLetterUrl, "Employment proof");
-  add("Company ID Card", profile?.companyIdCardUrl, "Identity proof");
-  add("Appointment Letter", profile?.appointmentLetterUrl, "Employment proof");
-  add("Additional Document", profile?.additionalDocUrl, "Supporting document");
-  listOrFallback(profile?.coursesOrInternships).forEach((item, index) => { if (item?.certificate) add(`${item?.type || "Course"} Certificate ${index + 1}`, item.certificate, "Certificate"); });
-  return documents;
-};
 
 const buildExperienceDocumentItems = (experience, profile, experienceIndex) => [
   ["Company Clearance", experience?.companyClearanceUrl || (experienceIndex === 0 ? profile?.cvUrl : ""), "Employment proof"],
@@ -58,15 +45,6 @@ const Metric = ({ label, value, tone = "slate" }) => {
 
 const Tag = ({ children }) => <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">{children}</span>;
 
-const DocumentGrid = ({ documents, onPreview }) => documents.length ? (
-  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{documents.map((document) => (
-    <button type="button" key={`${document.label}-${document.url}`} onClick={() => onPreview(document)} className="group overflow-hidden rounded-2xl bg-slate-50 text-left ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:bg-emerald-50 hover:ring-emerald-300">
-      <div className="flex h-24 items-center justify-center overflow-hidden bg-slate-100 sm:h-28">{isImageDocument(document.url) ? <img src={document.url} alt={document.label} className="h-full w-full object-cover transition group-hover:scale-105" /> : <div className="flex flex-col items-center gap-2 text-slate-500"><FileText size={28} /><span className="text-[10px] font-bold tracking-widest">PDF / FILE</span></div>}</div>
-      <div className="p-3"><p className="line-clamp-2 text-xs font-semibold text-slate-800">{document.label}</p><p className="mt-1 text-[11px] text-emerald-700">Preview document</p></div>
-    </button>
-  ))}</div>
-) : <div className="rounded-2xl bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">No verification documents uploaded yet.</div>;
-
 const ExperienceDocumentSlider = ({ experience, profile, experienceIndex, onPreview }) => {
   const documents = buildExperienceDocumentItems(experience, profile, experienceIndex);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -95,7 +73,7 @@ const ExperienceDocumentSlider = ({ experience, profile, experienceIndex, onPrev
       onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onPreview(document); }}
       className="h-full w-full cursor-pointer overflow-hidden"
     >
-      <div className="flex h-full w-full overflow-hidden transition-transform duration-500 ease-out" style={{ transform: `translateX(-${activeIndex * 100}%)` }}>
+      <div className="flex h-full w-full overflow-hidden transition-transform duration-500 ease-out" style={{ transform: `translateX(-${activeIndex * (100 / documents.length)}%)` }}>
         {documents.map((item) => <div key={item.label} className="h-full min-w-full overflow-hidden"><div className="h-full w-full overflow-hidden">{isImageDocument(item.url) ? <img src={item.url} alt="" className="h-full w-full object-cover" /> : <iframe title={item.label} src={item.url} tabIndex={-1} className="pointer-events-none h-full w-full border-0 bg-white" />}</div></div>)}
       </div>
       </div>
@@ -178,7 +156,6 @@ const AppointExpertiseDetails = () => {
   if (!profile) return <section className="rounded-2xl bg-red-50 p-5 text-sm text-red-700 sm:border sm:border-red-200">{message || "Expertise profile not found."}</section>;
 
   const seeker = profile.seeker || {};
-  const documents = buildDocumentItems(profile);
   const skills = [...new Set([...listOrFallback(profile.skills), ...listOrFallback(seeker.skills)].map((item) => String(item || "").trim()).filter(Boolean))];
   const projects = listOrFallback(seeker.projects);
   const academics = listOrFallback(profile.academics);
@@ -199,8 +176,6 @@ const AppointExpertiseDetails = () => {
     <Section icon={BriefcaseBusiness} eyebrow="Competency proof" title="Core skills & tech stack" hint="Primary and supporting skills available for recruiter scanning.">{skills.length ? <div className="flex flex-wrap gap-2">{skills.map((skill) => <Tag key={skill}>{skill}</Tag>)}</div> : <p className="text-sm text-slate-500">No skills listed yet.</p>}</Section>
 
     <Section icon={Building2} eyebrow="Work history" title="Proved expertise & experience" hint="Most recent experience is shown first."><ResumeExperience experiences={experiences} profile={profile} onPreview={setPreviewDocument} /></Section>
-
-    <Section icon={FileCheck2} eyebrow="Trust & authenticity" title="Documents & verification proof" hint="Click any document to preview it in a focused viewer."><DocumentGrid documents={documents} onPreview={setPreviewDocument} /></Section>
 
     <Section icon={GraduationCap} eyebrow="Academic foundation" title="Education & certifications"><ResumeEducation academics={academics} learning={learning} /></Section>
 
