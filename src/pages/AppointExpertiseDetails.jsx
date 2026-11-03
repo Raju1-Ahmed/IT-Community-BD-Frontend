@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, BriefcaseBusiness, Building2, CheckCircle2, ChevronLeft, ChevronRight, Download, ExternalLink, GraduationCap, MapPin, MessageCircle, X } from "lucide-react";
+import { ArrowLeft, BriefcaseBusiness, Building2, CheckCircle2, Download, ExternalLink, GraduationCap, MapPin, MessageCircle, X } from "lucide-react";
 import api from "../api/client";
 import { Skeleton, SkeletonText } from "../components/loaders/Skeleton";
 
@@ -59,12 +59,8 @@ const ExperienceDocumentSlider = ({ experience, profile, experienceIndex, onPrev
   if (!documents.length) return null;
 
   const document = documents[activeIndex];
-  const previous = (event) => { event.stopPropagation(); setActiveIndex((index) => (index - 1 + documents.length) % documents.length); };
-  const next = (event) => { event.stopPropagation(); setActiveIndex((index) => (index + 1) % documents.length); };
 
-  return <div className="group w-[7.5rem] shrink-0">
-    <p className="mb-1 truncate text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">{document.label}</p>
-    <div className="relative h-[4.25rem] w-[7.5rem] overflow-x-hidden overflow-y-hidden rounded-lg bg-slate-100 shadow-sm ring-1 ring-slate-200 transition hover:ring-emerald-400">
+  return <div className="group relative h-[4.25rem] w-[7.5rem] shrink-0 overflow-hidden rounded-lg bg-slate-100 shadow-sm ring-1 ring-slate-200 transition hover:ring-emerald-400">
       <div
       role="button"
       tabIndex={0}
@@ -73,12 +69,10 @@ const ExperienceDocumentSlider = ({ experience, profile, experienceIndex, onPrev
       onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onPreview(document); }}
       className="h-full w-full cursor-pointer overflow-hidden"
     >
-      <div className="flex h-full w-full overflow-hidden transition-transform duration-500 ease-out" style={{ transform: `translateX(-${activeIndex * (100 / documents.length)}%)` }}>
-        {documents.map((item) => <div key={item.label} className="h-full min-w-full overflow-hidden"><div className="h-full w-full overflow-hidden">{isImageDocument(item.url) ? <img src={item.url} alt="" className="h-full w-full object-cover" /> : <iframe title={item.label} src={item.url} tabIndex={-1} className="pointer-events-none h-full w-full border-0 bg-white" />}</div></div>)}
+      <div className="flex h-full overflow-hidden transition-transform duration-500 ease-out" style={{ width: `${documents.length * 100}%`, transform: `translateX(-${activeIndex * (100 / documents.length)}%)` }}>
+        {documents.map((item) => <div key={item.label} className="h-full shrink-0 overflow-hidden" style={{ width: `${100 / documents.length}%` }}><div className="h-full w-full overflow-hidden">{isImageDocument(item.url) ? <img src={item.url} alt="" className="h-full w-full object-cover" /> : <iframe title={item.label} src={item.url} tabIndex={-1} className="pointer-events-none h-full w-full border-0 bg-white" />}</div></div>)}
       </div>
       </div>
-      {documents.length > 1 ? <><button type="button" onClick={previous} className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full bg-slate-900/65 p-0.5 text-white opacity-0 shadow-sm transition group-hover:opacity-100 focus:opacity-100" aria-label="Previous document"><ChevronLeft size={13} /></button><button type="button" onClick={next} className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-slate-900/65 p-0.5 text-white opacity-0 shadow-sm transition group-hover:opacity-100 focus:opacity-100" aria-label="Next document"><ChevronRight size={13} /></button></> : null}
-    </div>
   </div>;
 };
 
