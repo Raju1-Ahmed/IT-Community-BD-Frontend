@@ -236,58 +236,6 @@ const Navbar = () => {
               })}
             </nav>
 
-            {user ? (
-              <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-3">
-                <div className="flex items-center gap-3 rounded-2xl bg-white px-3 py-3 shadow-sm">
-                  {profileImageUrl ? (
-                    <img src={profileImageUrl} alt="Profile" className="h-11 w-11 rounded-full object-cover" />
-                  ) : (
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">
-                      {(user.name || "U").slice(0, 1).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-900">{user.name}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">{user.role}</p>
-                  </div>
-                </div>
-
-                <div className="mt-3 grid gap-2">
-                  {profileMenuItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.to}
-                        to={item.to}
-                        className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-                      >
-                        <Icon size={17} />
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    logout();
-                  }}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                >
-                  <LogOut size={16} />
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <div className="grid gap-2">
-                <NavLink to="/login" className={mobileLinkClass}>
-                  <LogIn size={18} />
-                  Login
-                </NavLink>
-              </div>
-            )}
           </div>
         </div>
       ) : null}
