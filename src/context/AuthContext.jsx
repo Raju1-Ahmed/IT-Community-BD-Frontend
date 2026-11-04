@@ -43,8 +43,22 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (payload) => {
     const { data } = await api.post("/auth/register", payload);
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+      setUser(data.user);
+    }
+    return data;
+  };
+
+  const verifyRegistration = async (payload) => {
+    const { data } = await api.post("/auth/register/verify", payload);
     localStorage.setItem("token", data.token);
     setUser(data.user);
+    return data;
+  };
+
+  const resendRegistrationOtp = async (email) => {
+    const { data } = await api.post("/auth/register/resend", { email });
     return data;
   };
 
@@ -65,7 +79,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const value = useMemo(
-    () => ({ user, firebaseUser, loading, login, register, socialSignIn, logout, refreshUser: fetchMe }),
+    () => ({ user, firebaseUser, loading, login, register, verifyRegistration, resendRegistrationOtp, socialSignIn, logout, refreshUser: fetchMe }),
     [user, firebaseUser, loading]
   );
 

@@ -236,6 +236,13 @@ const Navbar = () => {
               })}
             </nav>
 
+            {!user ? (
+              <NavLink to="/login" className={mobileLinkClass}>
+                <LogIn size={18} />
+                Login
+              </NavLink>
+            ) : null}
+
           </div>
         </div>
       ) : null}

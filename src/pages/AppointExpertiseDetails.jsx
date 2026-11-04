@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, BriefcaseBusiness, Building2, CheckCircle2, ChevronLeft, ChevronRight, Download, ExternalLink, GraduationCap, MapPin, MessageCircle, X } from "lucide-react";
+import { BriefcaseBusiness, Building2, ChevronLeft, ChevronRight, Download, ExternalLink, GraduationCap, MapPin, MessageCircle, X } from "lucide-react";
 import api from "../api/client";
 import { Skeleton, SkeletonText } from "../components/loaders/Skeleton";
 
@@ -31,9 +31,9 @@ const getExperienceDate = (item) => {
   return Number.isFinite(timestamp) ? timestamp : 0;
 };
 
-const Section = ({ icon: Icon, eyebrow, title, hint, children }) => (
+const Section = ({ icon: Icon, eyebrow, title, hint, hideHeader = false, children }) => (
   <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:p-6 sm:ring-0 md:border md:border-slate-200">
-    <div className="mb-5 flex items-start gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700"><Icon size={19} /></div><div>{eyebrow ? <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700">{eyebrow}</p> : null}<h2 className="text-lg font-bold text-slate-900 sm:text-xl">{title}</h2>{hint ? <p className="mt-1 text-sm text-slate-500">{hint}</p> : null}</div></div>
+    {!hideHeader ? <div className="mb-5 flex items-start gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700"><Icon size={19} /></div><div>{eyebrow ? <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700">{eyebrow}</p> : null}<h2 className="text-lg font-bold text-slate-900 sm:text-xl">{title}</h2>{hint ? <p className="mt-1 text-sm text-slate-500">{hint}</p> : null}</div></div> : null}
     {children}
   </section>
 );
@@ -44,6 +44,17 @@ const Metric = ({ label, value, tone = "slate" }) => {
 };
 
 const Tag = ({ children }) => <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">{children}</span>;
+
+const ResumeHighlights = ({ experienceYears, expectedSalary }) => {
+  const highlights = [
+    { label: "Experience", value: `${experienceYears} years`, icon: BriefcaseBusiness },
+    { label: "Expected salary", value: expectedSalary ? `${expectedSalary} BDT` : "Negotiable", icon: null }
+  ];
+
+  return <dl className="mt-6 grid max-w-xl border-y border-slate-200 sm:grid-cols-2">
+    {highlights.map(({ label, value, icon: Icon }) => <div key={label} className="flex items-center gap-2 border-b border-slate-100 px-0 py-3 last:border-b-0 sm:border-b-0 sm:border-r sm:px-5 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0">{Icon ? <Icon size={15} className="shrink-0 text-slate-400" /> : null}<div className="min-w-0"><dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</dt><dd className="mt-0.5 truncate text-sm font-semibold text-slate-900">{value}</dd></div></div>)}
+  </dl>;
+};
 
 const ExperienceDocumentSlider = ({ experience, profile, experienceIndex, onPreview }) => {
   const documents = buildExperienceDocumentItems(experience, profile, experienceIndex);
@@ -157,7 +168,6 @@ const AppointExpertiseDetails = () => {
 
   const seeker = profile.seeker || {};
   const skills = [...new Set([...listOrFallback(profile.skills), ...listOrFallback(seeker.skills)].map((item) => String(item || "").trim()).filter(Boolean))];
-  const projects = listOrFallback(seeker.projects);
   const academics = listOrFallback(profile.academics);
   const experiences = listOrFallback(profile.experienceHistory).slice().sort((a, b) => getExperienceDate(b) - getExperienceDate(a));
   const learning = listOrFallback(profile.coursesOrInternships);
@@ -169,9 +179,7 @@ const AppointExpertiseDetails = () => {
   const imageUrl = toAbsoluteUrl(seeker.profileImage);
 
   return <section className="mx-[-1rem] min-w-0 space-y-5 bg-slate-50 px-4 py-2 pb-5 sm:mx-0 sm:bg-transparent sm:px-0 sm:py-0">
-    <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Expert Profile</p><h1 className="mt-1 text-2xl font-bold text-slate-900">{textOrNA(seeker.name)}</h1></div><Link to="/appoint-expertise" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200"><ArrowLeft size={16} />Back to experts</Link></header>
-
-    <Section icon={CheckCircle2} eyebrow="First impression" title={headline} hint={location ? `Based in ${location}` : "Professional expert profile"}><div className="flex flex-col gap-5 sm:flex-row sm:items-start"><div className="h-24 w-24 shrink-0 overflow-hidden rounded-3xl bg-emerald-50 ring-4 ring-emerald-50">{imageUrl ? <img src={imageUrl} alt={seeker.name || "Expert"} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-2xl font-bold text-emerald-700">{(seeker.name || "E").slice(0, 1).toUpperCase()}</div>}</div><div className="min-w-0 flex-1"><h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">{textOrNA(seeker.name)}</h2><p className="mt-1 text-base font-semibold text-emerald-700">{headline}</p>{location ? <p className="mt-2 flex items-center gap-1 text-sm text-slate-500"><MapPin size={15} />{location}</p> : null}<p className="mt-4 whitespace-pre-line text-sm leading-6 text-slate-600">{textOrNA(profile.summary || seeker.bio)}</p></div></div><div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4"><Metric label="Experience" value={`${experienceYears} years`} tone="emerald" /><Metric label="Expected salary" value={expectedSalary ? `${expectedSalary} BDT` : "Negotiable"} tone="amber" /><Metric label="Primary location" value={textOrNA(location)} tone="slate" /><Metric label="Projects completed" value={projects.length} tone="cyan" /></div></Section>
+    <Section hideHeader><div className="flex flex-col gap-5 sm:flex-row sm:items-start"><div className="h-24 w-24 shrink-0 overflow-hidden rounded-3xl bg-emerald-50 ring-4 ring-emerald-50">{imageUrl ? <img src={imageUrl} alt={seeker.name || "Expert"} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-2xl font-bold text-emerald-700">{(seeker.name || "E").slice(0, 1).toUpperCase()}</div>}</div><div className="min-w-0 flex-1"><h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">{textOrNA(seeker.name)}</h2><p className="mt-1 text-base font-semibold text-emerald-700">{headline}</p>{location ? <p className="mt-2 flex items-center gap-1 text-sm text-slate-500"><MapPin size={15} />{location}</p> : null}<p className="mt-4 whitespace-pre-line text-sm leading-6 text-slate-600">{textOrNA(profile.summary || seeker.bio)}</p></div></div><ResumeHighlights experienceYears={experienceYears} expectedSalary={expectedSalary} /></Section>
 
     <Section icon={BriefcaseBusiness} eyebrow="Competency proof" title="Core skills & tech stack" hint="Primary and supporting skills available for recruiter scanning.">{skills.length ? <div className="flex flex-wrap gap-2">{skills.map((skill) => <Tag key={skill}>{skill}</Tag>)}</div> : <p className="text-sm text-slate-500">No skills listed yet.</p>}</Section>
 
