@@ -86,6 +86,9 @@ const Register = () => {
               .filter(Boolean)
       };
       const data = await register(payload);
+      if (!data.verificationRequired) {
+        throw new Error("Email verification is not available. Please retry after the server is updated.");
+      }
       setVerificationEmail(data.email || form.email.trim().toLowerCase());
     } catch (err) {
       setError(err?.response?.data?.message || "Registration failed");
